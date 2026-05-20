@@ -133,7 +133,6 @@ Page({
       count: 1,
       mediaType: ['image'],
       success: (res) => {
-        const tempPath = res.tempFiles[0].tempFilePath
         storage.addRecord({
           id: util.genId(),
           userPlantId: this.data.userPlant.id,
@@ -141,19 +140,19 @@ Page({
           typeName: '拍照记录',
           date: Date.now(),
           note: '',
-          photo: tempPath
+          photo: res.tempFiles[0].tempFilePath
         })
         this.loadRecords()
-        wx.showToast({ title: '记录已保存', icon: 'none' })
+        wx.showToast({ title: '已记录 📷', icon: 'none' })
       }
     })
   },
 
   addNote() {
     wx.showModal({
-      title: '添加备注',
+      title: '📝 记录一下',
       editable: true,
-      placeholderText: '记录一下植物的状态...',
+      placeholderText: '今天植物状态怎么样？',
       success: (res) => {
         if (res.confirm && res.content) {
           storage.addRecord({
@@ -168,6 +167,11 @@ Page({
         }
       }
     })
+  },
+
+  // 跳转成长日记
+  goJournal() {
+    wx.navigateTo({ url: `/pages/plant-journal/plant-journal?id=${this.data.userPlant.id}` })
   },
 
   onShareAppMessage() {

@@ -1,0 +1,57 @@
+<!-- pages/plant-journal/plant-journal.wxml -->
+<view class="container">
+  <!-- 植物头部 -->
+  <view class="journal-header card" wx:if="{{userPlant}}">
+    <view class="jh-left">
+      <view class="jh-avatar">{{userPlant.emoji}}</view>
+      <view class="jh-info">
+        <text class="jh-name">{{userPlant.nickname}}</text>
+        <text class="jh-sub">{{userPlant.name}} · 成长日记</text>
+      </view>
+    </view>
+    <view class="jh-actions">
+      <view class="jh-btn primary" bindtap="takePhoto">📷 拍照</view>
+      <view class="jh-btn" bindtap="addNote">📝 备注</view>
+    </view>
+  </view>
+
+  <!-- 时间线 -->
+  <view class="timeline" wx:if="{{journal.length > 0}}">
+    <view class="timeline-group" wx:for="{{journal}}" wx:key="date">
+      <!-- 日期标题 -->
+      <view class="date-header">
+        <view class="date-badge">
+          <text class="date-label">{{item.dateLabel}}</text>
+          <text class="date-detail">{{item.date}} {{item.weekday}}</text>
+        </view>
+      </view>
+
+      <!-- 照片网格 -->
+      <view class="photo-grid">
+        <view class="photo-item" wx:for="{{item.records}}" wx:for-item="photo" wx:key="id"
+              bindtap="previewImage" data-url="{{photo.photo}}"
+              longpress="deleteRecord" data-id="{{photo.id}}">
+          <image class="photo-img" src="{{photo.photo}}" mode="aspectFill" />
+          <view class="photo-time">
+            <text>{{item.time}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 当日备注（从records中找note类型的） -->
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{journal.length === 0}}">
+    <text class="emoji">📷</text>
+    <text class="title">还没有成长记录</text>
+    <text class="desc">点击上方「📷 拍照」记录植物每天的状态\n它会成为珍贵的成长回忆~</text>
+  </view>
+
+  <!-- 图片预览 -->
+  <view class="preview-mask" wx:if="{{showPreview}}" bindtap="closePreview">
+    <image class="preview-img" src="{{previewImage}}" mode="aspectFit" />
+    <view class="preview-close">✕</view>
+  </view>
+</view>

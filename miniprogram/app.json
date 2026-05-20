@@ -4,7 +4,8 @@
     "pages/add-plant/add-plant",
     "pages/plant-detail/plant-detail",
     "pages/calendar/calendar",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/plant-journal/plant-journal"
   ],
   "window": {
     "backgroundTextStyle": "light",

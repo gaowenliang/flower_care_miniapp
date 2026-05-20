@@ -1,0 +1,79 @@
+/* pages/plant-journal/plant-journal.wxss */
+.journal-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.jh-left { display: flex; align-items: center; }
+.jh-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin-right: 14px;
+}
+.jh-info { display: flex; flex-direction: column; }
+.jh-name { font-size: 17px; font-weight: 700; color: #2D3436; }
+.jh-sub { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+
+.jh-actions { display: flex; gap: 8px; }
+.jh-btn {
+  padding: 8px 16px; border-radius: 22px;
+  font-size: 13px; color: #90A4AE; background: #F7F9F7;
+}
+.jh-btn.primary {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: white; box-shadow: 0 4px 12px rgba(76,175,80,0.25);
+}
+
+/* 时间线 */
+.timeline { margin-top: 8px; }
+.timeline-group { margin-bottom: 20px; }
+
+.date-header { margin-bottom: 10px; }
+.date-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 14px; background: #E8F5E9; border-radius: 20px;
+}
+.date-label { font-size: 14px; font-weight: 600; color: #4CAF50; }
+.date-detail { font-size: 12px; color: #90A4AE; }
+
+/* 照片网格 */
+.photo-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  padding-left: 8px;
+}
+.photo-item {
+  position: relative; border-radius: 12px; overflow: hidden;
+  aspect-ratio: 1; background: #F0F2F0;
+}
+.photo-img {
+  width: 100%; height: 100%; display: block;
+}
+.photo-time {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.5));
+  padding: 16px 8px 6px; text-align: right;
+}
+.photo-time text { font-size: 10px; color: rgba(255,255,255,0.9); }
+
+/* 空状态 */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 60px 40px; text-align: center;
+}
+.empty-state .emoji { font-size: 80px; margin-bottom: 20px; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: #2D3436; margin-bottom: 8px; }
+.empty-state .desc { font-size: 14px; color: #90A4AE; line-height: 1.6; white-space: pre-line; }
+
+/* 图片预览 */
+.preview-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.9); display: flex;
+  align-items: center; justify-content: center; z-index: 999;
+}
+.preview-img { width: 100%; height: 100%; }
+.preview-close {
+  position: absolute; top: 50px; right: 20px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}

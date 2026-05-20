@@ -160,6 +160,13 @@ const StorageManager = {
     wx.setStorageSync(this.KEYS.RECORDS, records)
   },
 
+  // 删除单条记录
+  deleteRecord(recordId) {
+    let records = this.getRecords()
+    records = records.filter(r => r.id !== recordId)
+    wx.setStorageSync(this.KEYS.RECORDS, records)
+  },
+
   // ========== 设置 ==========
 
   getSettings() {

@@ -12,7 +12,7 @@
     </view>
     <view class="header-actions">
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
-      <view class="action-btn" bindtap="addNote">📝 备注</view>
+      <view class="action-btn" bindtap="goJournal">📖 日记</view>
       <view class="action-btn" bindtap="showAddTaskModal">➕ 任务</view>
       <view class="action-btn danger" bindtap="deletePlant">🗑️</view>
     </view>
