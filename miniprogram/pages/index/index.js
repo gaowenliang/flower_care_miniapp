@@ -1,5 +1,4 @@
-// pages/index/index.js - 首页：我的花园（重构版）
-const app = getApp()
+// pages/index/index.js - 首页：我的花园
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const subscribe = require('../../utils/subscribe')

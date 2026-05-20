@@ -188,7 +188,7 @@ Page({
         wx.showToast({ title: '头像已更新', icon: 'none' })
       }
     })
-  }
+  },
 
   onShareAppMessage() {
     return {

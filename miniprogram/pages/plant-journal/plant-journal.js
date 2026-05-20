@@ -29,30 +29,31 @@ Page({
   loadJournal() {
     const records = storage.getRecordsByPlant(this.data.userPlant.id)
     
-    // 只取拍照记录，按日期分组
-    const photoRecords = records
-      .filter(r => r.type === 'photo' && r.photo)
-      .sort((a, b) => b.date - a.date)
+    // 按日期分组所有记录（照片+备注）
+    const sorted = records.sort((a, b) => b.date - a.date)
 
-    // 按日期分组
     const grouped = {}
-    photoRecords.forEach(record => {
+    sorted.forEach(record => {
       const dateStr = util.formatDate(record.date)
       if (!grouped[dateStr]) {
         grouped[dateStr] = {
           date: dateStr,
           dateLabel: this.getDateLabel(record.date),
           weekday: this.getWeekday(record.date),
-          time: this.formatTime(record.date),
-          records: []
+          photos: [],
+          notes: []
         }
       }
-      grouped[dateStr].records.push(record)
+      if (record.type === 'photo' && record.photo) {
+        grouped[dateStr].photos.push({ ...record, time: this.formatTime(record.date) })
+      } else if (record.type === 'note' && record.note) {
+        grouped[dateStr].notes.push({ ...record, time: this.formatTime(record.date) })
+      }
     })
 
-    const journal = Object.values(grouped).sort((a, b) => 
-      new Date(b.date) - new Date(a.date)
-    )
+    const journal = Object.values(grouped)
+      .filter(g => g.photos.length > 0 || g.notes.length > 0)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
 
     this.setData({ journal })
   },

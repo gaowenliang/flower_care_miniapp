@@ -30,18 +30,28 @@
       </view>
 
       <!-- 照片网格 -->
-      <view class="photo-grid">
-        <view class="photo-item" wx:for="{{item.records}}" wx:for-item="photo" wx:key="id"
+      <view class="photo-grid" wx:if="{{item.photos.length > 0}}">
+        <view class="photo-item" wx:for="{{item.photos}}" wx:for-item="photo" wx:key="id"
               bindtap="previewImage" data-url="{{photo.photo}}"
               longpress="deleteRecord" data-id="{{photo.id}}">
           <image class="photo-img" src="{{photo.photo}}" mode="aspectFill" />
           <view class="photo-time">
-            <text>{{item.time}}</text>
+            <text>{{photo.time}}</text>
           </view>
         </view>
       </view>
 
-      <!-- 当日备注（从records中找note类型的） -->
+      <!-- 当日备注 -->
+      <view class="note-list" wx:if="{{item.notes.length > 0}}">
+        <view class="note-item" wx:for="{{item.notes}}" wx:for-item="note" wx:key="id"
+              longpress="deleteRecord" data-id="{{note.id}}">
+          <text class="note-icon">📝</text>
+          <view class="note-content">
+            <text class="note-text">{{note.note}}</text>
+            <text class="note-time">{{note.time}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 

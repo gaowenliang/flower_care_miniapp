@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成长日记 - UI预览</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; display: flex; gap: 40px; justify-content: center; padding: 40px; }
+
+.phone {
+  width: 375px; height: 812px; background: #F7F9F7;
+  border-radius: 40px; overflow: hidden; position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 2px #333;
+  flex-shrink: 0;
+}
+.phone-label { text-align: center; font-size: 14px; color: #666; margin-top: 12px; font-weight: 600; }
+
+.status-bar {
+  height: 44px; background: #FFFFFF; display: flex;
+  align-items: center; justify-content: space-between;
+  padding: 0 24px; font-size: 14px; font-weight: 600; color: #2D3436;
+}
+.nav-bar {
+  height: 48px; background: #FFFFFF; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; color: #2D3436;
+  border-bottom: 0.5px solid #F0F2F0; position: relative;
+}
+.nav-bar .back { position: absolute; left: 16px; font-size: 22px; color: #4CAF50; }
+
+.content {
+  height: calc(100% - 44px - 48px);
+  overflow-y: auto; padding: 12px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+.content::-webkit-scrollbar { display: none; }
+
+.card {
+  background: #FFFFFF; border-radius: 16px; padding: 16px;
+  margin-bottom: 16px; box-shadow: 0 1px 8px rgba(76,175,80,0.05);
+}
+
+/* 头部 */
+.journal-header { display: flex; justify-content: space-between; align-items: center; }
+.jh-left { display: flex; align-items: center; }
+.jh-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin-right: 14px; overflow: hidden; position: relative;
+}
+.jh-avatar-img { width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: cover; }
+.jh-info { display: flex; flex-direction: column; }
+.jh-name { font-size: 17px; font-weight: 700; color: #2D3436; }
+.jh-sub { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+.jh-actions { display: flex; gap: 8px; }
+.jh-btn {
+  padding: 8px 16px; border-radius: 22px;
+  font-size: 13px; color: #90A4AE; background: #F7F9F7;
+}
+.jh-btn.primary {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: white; box-shadow: 0 4px 12px rgba(76,175,80,0.25);
+}
+
+/* 日期标签 */
+.date-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: #E8F5E9; border-radius: 20px;
+  margin-bottom: 10px;
+}
+.date-label { font-size: 14px; font-weight: 600; color: #4CAF50; }
+.date-detail { font-size: 12px; color: #90A4AE; }
+
+/* 照片网格 */
+.photo-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  padding-left: 8px;
+}
+.photo-item {
+  position: relative; border-radius: 12px; overflow: hidden;
+  aspect-ratio: 1; cursor: pointer;
+}
+.photo-item img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.photo-time {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.5));
+  padding: 16px 8px 6px; text-align: right;
+}
+.photo-time span { font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 500; }
+
+/* 备注 */
+.note-card {
+  display: flex; padding: 12px 14px; gap: 12px; align-items: flex-start;
+}
+.note-icon { font-size: 18px; flex-shrink: 0; }
+.note-content { flex: 1; }
+.note-text { font-size: 14px; color: #2D3436; line-height: 1.5; }
+.note-time { font-size: 11px; color: #B0BEC5; margin-top: 4px; }
+
+/* 空状态 */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 60px 40px; text-align: center;
+}
+.empty-state .emoji { font-size: 80px; margin-bottom: 20px; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: #2D3436; margin-bottom: 8px; }
+.empty-state .desc { font-size: 14px; color: #90A4AE; line-height: 1.6; white-space: pre-line; }
+
+/* 预览弹窗 */
+.preview {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.92); display: flex;
+  align-items: center; justify-content: center; z-index: 10;
+}
+.preview img { width: 100%; max-height: 80%; object-fit: contain; }
+.preview-close {
+  position: absolute; top: 56px; right: 20px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); color: white;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.preview-counter {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,0.7); font-size: 14px;
+}
+
+/* 占位图 */
+.placeholder-img {
+  width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 32px; background: #F0F2F0;
+}
+.placeholder-img.green { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); }
+.placeholder-img.light { background: linear-gradient(135deg, #F1F8E9, #DCEDC8); }
+.placeholder-img.warm { background: linear-gradient(135deg, #FFF8E1, #FFF3E0); }
+</style>
+</head>
+<body>
+
+<!-- ==================== 有数据状态 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span>19:18</span><span>📶 🔋</span></div>
+  <div class="nav-bar"><span class="back">‹</span>成长日记</div>
+  <div class="content">
+    <!-- 头部 -->
+    <div class="card">
+      <div class="journal-header">
+        <div class="jh-left">
+          <div class="jh-avatar">
+            <img class="jh-avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='104'%3E%3Crect fill='%234CAF50' width='104' height='104' rx='52'/%3E%3Ctext x='52' y='68' text-anchor='middle' font-size='48'%3E🪴%3C/text%3E%3C/svg%3E" />
+          </div>
+          <div class="jh-info">
+            <span class="jh-name">大龟</span>
+            <span class="jh-sub">龟背竹 · 成长日记</span>
+          </div>
+        </div>
+        <div class="jh-actions">
+          <div class="jh-btn primary">📷 拍照</div>
+          <div class="jh-btn">📝 备注</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今天 -->
+    <div style="margin-bottom: 20px;">
+      <div class="date-badge">
+        <span class="date-label">今天</span>
+        <span class="date-detail">2026-05-20 周三</span>
+      </div>
+      <div class="photo-grid">
+        <div class="photo-item">
+          <div class="placeholder-img green">🪴</div>
+          <div class="photo-time"><span>18:30</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img light">🌿</div>
+          <div class="photo-time"><span>14:15</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img warm">🌱</div>
+          <div class="photo-time"><span>09:22</span></div>
+        </div>
+      </div>
+      <!-- 备注 -->
+      <div class="card" style="margin-top: 8px; padding: 12px 14px;">
+        <div class="note-card" style="padding: 0;">
+          <span class="note-icon">📝</span>
+          <div class="note-content">
+            <div class="note-text">新长了一片叶子，裂纹很漂亮！</div>
+            <div class="note-time">09:22</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 昨天 -->
+    <div style="margin-bottom: 20px;">
+      <div class="date-badge">
+        <span class="date-label">昨天</span>
+        <span class="date-detail">2026-05-19 周二</span>
+      </div>
+      <div class="photo-grid">
+        <div class="photo-item">
+          <div class="placeholder-img green">🍃</div>
+          <div class="photo-time"><span>17:45</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img light">💧</div>
+          <div class="photo-time"><span>10:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3天前 -->
+    <div style="margin-bottom: 20px;">
+      <div class="date-badge">
+        <span class="date-label">3天前</span>
+        <span class="date-detail">2026-05-17 周日</span>
+      </div>
+      <div class="photo-grid">
+        <div class="photo-item">
+          <div class="placeholder-img warm">🌿</div>
+          <div class="photo-time"><span>16:20</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img green">🪴</div>
+          <div class="photo-time"><span>08:10</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img light">🌱</div>
+          <div class="photo-time"><span>08:08</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 8px; padding: 12px 14px;">
+        <div class="note-card" style="padding: 0;">
+          <span class="note-icon">📝</span>
+          <div class="note-content">
+            <div class="note-text">浇水后发现叶子更绿了，状态很好</div>
+            <div class="note-time">08:15</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1周前 -->
+    <div style="margin-bottom: 20px;">
+      <div class="date-badge">
+        <span class="date-label">1周前</span>
+        <span class="date-detail">2026-05-13 周二</span>
+      </div>
+      <div class="photo-grid">
+        <div class="photo-item">
+          <div class="placeholder-img green">🌱</div>
+          <div class="photo-time"><span>11:30</span></div>
+        </div>
+        <div class="photo-item">
+          <div class="placeholder-img warm">🧪</div>
+          <div class="photo-time"><span>09:00</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="phone-label">成长日记 · 有记录</div>
+</div>
+
+<!-- ==================== 空状态 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span>19:18</span><span>📶 🔋</span></div>
+  <div class="nav-bar"><span class="back">‹</span>成长日记</div>
+  <div class="content">
+    <div class="card">
+      <div class="journal-header">
+        <div class="jh-left">
+          <div class="jh-avatar" style="font-size:26px;">🌵</div>
+          <div class="jh-info">
+            <span class="jh-name">肉肉</span>
+            <span class="jh-sub">多肉植物 · 成长日记</span>
+          </div>
+        </div>
+        <div class="jh-actions">
+          <div class="jh-btn primary">📷 拍照</div>
+          <div class="jh-btn">📝 备注</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state">
+      <div class="emoji">📷</div>
+      <div class="title">还没有成长记录</div>
+      <div class="desc">点击上方「📷 拍照」记录植物每天的状态
+它会成为珍贵的成长回忆~</div>
+    </div>
+  </div>
+</div>
+<div class="phone-label">成长日记 · 空状态</div>
+</div>
+
+</body>
+</html>
