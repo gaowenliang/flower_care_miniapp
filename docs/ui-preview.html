@@ -506,6 +506,24 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
 <div class="phone-label">添加植物</div>
 </div>
 
+<!-- ==================== 添加植物弹窗（水周期） ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span class="time">19:30</span><span class="icons">📶 🔋</span></div>
+  <div class="nav-bar"><span class="back">‹</span>添加植物</div>
+  <div class="content" style="background:rgba(0,0,0,0.45);position:relative;">
+    <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:14px 14px 0 0;padding:20px;">
+      <div style="text-align:center;margin-bottom:12px;"><span style="font-size:40px;">🪴</span><div style="font-size:16px;font-weight:600;color:#2D3436;">添加 龟背竹</div></div>
+      <div style="margin-bottom:16px;"><div style="font-size:13px;color:#90A4AE;margin-bottom:6px;">给它取个名字</div><div style="border:1px solid #E8F5E9;border-radius:10px;padding:10px;background:#F7F9F7;font-size:14px;color:#B0BEC5;">龟背竹</div></div>
+      <div style="margin-bottom:16px;"><div style="font-size:13px;color:#90A4AE;margin-bottom:6px;">放在哪里</div><div style="display:flex;flex-wrap:wrap;gap:6px;"><span style="padding:6px 14px;border-radius:22px;background:#E8F5E9;color:#4CAF50;font-size:13px;font-weight:600;">☀️ 阳台</span><span style="padding:6px 14px;border-radius:22px;background:#F7F9F7;color:#90A4AE;font-size:13px;">🛋️ 客厅</span><span style="padding:6px 14px;border-radius:22px;background:#F7F9F7;color:#90A4AE;font-size:13px;">🛏️ 卧室</span><span style="padding:6px 14px;border-radius:22px;background:#F7F9F7;color:#90A4AE;font-size:13px;">🪟 窗台</span></div></div>
+      <div style="margin-bottom:16px;"><div style="font-size:13px;color:#90A4AE;margin-bottom:6px;">💧 浇水周期</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:28px;height:28px;border-radius:50%;background:#F7F9F7;display:flex;align-items:center;justify-content:center;color:#4CAF50;font-weight:600;">−</span><span style="font-size:18px;font-weight:600;color:#2D3436;width:40px;text-align:center;">7</span><span style="font-size:13px;color:#90A4AE;">天</span><span style="width:28px;height:28px;border-radius:50%;background:#F7F9F7;display:flex;align-items:center;justify-content:center;color:#4CAF50;font-weight:600;">+</span></div><div style="font-size:11px;color:#B0BEC5;margin-top:4px;">建议：7天（可按实际情况调整）</div></div>
+      <div style="display:flex;border-top:1px solid #F0F2F0;"><div style="flex:1;text-align:center;padding:14px;color:#90A4AE;">取消</div><div style="flex:1;text-align:center;padding:14px;color:#4CAF50;font-weight:600;">添加到花园</div></div>
+    </div>
+  </div>
+</div>
+<div class="phone-label">添加弹窗 · 水周期调整</div>
+</div>
+
 <!-- ==================== 植物详情 ==================== -->
 <div>
 <div class="phone">
@@ -523,7 +541,10 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
       </div>
       <div class="header-actions">
         <span class="action-btn">📷 拍照</span>
-        <span class="action-btn">📝 备注</span>
+        <span class="action-btn">📖 日记</span>
+        <span class="action-btn">📤 报告</span>
+        <span class="action-btn">🩺 诊断</span>
+        <span class="action-btn" style="color:#FF9800;">🔖 补卡</span>
         <span class="action-btn">➕ 任务</span>
         <span class="action-btn danger">🗑️</span>
       </div>
@@ -636,20 +657,59 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
         <div class="pf-stats">
           <div class="pf-stat"><span class="pf-num">5</span><span class="pf-label">棵植物</span></div>
           <div class="pf-stat"><span class="pf-num">12</span><span class="pf-label">条记录</span></div>
-          <div class="pf-stat"><span class="pf-num">3</span><span class="pf-label">天连续</span></div>
+          <div class="pf-stat"><span class="pf-num">7</span><span class="pf-label">天连续</span></div>
+          <div class="pf-stat"><span class="pf-num">2</span><span class="pf-label">次补卡</span></div>
         </div>
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;padding:8px 4px;margin-bottom:10px;font-size:15px;font-weight:600;color:#2D3436;"><span>🏆 成就</span><span style="margin-left:8px;font-size:12px;color:#4CAF50;">4/12</span><span style="margin-left:auto;font-size:12px;color:#90A4AE;">展开</span></div>
-    <div class="card" style="padding:12px;">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">🌱</span><span style="font-size:11px;font-weight:600;color:#2D3436;">初心者</span><span style="font-size:9px;color:#90A4AE;">添加第一棵植物</span></div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">📝</span><span style="font-size:11px;font-weight:600;color:#2D3436;">记录员</span><span style="font-size:9px;color:#90A4AE;">累计10条记录</span></div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">✅</span><span style="font-size:11px;font-weight:600;color:#2D3436;">今日事今日毕</span><span style="font-size:9px;color:#90A4AE;">一天内完成所有任务</span></div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">🔥</span><span style="font-size:11px;font-weight:600;color:#2D3436;">坚持一周</span><span style="font-size:9px;color:#90A4AE;">连续7天完成养护</span></div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.7;"><span style="font-size:22px;">🔒</span><span style="font-size:11px;font-weight:600;color:#2D3436;">???</span><span style="font-size:9px;color:#90A4AE;">拥有5棵植物</span></div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.7;"><span style="font-size:22px;">🔒</span><span style="font-size:11px;font-weight:600;color:#2D3436;">???</span><span style="font-size:9px;color:#90A4AE;">累计50条记录</span></div>
+    <!-- 成就进度条 -->
+    <div style="display:flex;align-items:center;padding:8px 4px;margin-bottom:6px;font-size:15px;font-weight:600;color:#2D3436;"><span>🏆 成就</span><span style="margin-left:8px;font-size:12px;color:#4CAF50;">8/26 · 31%</span></div>
+    <div style="padding:0 4px;margin-bottom:12px;"><div style="height:8px;background:#F0F2F0;border-radius:4px;overflow:hidden;"><div style="height:100%;width:31%;background:linear-gradient(90deg,#4CAF50,#66BB6A);border-radius:4px;"></div></div></div>
+
+    <!-- 🌱 入门系列 -->
+    <div style="padding:4px;"><span style="font-size:14px;font-weight:600;color:#2D3436;">🌱 入门之旅</span> <span style="font-size:11px;color:#90A4AE;">刚开始养花的基础里程碑</span></div>
+    <div class="card" style="padding:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">🌱</span><span style="font-size:10px;font-weight:600;color:#2D3436;">初心者</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">💧</span><span style="font-size:10px;font-weight:600;color:#2D3436;">第一次浇水</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:10px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">拍第一张照片</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:10px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">写第一条备注</span></div>
+      </div>
+    </div>
+
+    <!-- 🔥 坚持打卡 -->
+    <div style="padding:4px;"><span style="font-size:14px;font-weight:600;color:#2D3436;">🔥 坚持打卡</span> <span style="font-size:11px;color:#90A4AE;">连续养护天数挑战</span></div>
+    <div class="card" style="padding:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:8px 2px;background:#F1F8E9;border-radius:10px;text-align:center;"><span style="font-size:18px;">🔰</span><span style="font-size:9px;font-weight:600;color:#2D3436;">3天</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:8px 2px;background:#F1F8E9;border-radius:10px;text-align:center;"><span style="font-size:18px;">🔥</span><span style="font-size:9px;font-weight:600;color:#2D3436;">7天</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:8px 2px;background:#F7F9F7;border-radius:10px;text-align:center;opacity:0.6;"><span style="font-size:18px;">🔒</span><span style="font-size:9px;color:#2D3436;">14天</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:8px 2px;background:#F7F9F7;border-radius:10px;text-align:center;opacity:0.6;"><span style="font-size:18px;">🔒</span><span style="font-size:9px;color:#2D3436;">30天</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:8px 2px;background:#F7F9F7;border-radius:10px;text-align:center;opacity:0.6;"><span style="font-size:18px;">🔒</span><span style="font-size:9px;color:#2D3436;">100天</span></div>
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:11px;color:#FF9800;">🔖 本月剩余 2 次补卡</div>
+    </div>
+
+    <!-- 🌳 收藏图鉴 + 💪 养护之路 -->
+    <div style="padding:4px;"><span style="font-size:14px;font-weight:600;color:#2D3436;">🌳 收藏图鉴</span> <span style="font-size:11px;color:#90A4AE;">植物数量与品类收集</span></div>
+    <div class="card" style="padding:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">🌿</span><span style="font-size:10px;font-weight:600;color:#2D3436;">小花园</span><span style="font-size:8px;color:#90A4AE;">3棵</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">🌸</span><span style="font-size:10px;font-weight:600;color:#2D3436;">花园新手</span><span style="font-size:8px;color:#90A4AE;">5棵</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:10px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">10棵</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:10px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">20棵</span></div>
+      </div>
+    </div>
+
+    <!-- 🌟 特殊成就 -->
+    <div style="padding:4px;"><span style="font-size:14px;font-weight:600;color:#2D3436;">🌟 特殊成就</span> <span style="font-size:11px;color:#90A4AE;">隐藏成就，特殊条件触发</span></div>
+    <div class="card" style="padding:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F1F8E9;border-radius:12px;text-align:center;"><span style="font-size:22px;">✅</span><span style="font-size:9px;font-weight:600;color:#2D3436;">今日事今日毕</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:9px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">一次完成5+任务</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:9px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">养100天</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:10px 4px;background:#F7F9F7;border-radius:12px;text-align:center;opacity:0.6;"><span style="font-size:22px;">🔒</span><span style="font-size:9px;font-weight:600;color:#2D3436;">???</span><span style="font-size:8px;color:#90A4AE;">全图鉴</span></div>
       </div>
     </div>
 
