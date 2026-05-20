@@ -2,19 +2,17 @@
 <view class="container">
   <!-- 植物头部 -->
   <view class="journal-header card" wx:if="{{userPlant}}">
-    <view class="jh-left">
-      <view class="jh-avatar">
-        <image wx:if="{{userPlant.avatar}}" class="jh-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" />
-        <text wx:else>{{userPlant.emoji}}</text>
-      </view>
-      <view class="jh-info">
-        <text class="jh-name">{{userPlant.nickname}}</text>
-        <text class="jh-sub">{{userPlant.name}} · 成长日记</text>
-      </view>
+    <view class="jh-avatar">
+      <image wx:if="{{userPlant.avatar}}" class="jh-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" />
+      <text wx:else>{{userPlant.emoji}}</text>
+    </view>
+    <view class="jh-info">
+      <text class="jh-name">{{userPlant.nickname}}</text>
+      <text class="jh-sub">{{userPlant.name}} · 成长日记</text>
     </view>
     <view class="jh-actions">
-      <view class="jh-btn primary" bindtap="takePhoto">📷 拍照</view>
-      <view class="jh-btn" bindtap="addNote">📝 备注</view>
+      <view class="jh-btn primary" bindtap="takePhoto">📷</view>
+      <view class="jh-btn" bindtap="addNote">📝</view>
     </view>
   </view>
 

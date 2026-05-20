@@ -1,33 +1,41 @@
 /* pages/plant-journal/plant-journal.wxss */
+
+/* 头部 — 单行布局 */
 .journal-header {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; align-items: center; gap: 12px;
 }
-.jh-left { display: flex; align-items: center; }
 .jh-avatar {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin-right: 14px; overflow: hidden; position: relative;
+  font-size: 20px; flex-shrink: 0; overflow: hidden; position: relative;
 }
 .jh-avatar-img {
   width: 100%; height: 100%; position: absolute; top: 0; left: 0;
 }
-.jh-info { display: flex; flex-direction: column; }
-.jh-name { font-size: 17px; font-weight: 700; color: #2D3436; }
-.jh-sub { font-size: 12px; color: #90A4AE; margin-top: 2px; }
-
-.jh-actions { display: flex; gap: 8px; }
+.jh-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.jh-name { font-size: 16px; font-weight: 700; color: #2D3436; }
+.jh-sub {
+  font-size: 12px; color: #90A4AE; margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.jh-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .jh-btn {
-  padding: 8px 16px; border-radius: 22px;
-  font-size: 13px; color: #90A4AE; background: #F7F9F7;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; background: #F7F9F7; color: #90A4AE;
 }
 .jh-btn.primary {
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
-  color: white; box-shadow: 0 4px 12px rgba(76,175,80,0.25);
+  color: white;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.25);
 }
 
 /* 时间线 */
-.timeline { margin-top: 8px; }
+.timeline { margin-top: 12px; }
 .timeline-group { margin-bottom: 20px; }
 
 .date-header { margin-bottom: 10px; }
@@ -47,9 +55,7 @@
   position: relative; border-radius: 12px; overflow: hidden;
   aspect-ratio: 1; background: #F0F2F0;
 }
-.photo-img {
-  width: 100%; height: 100%; display: block;
-}
+.photo-img { width: 100%; height: 100%; display: block; }
 .photo-time {
   position: absolute; bottom: 0; left: 0; right: 0;
   background: linear-gradient(transparent, rgba(0,0,0,0.5));
@@ -58,9 +64,7 @@
 .photo-time text { font-size: 10px; color: rgba(255,255,255,0.9); }
 
 /* 备注列表 */
-.note-list {
-  padding: 8px 8px 0;
-}
+.note-list { padding: 8px 8px 0; }
 .note-item {
   display: flex; padding: 10px 12px; background: #FFFFFF;
   border-radius: 12px; margin-bottom: 8px; align-items: flex-start;
