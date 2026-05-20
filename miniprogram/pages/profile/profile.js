@@ -1,4 +1,4 @@
-// pages/profile/profile.js - 打磨版
+// pages/profile/profile.js - v3
 const storage = require('../../utils/storage')
 
 Page({
@@ -7,6 +7,8 @@ Page({
     garden: [],
     settings: null,
     achievements: [],
+    achGroups: {},
+    achProgress: { done: 0, total: 0, percent: 0 },
     unlockedCount: 0,
     totalAchievements: 0,
     careStreak: 0,
@@ -27,16 +29,16 @@ Page({
 
   loadAchievements() {
     const achievement = require('../../utils/achievement')
-    // 检查新成就
     achievement.checkAchievements()
     const all = achievement.getAll()
-    const achievementExport = require('../../utils/export')
+    const groups = achievement.getGrouped()
+    const progress = achievement.getProgress()
     const streak = achievement.getCareStreak()
 
     this.setData({
       achievements: all,
-      unlockedCount: all.filter(a => a.unlocked).length,
-      totalAchievements: all.length,
+      achGroups: groups,
+      achProgress: progress,
       careStreak: streak
     })
   },
@@ -45,7 +47,10 @@ Page({
     this.setData({ showAchievements: !this.data.showAchievements })
   },
 
-  // 导出花园报告
+  goDiagnose() {
+    wx.navigateTo({ url: '/pages/diagnose/diagnose' })
+  },
+
   exportGardenReport() {
     const exportUtil = require('../../utils/export')
     const text = exportUtil.generateGardenReport()
@@ -93,14 +98,10 @@ Page({
     })
   },
 
-  goDiagnose() {
-    wx.navigateTo({ url: '/pages/diagnose/diagnose' })
-  },
-
   showAbout() {
     wx.showModal({
       title: '🪴 养花助手',
-      content: '版本：v1.1.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录 · 智能贴士 · 成就系统',
+      content: '版本：v1.2.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录\n智能贴士 · AI识花 · 病害诊断 · 成就系统',
       showCancel: false
     })
   }

@@ -24,7 +24,17 @@
 .toggle-arrow { margin-left: auto; font-size: 24rpx; color: #90A4AE; }
 
 /* 成就 */
-.ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx; }
+.ach-progress { margin-left: 12rpx; font-size: 24rpx; color: #4CAF50; font-weight: 400; }
+.progress-bar-wrap { padding: 0 8rpx; margin-bottom: 20rpx; }
+.progress-bar { height: 12rpx; background: #F0F2F0; border-radius: 6rpx; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4CAF50, #66BB6A); border-radius: 6rpx; transition: width 0.5s ease; }
+
+.ach-series { margin-bottom: 16rpx; }
+.series-header { padding: 12rpx 12rpx 8rpx; display: flex; align-items: baseline; gap: 12rpx; }
+.series-name { font-size: 28rpx; font-weight: 600; color: #2D3436; }
+.series-desc { font-size: 22rpx; color: #90A4AE; }
+
+.ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; }
 .ach-item {
   display: flex; flex-direction: column; align-items: center;
   padding: 20rpx 8rpx; border-radius: 16rpx; text-align: center;
