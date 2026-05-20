@@ -13,7 +13,10 @@ Page({
     showAddTask: false,
     newTaskType: 'water',
     newTaskInterval: 7,
-    taskTypes: plantsData.taskTypes
+    taskTypes: plantsData.taskTypes,
+    smartTips: [],
+    tipWeather: '',
+    tipDate: ''
   },
 
   onLoad(options) {
@@ -30,6 +33,7 @@ Page({
     this.setData({ userPlant, plantInfo })
     this.loadTasks()
     this.loadRecords()
+    this.loadSmartTips()
   },
 
   loadTasks() {
@@ -188,6 +192,30 @@ Page({
         wx.showToast({ title: '头像已更新', icon: 'none' })
       }
     })
+  },
+
+  // 智能贴士（每日刷新）
+  async loadSmartTips() {
+    const smartTips = require('../../utils/smart-tips')
+    try {
+      const result = await smartTips.generateSmartTips(
+        this.data.plantInfo,
+        this.data.userPlant.location,
+        '' // 城市编码，可从设置中读取
+      )
+      this.setData({
+        smartTips: result.tips,
+        tipWeather: result.weather,
+        tipDate: result.date
+      })
+    } catch (e) {
+      // 降级用原始贴士
+      this.setData({
+        smartTips: this.data.plantInfo ? this.data.plantInfo.tips : [],
+        tipWeather: '',
+        tipDate: ''
+      })
+    }
   },
 
   onShareAppMessage() {

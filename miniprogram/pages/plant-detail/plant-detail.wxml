@@ -101,12 +101,19 @@
     </view>
   </view>
 
-  <!-- 小贴士 -->
-  <view class="tab-content" wx:if="{{activeTab === 'tips' && plantInfo}}">
+  <!-- 小贴士（智能） -->
+  <view class="tab-content" wx:if="{{activeTab === 'tips'}}">
+    <view class="tip-header" wx:if="{{tipWeather}}">
+      <text class="tip-weather">🌤️ {{tipWeather}} · {{tipDate}}</text>
+      <text class="tip-fresh">每日更新</text>
+    </view>
     <view class="card">
-      <view class="tip-item" wx:for="{{plantInfo.tips}}" wx:key="index">
+      <view class="tip-item" wx:for="{{smartTips}}" wx:key="index">
         <text class="tip-bullet">💡</text>
         <text class="tip-text">{{item}}</text>
+      </view>
+      <view class="tip-empty" wx:if="{{smartTips.length === 0}}">
+        <text>贴士加载中...</text>
       </view>
     </view>
   </view>

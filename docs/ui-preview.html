@@ -161,6 +161,14 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
   box-shadow: 0 2px 8px rgba(76,175,80,0.25);
 }
 
+.tip-item {
+  display: flex; align-items: flex-start; padding: 10px 0;
+  border-bottom: 1px solid #F0F2F0;
+}
+.tip-item:last-child { border-bottom: none; }
+.tip-bullet { margin-right: 8px; font-size: 16px; flex-shrink: 0; }
+.tip-text { font-size: 14px; color: #2D3436; line-height: 1.5; }
+
 .plant-item {
   display: flex; align-items: center; padding: 14px 16px;
   border-bottom: 1px solid #F0F2F0;
@@ -543,15 +551,16 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
       <div class="tab">💡 小贴士</div>
     </div>
 
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px;margin-bottom:8px;">
+      <span style="font-size:12px;color:#4CAF50;font-weight:500;">🌤️ 夏天 · 晴 32°C · 2026-05-20</span>
+      <span style="font-size:11px;color:#B0BEC5;background:#F7F9F7;padding:2px 8px;border-radius:10px;">每日更新</span>
+    </div>
     <div class="card">
-      <div class="care-item"><span class="care-label">☀️ 光照</span><span class="care-value">明亮散射光</span></div>
-      <div class="care-item"><span class="care-label">💧 浇水</span><span class="care-value">每7天，浇透</span></div>
-      <div class="care-item"><span class="care-label">🌡️ 温度</span><span class="care-value">15-30°C</span></div>
-      <div class="care-item"><span class="care-label">💦 湿度</span><span class="care-value">60-80%</span></div>
-      <div class="care-item"><span class="care-label">🏺 土壤</span><span class="care-value">疏松透气营养土</span></div>
-      <div class="care-item"><span class="care-label">🧪 施肥</span><span class="care-value">春秋每月一次稀薄液肥</span></div>
-      <div class="care-item"><span class="care-label">⚡ 难度</span><span class="care-value">简单</span></div>
-      <div class="care-item"><span class="care-label">⚠️ 安全</span><span class="care-value">对宠物有毒</span></div>
+      <div class="tip-item"><span class="tip-bullet">💡</span><span class="tip-text">夏季生长旺盛，注意水肥管理</span></div>
+      <div class="tip-item"><span class="tip-bullet">💡</span><span class="tip-text">高温天气避免正午浇水，选早晚进行</span></div>
+      <div class="tip-item"><span class="tip-bullet">💡</span><span class="tip-text">注意遮阳防晒，避免叶片灼伤</span></div>
+      <div class="tip-item"><span class="tip-bullet">💡</span><span class="tip-text">阳台夏天温度高，中午拉遮阳网</span></div>
+      <div class="tip-item"><span class="tip-bullet">💡</span><span class="tip-text">明亮散射光的龟背竹夏天也要避免暴晒</span></div>
     </div>
   </div>
   <div class="tab-bar">

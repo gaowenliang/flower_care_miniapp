@@ -163,3 +163,12 @@
 .modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
 .btn-cancel { color: #90A4AE; }
 .btn-primary { color: #4CAF50; font-weight: 600; }
+
+/* 智能贴士 */
+.tip-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8rpx 16rpx 12rpx;
+}
+.tip-weather { font-size: 24rpx; color: #4CAF50; font-weight: 500; }
+.tip-fresh { font-size: 20rpx; color: #B0BEC5; background: #F7F9F7; padding: 4rpx 12rpx; border-radius: 16rpx; }
+.tip-empty { text-align: center; padding: 40rpx; color: #B0BEC5; font-size: 26rpx; }
