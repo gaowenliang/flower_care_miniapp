@@ -88,9 +88,10 @@
 
 .location-options { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .loc-opt {
-  padding: 14rpx 24rpx; border-radius: 44rpx;
+  padding: 16rpx 28rpx; border-radius: 44rpx;
   background: #F7F9F7; font-size: 26rpx; color: #90A4AE;
-  transition: all 0.2s;
+  transition: all 0.2s; min-height: 64rpx;
+  display: inline-flex; align-items: center;
 }
 .loc-opt.active { background: #E8F5E9; color: #4CAF50; font-weight: 600; }
 

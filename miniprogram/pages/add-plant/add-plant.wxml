@@ -53,7 +53,7 @@
 
   <!-- 添加弹窗 -->
   <view class="modal-mask" wx:if="{{showModal}}" bindtap="closeModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-emoji">{{selectedPlant.emoji}}</text>
         <text class="modal-title">添加 {{selectedPlant.name}}</text>
@@ -71,6 +71,7 @@
             <view class="loc-opt {{location === '卧室' ? 'active' : ''}}" bindtap="selectLocation" data-value="卧室">🛏️ 卧室</view>
             <view class="loc-opt {{location === '书房' ? 'active' : ''}}" bindtap="selectLocation" data-value="书房">📚 书房</view>
             <view class="loc-opt {{location === '窗台' ? 'active' : ''}}" bindtap="selectLocation" data-value="窗台">🪟 窗台</view>
+            <view class="loc-opt {{location === '花园' ? 'active' : ''}}" bindtap="selectLocation" data-value="花园">🌻 花园</view>
           </view>
         </view>
       </view>

@@ -134,5 +134,9 @@ Page({
 
   closeModal() {
     this.setData({ showModal: false })
+  },
+
+  preventBubble() {
+    // 阻止事件冒泡到 modal-mask
   }
 })
