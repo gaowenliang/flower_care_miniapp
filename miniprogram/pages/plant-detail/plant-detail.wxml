@@ -24,6 +24,7 @@
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
       <view class="action-btn" bindtap="goJournal">📖 日记</view>
       <view class="action-btn" bindtap="shareReport">📤 报告</view>
+      <view class="action-btn" bindtap="goDiagnose">🩺 诊断</view>
       <view class="action-btn" bindtap="showAddTaskModal">➕ 任务</view>
       <view class="action-btn danger" bindtap="deletePlant">🗑️</view>
     </view>

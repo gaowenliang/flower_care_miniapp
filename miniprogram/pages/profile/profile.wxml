@@ -67,6 +67,11 @@
   </view>
 
   <view class="card" style="padding:0;">
+    <view class="func-row" bindtap="goDiagnose">
+      <text class="func-icon">🩺</text>
+      <text class="func-name">病害诊断</text>
+      <text class="func-arrow">›</text>
+    </view>
     <view class="func-row" bindtap="exportGardenReport">
       <text class="func-icon">📤</text>
       <text class="func-name">导出花园报告</text>

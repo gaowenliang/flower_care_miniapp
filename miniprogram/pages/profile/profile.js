@@ -93,6 +93,10 @@ Page({
     })
   },
 
+  goDiagnose() {
+    wx.navigateTo({ url: '/pages/diagnose/diagnose' })
+  },
+
   showAbout() {
     wx.showModal({
       title: '🪴 养花助手',

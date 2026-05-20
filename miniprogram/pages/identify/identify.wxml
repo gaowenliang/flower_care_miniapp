@@ -1,0 +1,49 @@
+<!-- pages/identify/identify.wxml -->
+<view class="container">
+  <view class="photo-preview" wx:if="{{photoPath}}">
+    <image class="preview-img" src="{{photoPath}}" mode="aspectFit" />
+  </view>
+
+  <!-- 识别结果 -->
+  <view class="section" wx:if="{{plants.length > 0}}">
+    <view class="section-title">🔍 识别结果</view>
+    <view class="card result-card" wx:for="{{plants}}" wx:key="name">
+      <view class="result-header">
+        <text class="result-name">{{item.name}}</text>
+        <text class="result-score">{{item.score}}%</text>
+      </view>
+      <view class="result-desc" wx:if="{{item.description}}">
+        <text>{{item.description}}</text>
+      </view>
+      <view class="result-match" wx:if="{{item.matched}}">
+        <text class="match-tag">✅ 数据库匹配</text>
+        <view class="match-care" wx:if="{{item.care}}">
+          <text>💧 每{{item.care.waterDays}}天浇水 · {{item.care.light}}</text>
+        </view>
+      </view>
+      <view class="result-actions">
+        <view class="btn-add" wx:if="{{item.matched}}" bindtap="addToGarden" data-id="{{item.localId}}">
+          加入花园
+        </view>
+        <view class="btn-add disabled" wx:else>
+          暂未收录
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 识别失败 -->
+  <view class="section" wx:if="{{error}}">
+    <view class="card error-card">
+      <text class="error-text">{{error}}</text>
+      <view class="btn-retry" bindtap="retry">重新拍照</view>
+      <view class="btn-manual" bindtap="goManual">手动选择植物</view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">AI 正在识别中...</text>
+  </view>
+</view>

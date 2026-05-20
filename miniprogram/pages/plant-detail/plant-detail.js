@@ -183,6 +183,10 @@ Page({
     wx.navigateTo({ url: `/pages/plant-journal/plant-journal?id=${this.data.userPlant.id}` })
   },
 
+  goDiagnose() {
+    wx.navigateTo({ url: '/pages/diagnose/diagnose' })
+  },
+
   // 修改植物头像
   changeAvatar() {
     wx.chooseMedia({

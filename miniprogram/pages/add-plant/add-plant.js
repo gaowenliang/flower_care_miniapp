@@ -58,14 +58,7 @@ Page({
   },
 
   takePhoto() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['camera', 'album'],
-      success: () => {
-        wx.showToast({ title: 'AI识别功能开发中~', icon: 'none' })
-      }
-    })
+    wx.navigateTo({ url: '/pages/identify/identify' })
   },
 
   selectPlant(e) {

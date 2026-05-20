@@ -5,7 +5,9 @@
     "pages/plant-detail/plant-detail",
     "pages/calendar/calendar",
     "pages/profile/profile",
-    "pages/plant-journal/plant-journal"
+    "pages/plant-journal/plant-journal",
+    "pages/identify/identify",
+    "pages/diagnose/diagnose"
   ],
   "window": {
     "backgroundTextStyle": "light",

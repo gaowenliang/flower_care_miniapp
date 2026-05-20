@@ -1,0 +1,53 @@
+<!-- pages/diagnose/diagnose.wxml -->
+<view class="container">
+  <!-- 输入区 -->
+  <view class="card input-card">
+    <text class="input-title">🔍 描述你的植物症状</text>
+    <textarea class="symptom-input" placeholder="例如：叶子发黄、有黑斑、根部发软..."
+      value="{{symptomText}}" bindinput="onInput" maxlength="200" auto-height />
+    <view class="input-actions">
+      <text class="char-count">{{symptomText.length}}/200</text>
+      <view class="btn-diagnose {{symptomText.length > 0 ? '' : 'disabled'}}" bindtap="startDiagnose">
+        开始诊断
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷症状标签 -->
+  <view class="quick-tags">
+    <view class="tag {{activeTag === item ? 'active' : ''}}" wx:for="{{quickSymptoms}}" wx:key="*this"
+      bindtap="addSymptom" data-symptom="{{item}}">{{item}}</view>
+  </view>
+
+  <!-- 诊断结果 -->
+  <view class="results" wx:if="{{results.length > 0}}">
+    <view class="section-title">📋 诊断结果</view>
+    <view class="card result-card" wx:for="{{results}}" wx:key="id">
+      <view class="result-header">
+        <text class="result-emoji">{{item.emoji}}</text>
+        <view class="result-title">
+          <text class="result-name">{{item.name}}</text>
+          <text class="result-severity severity-{{item.severity}}">{{item.severity === 'high' ? '严重' : item.severity === 'medium' ? '中等' : '轻微'}}</text>
+        </view>
+      </view>
+      <view class="result-cause">
+        <text class="label">可能原因：</text>
+        <text>{{item.causes}}</text>
+      </view>
+      <view class="result-solutions">
+        <text class="label">处理建议：</text>
+        <view class="solution-item" wx:for="{{item.solutions}}" wx:for-item="sol" wx:key="*this" wx:for-index="si">
+          <text class="sol-num">{{si + 1}}</text>
+          <text class="sol-text">{{sol}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-result" wx:if="{{showNoResult}}">
+    <text class="no-result-emoji">🤔</text>
+    <text class="no-result-text">没有匹配到已知病害</text>
+    <text class="no-result-hint">试试更详细描述症状，或咨询专业园艺师</text>
+  </view>
+</view>
