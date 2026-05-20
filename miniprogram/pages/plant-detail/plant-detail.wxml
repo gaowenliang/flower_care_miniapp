@@ -1,0 +1,138 @@
+<!-- pages/plant-detail/plant-detail.wxml - 重构版 -->
+<view class="container" wx:if="{{userPlant}}">
+  <!-- 植物头部 -->
+  <view class="plant-header card">
+    <view class="header-main">
+      <view class="header-emoji">{{userPlant.emoji}}</view>
+      <view class="header-info">
+        <text class="header-name">{{userPlant.nickname}}</text>
+        <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>
+        <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
+      </view>
+    </view>
+    <view class="header-actions">
+      <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
+      <view class="action-btn" bindtap="addNote">📝 备注</view>
+      <view class="action-btn" bindtap="showAddTaskModal">➕ 任务</view>
+      <view class="action-btn danger" bindtap="deletePlant">🗑️</view>
+    </view>
+  </view>
+
+  <!-- 养护任务 -->
+  <view class="section">
+    <view class="section-title">
+      <text>📋 养护任务</text>
+      <text class="add-link" bindtap="showAddTaskModal">+ 添加</text>
+    </view>
+    <view class="card" wx:if="{{tasks.length > 0}}">
+      <view class="task-row" wx:for="{{tasks}}" wx:key="id">
+        <view class="task-left">
+          <text class="task-emoji">{{item.type === 'water' ? '💧' : item.type === 'fertilize' ? '🧪' : item.type === 'prune' ? '✂️' : item.type === 'repot' ? '🏺' : '💉'}}</text>
+          <view class="task-info">
+            <text class="task-name {{item.enabled ? '' : 'disabled'}}">{{item.typeName}}</text>
+            <text class="task-status {{item.isOverdue && item.enabled ? 'overdue' : ''}}">{{item.enabled ? item.statusText : '已暂停'}}</text>
+          </view>
+        </view>
+        <view class="task-right">
+          <view class="interval-ctrl" wx:if="{{item.enabled}}">
+            <text class="ctrl-btn" bindtap="changeInterval" data-task-id="{{item.id}}" data-delta="-1">−</text>
+            <text class="ctrl-value">{{item.intervalDays}}天</text>
+            <text class="ctrl-btn" bindtap="changeInterval" data-task-id="{{item.id}}" data-delta="1">+</text>
+          </view>
+          <view class="done-btn {{item.isOverdue && item.enabled ? 'highlight' : ''}}" bindtap="completeTask" data-id="{{item.id}}" wx:if="{{item.enabled}}">✓</view>
+          <view class="pause-btn" bindtap="toggleTask" data-id="{{item.id}}">
+            {{item.enabled ? '⏸' : '▶'}}
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="card empty-hint" wx:else>
+      <text>还没有养护任务，点击"添加"创建一个吧~</text>
+    </view>
+  </view>
+
+  <!-- Tab -->
+  <view class="tabs">
+    <view class="tab {{activeTab === 'care' ? 'active' : ''}}" bindtap="switchTab" data-tab="care">养护指南</view>
+    <view class="tab {{activeTab === 'record' ? 'active' : ''}}" bindtap="switchTab" data-tab="record">养护记录</view>
+    <view class="tab {{activeTab === 'tips' ? 'active' : ''}}" bindtap="switchTab" data-tab="tips">小贴士</view>
+  </view>
+
+  <!-- 养护指南 -->
+  <view class="tab-content" wx:if="{{activeTab === 'care' && plantInfo}}">
+    <view class="card">
+      <view class="care-item" wx:for="{{[
+        {label:'☀️ 光照', value: plantInfo.care.light},
+        {label:'💧 浇水', value: '每' + plantInfo.care.waterDays + '天，' + plantInfo.care.waterAmount},
+        {label:'🌡️ 温度', value: plantInfo.care.temperature},
+        {label:'💦 湿度', value: plantInfo.care.humidity},
+        {label:'🏺 土壤', value: plantInfo.care.soil},
+        {label:'🧪 施肥', value: plantInfo.care.fertilizer},
+        {label:'⚡ 难度', value: plantInfo.care.difficulty}
+      ]}}" wx:key="label">
+        <text class="care-label">{{item.label}}</text>
+        <text class="care-value">{{item.value}}</text>
+      </view>
+      <view class="care-item" wx:if="{{plantInfo.care.toxicity}}">
+        <text class="care-label">⚠️ 安全</text>
+        <text class="care-value">{{plantInfo.care.toxicity}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 养护记录 -->
+  <view class="tab-content" wx:if="{{activeTab === 'record'}}">
+    <view class="card" wx:if="{{records.length > 0}}">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="record-dot"></view>
+        <view class="record-content">
+          <text class="record-type">{{item.typeName}}</text>
+          <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
+          <text class="record-time">{{item.timeAgo}} · {{item.dateText}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="card empty-hint" wx:else>
+      <text>还没有养护记录</text>
+    </view>
+  </view>
+
+  <!-- 小贴士 -->
+  <view class="tab-content" wx:if="{{activeTab === 'tips' && plantInfo}}">
+    <view class="card">
+      <view class="tip-item" wx:for="{{plantInfo.tips}}" wx:key="index">
+        <text class="tip-bullet">💡</text>
+        <text class="tip-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加任务弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddTask}}" bindtap="hideAddTaskModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">添加养护任务</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">任务类型</text>
+          <view class="type-options">
+            <view class="type-opt {{newTaskType === item.id ? 'active' : ''}}" 
+                  wx:for="{{taskTypes}}" wx:key="id"
+                  bindtap="selectTaskType" data-type="{{item.id}}">
+              <text>{{item.emoji}} {{item.name}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">间隔天数</text>
+          <input class="form-input" type="number" value="{{newTaskInterval}}" bindinput="onIntervalInput" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="hideAddTaskModal">取消</view>
+        <view class="btn-primary" bindtap="confirmAddTask">确认添加</view>
+      </view>
+    </view>
+  </view>
+</view>

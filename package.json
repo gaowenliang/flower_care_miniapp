@@ -1,0 +1,26 @@
+{
+  "name": "flower-care-miniapp",
+  "version": "1.0.0",
+  "description": "养花助手微信小程序",
+  "scripts": {
+    "test": "jest tests/unit/",
+    "test:functional": "jest tests/functional/ --testTimeout=60000",
+    "test:all": "jest tests/ --testTimeout=60000"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "miniprogram-automator": "^0.12.1",
+    "miniprogram-simulate": "^1.6.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "miniprogram/utils/**/*.js",
+      "miniprogram/data/**/*.js"
+    ],
+    "coverageDirectory": "tests/coverage"
+  }
+}

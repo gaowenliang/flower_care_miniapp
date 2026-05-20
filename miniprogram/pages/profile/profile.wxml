@@ -1,0 +1,65 @@
+<!-- pages/profile/profile.wxml - 重构版 -->
+<view class="container">
+  <!-- 头像和统计 -->
+  <view class="profile-header card">
+    <view class="avatar">🌱</view>
+    <text class="profile-name">养花达人</text>
+    <view class="stats-row" wx:if="{{stats}}">
+      <view class="stat-item">
+        <text class="stat-num">{{stats.totalPlants}}</text>
+        <text class="stat-label">棵植物</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.totalRecords}}</text>
+        <text class="stat-label">条记录</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.dueToday}}</text>
+        <text class="stat-label">项待办</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 花园分布 -->
+  <view class="section card" wx:if="{{stats && stats.totalPlants > 0}}">
+    <view class="section-title">🌿 花园分布</view>
+    <view class="cat-list">
+      <view class="cat-item" wx:for="{{stats.categories}}" wx:for-index="name" wx:for-item="count" wx:key="name">
+        <text class="cat-name">{{name}}</text>
+        <view class="cat-bar-wrap">
+          <view class="cat-bar" style="width: {{count / stats.totalPlants * 100}}%"></view>
+        </view>
+        <text class="cat-count">{{count}}棵</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提醒设置 -->
+  <view class="section card" wx:if="{{settings}}">
+    <view class="section-title">⚙️ 提醒设置</view>
+    <view class="setting-item">
+      <text class="setting-label">养护提醒</text>
+      <switch checked="{{settings.reminderEnabled}}" bindchange="toggleReminder" color="#4CAF50" />
+    </view>
+    <view class="setting-item" wx:if="{{settings.reminderEnabled}}">
+      <text class="setting-label">提醒时间</text>
+      <picker mode="time" value="{{settings.reminderTime}}" bindchange="changeReminderTime">
+        <text class="setting-value">{{settings.reminderTime}} ›</text>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="func-list card">
+    <view class="func-item" bindtap="showAbout">
+      <text class="func-icon">ℹ️</text>
+      <text class="func-name">关于养花助手</text>
+      <text class="func-arrow">›</text>
+    </view>
+    <view class="func-item danger" bindtap="clearData">
+      <text class="func-icon">🗑️</text>
+      <text class="func-name">清除所有数据</text>
+      <text class="func-arrow">›</text>
+    </view>
+  </view>
+</view>

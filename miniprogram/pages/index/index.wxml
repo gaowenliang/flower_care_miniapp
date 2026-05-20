@@ -1,0 +1,76 @@
+<!-- pages/index/index.wxml - 首页重构版 -->
+<view class="container">
+  <!-- 完成提示 Toast -->
+  <view class="tip-toast {{showTip ? 'show' : ''}}" wx:if="{{tipText}}">
+    <text>✅ {{tipText}}</text>
+  </view>
+
+  <!-- 今日任务 -->
+  <view class="section" wx:if="{{todayTasks.length > 0}}">
+    <view class="section-title">
+      <text class="section-icon">🔔</text>
+      <text>今日待办</text>
+      <text class="badge">{{todayTasks.length}}</text>
+    </view>
+    <view class="card">
+      <view class="task-item" wx:for="{{todayTasks}}" wx:key="id">
+        <view class="task-info" bindtap="goDetail" data-id="{{item.plantId}}">
+          <text class="task-emoji">{{item.plantEmoji}}</text>
+          <view class="task-detail">
+            <text class="task-name">{{item.plantName}} · {{item.typeName}}</text>
+            <text class="task-time overdue">{{item.daysText}}</text>
+          </view>
+        </view>
+        <view class="task-btn" bindtap="completeTask" data-id="{{item.id}}">
+          <text>✅ 完成</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 花园统计 -->
+  <view class="stats-bar" wx:if="{{hasPlants && stats}}">
+    <view class="stat-chip">
+      <text>🌱 {{stats.totalPlants}}棵</text>
+    </view>
+    <view class="stat-chip" wx:if="{{stats.dueToday > 0}}">
+      <text>🔔 {{stats.dueToday}}项待办</text>
+    </view>
+    <view class="stat-chip">
+      <text>📝 {{stats.totalRecords}}条记录</text>
+    </view>
+  </view>
+
+  <!-- 我的花园 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="section-icon">🪴</text>
+      <text>我的花园</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!hasPlants}}">
+      <text class="emoji">🌱</text>
+      <text class="title">花园空空如也</text>
+      <text class="desc">添加第一棵植物，开启养花之旅~</text>
+      <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
+    </view>
+
+    <!-- 植物列表 -->
+    <view class="plant-grid" wx:if="{{hasPlants}}">
+      <view class="plant-card card" wx:for="{{garden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="plant-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
+          <text class="plant-emoji">{{item.emoji}}</text>
+        </view>
+        <view class="plant-info">
+          <text class="plant-name">{{item.nickname}}</text>
+          <text class="plant-species">{{item.name}} · 已养{{item.addedDays}}天</text>
+        </view>
+        <view class="plant-right">
+          <text class="plant-status">{{item.statusEmoji}}</text>
+          <text class="due-badge" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

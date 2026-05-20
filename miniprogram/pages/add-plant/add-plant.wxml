@@ -1,0 +1,83 @@
+<!-- pages/add-plant/add-plant.wxml -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索植物名称..." value="{{keyword}}" bindinput="onSearchInput" confirm-type="search" />
+      <text class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">✕</text>
+    </view>
+    <view class="camera-btn" bindtap="takePhoto">
+      <text>📷</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <scroll-view class="category-scroll" scroll-x enable-flex>
+    <view class="category-item {{activeCategory === item.id ? 'active' : ''}}" 
+          wx:for="{{categories}}" wx:key="id" 
+          bindtap="switchCategory" data-id="{{item.id}}">
+      <text class="cat-emoji">{{item.emoji}}</text>
+      <text class="cat-name">{{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 植物列表 -->
+  <view class="plant-list">
+    <view class="plant-item card" wx:for="{{filteredPlants}}" wx:key="id" 
+          bindtap="selectPlant" data-id="{{item.id}}">
+      <view class="plant-icon">
+        <text>{{item.emoji}}</text>
+      </view>
+      <view class="plant-desc">
+        <text class="plant-name">{{item.name}}</text>
+        <text class="plant-latin">{{item.latin}}</text>
+        <view class="plant-tags">
+          <text class="tag tag-sun">{{item.care.light}}</text>
+          <text class="tag tag-water">💧 {{item.care.waterDays}}天</text>
+        </view>
+      </view>
+      <view class="plant-difficulty">
+        <text class="diff-dot" style="background: {{item.care.difficulty === '超简单' ? '#4CAF50' : item.care.difficulty === '简单' ? '#8BC34A' : '#FF9800'}}"></text>
+        <text class="diff-text">{{item.care.difficulty}}</text>
+      </view>
+    </view>
+
+    <!-- 无结果 -->
+    <view class="empty-state" wx:if="{{filteredPlants.length === 0}}">
+      <text class="emoji">🔍</text>
+      <text class="title">没有找到</text>
+      <text class="desc">换个关键词试试？</text>
+    </view>
+  </view>
+
+  <!-- 添加弹窗 -->
+  <view class="modal-mask" wx:if="{{showModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-emoji">{{selectedPlant.emoji}}</text>
+        <text class="modal-title">添加 {{selectedPlant.name}}</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">给它取个名字</text>
+          <input class="form-input" placeholder="{{selectedPlant.name}}" bindinput="onNickNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">放在哪里</text>
+          <view class="location-options">
+            <view class="loc-opt {{location === '阳台' ? 'active' : ''}}" bindtap="selectLocation" data-value="阳台">☀️ 阳台</view>
+            <view class="loc-opt {{location === '客厅' ? 'active' : ''}}" bindtap="selectLocation" data-value="客厅">🛋️ 客厅</view>
+            <view class="loc-opt {{location === '卧室' ? 'active' : ''}}" bindtap="selectLocation" data-value="卧室">🛏️ 卧室</view>
+            <view class="loc-opt {{location === '书房' ? 'active' : ''}}" bindtap="selectLocation" data-value="书房">📚 书房</view>
+            <view class="loc-opt {{location === '窗台' ? 'active' : ''}}" bindtap="selectLocation" data-value="窗台">🪟 窗台</view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeModal">取消</view>
+        <view class="btn-primary" bindtap="confirmAdd">添加到花园</view>
+      </view>
+    </view>
+  </view>
+</view>

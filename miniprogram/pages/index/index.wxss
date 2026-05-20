@@ -1,0 +1,83 @@
+/* pages/index/index.wxss - 重构版 */
+.section { margin-bottom: 30rpx; }
+
+.section-title {
+  display: flex; align-items: center;
+  padding: 20rpx 10rpx; font-size: 32rpx; font-weight: 600;
+}
+.section-icon { margin-right: 10rpx; font-size: 34rpx; }
+
+.badge {
+  margin-left: 12rpx; background: #FF5252; color: #fff;
+  font-size: 22rpx; padding: 2rpx 14rpx; border-radius: 20rpx;
+}
+
+/* 完成提示 */
+.tip-toast {
+  position: fixed; top: 100rpx; left: 50%; transform: translateX(-50%) translateY(-40rpx);
+  background: rgba(76,175,80,0.95); color: #fff; padding: 16rpx 36rpx;
+  border-radius: 40rpx; font-size: 26rpx; z-index: 999;
+  opacity: 0; transition: all 0.3s;
+}
+.tip-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 统计条 */
+.stats-bar {
+  display: flex; gap: 16rpx; padding: 0 10rpx; margin-bottom: 20rpx;
+}
+.stat-chip {
+  padding: 8rpx 20rpx; background: #fff; border-radius: 20rpx;
+  font-size: 22rpx; color: #666; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+/* 任务 */
+.task-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20rpx 0; border-bottom: 1rpx solid #f5f5f5;
+}
+.task-item:last-child { border-bottom: none; }
+.task-info { display: flex; align-items: center; flex: 1; }
+.task-emoji { font-size: 44rpx; margin-right: 20rpx; }
+.task-detail { display: flex; flex-direction: column; }
+.task-name { font-size: 28rpx; font-weight: 500; }
+.task-time { font-size: 24rpx; color: #4CAF50; margin-top: 4rpx; }
+.task-time.overdue { color: #FF5252; font-weight: 600; }
+.task-btn {
+  background: #E8F5E9; color: #4CAF50; padding: 10rpx 24rpx;
+  border-radius: 30rpx; font-size: 24rpx; font-weight: 600;
+}
+
+/* 植物列表 */
+.plant-grid { display: flex; flex-direction: column; gap: 16rpx; }
+.plant-card {
+  display: flex; align-items: center;
+  padding: 24rpx 30rpx !important;
+}
+.plant-avatar {
+  width: 88rpx; height: 88rpx; border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 24rpx; flex-shrink: 0;
+}
+.plant-avatar.needs-care { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
+.plant-emoji { font-size: 44rpx; }
+.plant-info { flex: 1; display: flex; flex-direction: column; }
+.plant-name { font-size: 30rpx; font-weight: 600; color: #333; }
+.plant-species { font-size: 24rpx; color: #999; margin-top: 4rpx; }
+.plant-right { display: flex; align-items: center; gap: 8rpx; flex-shrink: 0; }
+.plant-status { font-size: 40rpx; }
+.due-badge {
+  background: #FF5252; color: #fff; font-size: 20rpx;
+  min-width: 32rpx; height: 32rpx; border-radius: 16rpx;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 8rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 120rpx 60rpx; text-align: center;
+}
+.empty-state .emoji { font-size: 120rpx; margin-bottom: 30rpx; }
+.empty-state .title { font-size: 32rpx; font-weight: 600; color: #333; margin-bottom: 16rpx; }
+.empty-state .desc { font-size: 26rpx; color: #999; margin-bottom: 40rpx; }
