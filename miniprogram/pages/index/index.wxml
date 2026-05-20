@@ -56,21 +56,15 @@
       <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
     </view>
 
-    <!-- 植物列表 -->
-    <view class="plant-grid" wx:if="{{hasPlants}}">
-      <view class="plant-card card" wx:for="{{garden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
-        <view class="plant-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
-          <image wx:if="{{item.avatar}}" class="plant-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
-          <text wx:else class="plant-emoji">{{item.emoji}}</text>
+    <!-- 矩阵网格 -->
+    <view class="garden-grid" wx:if="{{hasPlants}}">
+      <view class="garden-item" wx:for="{{garden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
+          <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
+          <text wx:else class="garden-emoji">{{item.emoji}}</text>
+          <text class="garden-due" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
         </view>
-        <view class="plant-info">
-          <text class="plant-name">{{item.nickname}}</text>
-          <text class="plant-species">{{item.name}} · 已养{{item.addedDays}}天</text>
-        </view>
-        <view class="plant-right">
-          <text class="plant-status">{{item.statusEmoji}}</text>
-          <text class="due-badge" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
-        </view>
+        <text class="garden-name">{{item.nickname}}</text>
       </view>
     </view>
   </view>
