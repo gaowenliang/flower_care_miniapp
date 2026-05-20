@@ -60,10 +60,12 @@ function daysUntilNext(nextDate) {
 }
 
 /**
- * 生成唯一ID
+ * 生成唯一ID（递增计数器 + 时间戳 + 随机数）
  */
+let _idCounter = 0
 function genId() {
-  return 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)
+  _idCounter = (_idCounter + 1) % 1000000
+  return 'p_' + Date.now() + '_' + _idCounter + '_' + Math.random().toString(36).substr(2, 4)
 }
 
 /**

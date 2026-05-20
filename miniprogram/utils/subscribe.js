@@ -73,17 +73,15 @@ async function sendCareReminder(openid, data) {
  * 检查并发送今日到期提醒
  * 在用户打开小程序时调用
  */
-async function checkAndNotify() {
-  const app = getApp()
+async function checkAndNotify(force) {
+  const storage = require('./storage')
   const util = require('./util')
   
-  const garden = app.getMyGarden()
-  const tasks = app.getCareTasks().filter(t => t.enabled)
-  const dueTasks = tasks.filter(t => util.isDueToday(t.nextDate))
+  const garden = storage.getGarden()
+  const dueTasks = storage.getDueTasks()
 
   if (dueTasks.length === 0) return
 
-  // 本地通知提示
   const plantNames = []
   dueTasks.forEach(task => {
     const plant = garden.find(p => p.id === task.userPlantId)
@@ -100,10 +98,10 @@ async function checkAndNotify() {
     })
   }
 
-  // 请求订阅授权（每次只弹一次）
+  // 请求订阅授权（force=true时忽略每日限制）
   const subscribeState = wx.getStorageSync('subscribeState') || {}
   const today = util.formatDate(Date.now())
-  if (subscribeState.lastAskDate !== today) {
+  if (force || subscribeState.lastAskDate !== today) {
     const accepted = await requestSubscribe(SUBSCRIBE_TEMPLATES.WATER_REMINDER)
     wx.setStorageSync('subscribeState', {
       lastAskDate: today,

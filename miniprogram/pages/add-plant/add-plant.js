@@ -1,7 +1,8 @@
-// pages/add-plant/add-plant.js - 优化版
-const app = getApp()
+// pages/add-plant/add-plant.js - 统一走 StorageManager
 const util = require('../../utils/util')
+const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
+const imageUtil = require('../../utils/image')
 
 Page({
   data: {
@@ -57,7 +58,6 @@ Page({
     this.setData({ filteredPlants: list })
   },
 
-  // 拍照识别
   takePhoto() {
     wx.chooseMedia({
       count: 1,
@@ -84,7 +84,7 @@ Page({
     this.setData({ location: e.currentTarget.dataset.value })
   },
 
-  confirmAdd() {
+  async confirmAdd() {
     const plant = this.data.selectedPlant
     if (!plant) return
 
@@ -104,13 +104,10 @@ Page({
       photo: null
     }
 
-    const garden = app.getMyGarden()
-    garden.push(userPlant)
-    app.saveMyGarden(garden)
+    storage.addPlant(userPlant)
 
     // 自动创建浇水任务
-    const tasks = app.getCareTasks()
-    tasks.push({
+    storage.addTask({
       id: util.genId(),
       userPlantId: userPlant.id,
       type: 'water',
@@ -120,7 +117,6 @@ Page({
       lastDoneDate: Date.now(),
       enabled: true
     })
-    app.saveCareTasks(tasks)
 
     this.setData({ showModal: false })
     wx.showToast({ title: '添加成功! 🎉', icon: 'none' })

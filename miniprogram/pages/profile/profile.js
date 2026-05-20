@@ -25,6 +25,11 @@ Page({
     settings.reminderEnabled = e.detail.value
     storage.saveSettings(settings)
     this.setData({ settings })
+    // 如果开启，主动请求订阅授权
+    if (settings.reminderEnabled) {
+      const subscribe = require('../../utils/subscribe')
+      subscribe.checkAndNotify(true)
+    }
   },
 
   // 修改提醒时间

@@ -1,6 +1,6 @@
-// pages/calendar/calendar.js - 优化版：按周期循环计算每月所有到期日
-const app = getApp()
+// pages/calendar/calendar.js - 统一走 StorageManager
 const util = require('../../utils/util')
+const storage = require('../../utils/storage')
 
 Page({
   data: {
@@ -28,26 +28,19 @@ Page({
     this.buildCalendar()
   },
 
-  // 计算某任务在指定月份的所有到期日期
   getDueDatesInMonth(task, year, month) {
-    const daysInMonth = new Date(year, month, 0).getDate()
-    const dueDates = []
-
-    // 从 lastDoneDate 开始，按 intervalDays 递推
-    let cursor = task.lastDoneDate + task.intervalDays * 86400000
     const monthStart = new Date(year, month - 1, 1).getTime()
     const monthEnd = new Date(year, month, 0, 23, 59, 59).getTime()
-
-    // 安全限制：最多推算365天避免死循环
+    const dueDates = []
+    let cursor = task.lastDoneDate + task.intervalDays * 86400000
     let safety = 0
-    while (cursor <= monthEnd && safety < 365) {
+    while (cursor <= monthEnd && safety < 50) {
       if (cursor >= monthStart) {
         dueDates.push(cursor)
       }
       cursor += task.intervalDays * 86400000
       safety++
     }
-
     return dueDates
   },
 
@@ -55,15 +48,13 @@ Page({
     const { year, month } = this.data
     const firstDay = new Date(year, month - 1, 1).getDay()
     const daysInMonth = new Date(year, month, 0).getDate()
-    const garden = app.getMyGarden()
-    const tasks = app.getCareTasks().filter(t => t.enabled)
+    const garden = storage.getGarden()
+    const tasks = storage.getActiveTasks()
 
-    // 构建任务日期映射
     const taskMap = {}
     tasks.forEach(task => {
       const plant = garden.find(p => p.id === task.userPlantId)
       const dueDates = this.getDueDatesInMonth(task, year, month)
-
       dueDates.forEach(dateTs => {
         const dateStr = util.formatDate(dateTs)
         if (!taskMap[dateStr]) taskMap[dateStr] = []
@@ -75,21 +66,16 @@ Page({
       })
     })
 
-    // 构建日历天数
     const days = []
-    for (let i = 0; i < firstDay; i++) {
-      days.push({ day: '', empty: true })
-    }
+    for (let i = 0; i < firstDay; i++) days.push({ day: '', empty: true })
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
       const tasksForDay = taskMap[dateStr] || []
       days.push({
-        day: d,
-        date: dateStr,
+        day: d, date: dateStr,
         isToday: dateStr === this.data.today,
         hasTask: tasksForDay.length > 0,
-        taskCount: tasksForDay.length,
-        isPast: new Date(dateStr) < new Date(this.data.today)
+        taskCount: tasksForDay.length
       })
     }
 

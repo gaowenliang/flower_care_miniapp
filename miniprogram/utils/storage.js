@@ -19,11 +19,21 @@ const StorageManager = {
   // ========== 花园 ==========
 
   getGarden() {
-    return wx.getStorageSync(this.KEYS.GARDEN) || []
+    try {
+      return wx.getStorageSync(this.KEYS.GARDEN) || []
+    } catch (e) {
+      console.error('读取花园数据失败:', e)
+      return []
+    }
   },
 
   saveGarden(garden) {
-    wx.setStorageSync(this.KEYS.GARDEN, garden)
+    try {
+      wx.setStorageSync(this.KEYS.GARDEN, garden)
+    } catch (e) {
+      console.error('保存花园数据失败:', e)
+      wx.showToast({ title: '存储空间不足', icon: 'none' })
+    }
   },
 
   addPlant(userPlant) {
@@ -61,11 +71,20 @@ const StorageManager = {
   // ========== 任务 ==========
 
   getTasks() {
-    return wx.getStorageSync(this.KEYS.TASKS) || []
+    try {
+      return wx.getStorageSync(this.KEYS.TASKS) || []
+    } catch (e) {
+      console.error('读取任务数据失败:', e)
+      return []
+    }
   },
 
   saveTasks(tasks) {
-    wx.setStorageSync(this.KEYS.TASKS, tasks)
+    try {
+      wx.setStorageSync(this.KEYS.TASKS, tasks)
+    } catch (e) {
+      console.error('保存任务数据失败:', e)
+    }
   },
 
   getTasksByPlant(plantId) {
@@ -113,7 +132,12 @@ const StorageManager = {
     const task = tasks.find(t => t.id === taskId)
     if (task) {
       task.intervalDays = Math.max(1, intervalDays)
+      // 从 lastDoneDate 重新计算下次日期
       task.nextDate = util.nextCareDate(task.lastDoneDate, task.intervalDays)
+      // 如果算出来的下次日期已过期，从当前时间重新算
+      if (task.nextDate < Date.now()) {
+        task.nextDate = util.nextCareDate(Date.now(), task.intervalDays)
+      }
       this.saveTasks(tasks)
     }
     return task
@@ -138,7 +162,12 @@ const StorageManager = {
   // ========== 养护记录 ==========
 
   getRecords() {
-    return wx.getStorageSync(this.KEYS.RECORDS) || []
+    try {
+      return wx.getStorageSync(this.KEYS.RECORDS) || []
+    } catch (e) {
+      console.error('读取记录数据失败:', e)
+      return []
+    }
   },
 
   getRecordsByPlant(plantId) {
