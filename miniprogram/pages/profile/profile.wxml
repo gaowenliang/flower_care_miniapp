@@ -1,47 +1,64 @@
-<!-- pages/profile/profile.wxml - 重构版 -->
+<!-- pages/profile/profile.wxml - 打磨版 -->
 <view class="container">
   <!-- 头像和统计 -->
-  <view class="profile-header card">
-    <view class="avatar">🌱</view>
-    <text class="profile-name">养花达人</text>
-    <view class="stats-row" wx:if="{{stats}}">
-      <view class="stat-item">
-        <text class="stat-num">{{stats.totalPlants}}</text>
-        <text class="stat-label">棵植物</text>
+  <view class="card pf-header">
+    <view class="pf-avatar">🌱</view>
+    <text class="pf-name">养花达人</text>
+    <view class="pf-stats">
+      <view class="pf-stat">
+        <text class="pf-num">{{stats.totalPlants || 0}}</text>
+        <text class="pf-label">棵植物</text>
       </view>
-      <view class="stat-item">
-        <text class="stat-num">{{stats.totalRecords}}</text>
-        <text class="stat-label">条记录</text>
+      <view class="pf-stat">
+        <text class="pf-num">{{stats.totalRecords || 0}}</text>
+        <text class="pf-label">条记录</text>
       </view>
-      <view class="stat-item">
-        <text class="stat-num">{{stats.dueToday}}</text>
-        <text class="stat-label">项待办</text>
+      <view class="pf-stat">
+        <text class="pf-num">{{careStreak}}</text>
+        <text class="pf-label">天连续</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成就 -->
+  <view class="section-title" bindtap="toggleAchievements">
+    <text>🏆 成就</text>
+    <text class="ach-count">{{unlockedCount}}/{{totalAchievements}}</text>
+    <text class="toggle-arrow">{{showAchievements ? '收起' : '展开'}}</text>
+  </view>
+  <view class="card" wx:if="{{showAchievements}}">
+    <view class="ach-grid">
+      <view class="ach-item {{item.unlocked ? 'unlocked' : 'locked'}}" wx:for="{{achievements}}" wx:key="id">
+        <text class="ach-emoji">{{item.unlocked ? item.emoji : '🔒'}}</text>
+        <text class="ach-name">{{item.unlocked ? item.name : '???'}}</text>
+        <text class="ach-desc">{{item.desc}}</text>
       </view>
     </view>
   </view>
 
   <!-- 花园分布 -->
-  <view class="section card" wx:if="{{stats && stats.totalPlants > 0}}">
-    <view class="section-title">🌿 花园分布</view>
-    <view class="cat-list">
-      <view class="cat-item" wx:for="{{stats.categories}}" wx:for-index="name" wx:for-item="count" wx:key="name">
-        <text class="cat-name">{{name}}</text>
-        <view class="cat-bar-wrap">
-          <view class="cat-bar" style="width: {{count / stats.totalPlants * 100}}%"></view>
-        </view>
-        <text class="cat-count">{{count}}棵</text>
+  <view class="section-title">🌿 花园分布</view>
+  <view class="card">
+    <view class="cat-bar-row" wx:for="{{stats.categories}}" wx:key="index" wx:for-index="cat" wx:for-item="count">
+      <text class="cat-bar-name">{{cat}}</text>
+      <view class="cat-bar-wrap">
+        <view class="cat-bar-fill" style="width: {{count / stats.totalPlants * 100}}%"></view>
       </view>
+      <text class="cat-bar-count">{{count}}棵</text>
+    </view>
+    <view class="empty-hint" wx:if="{{!stats.categories || stats.totalPlants === 0}}">
+      <text>还没有植物哦~</text>
     </view>
   </view>
 
-  <!-- 提醒设置 -->
-  <view class="section card" wx:if="{{settings}}">
-    <view class="section-title">⚙️ 提醒设置</view>
-    <view class="setting-item">
+  <!-- 功能 -->
+  <view class="section-title">⚙️ 设置</view>
+  <view class="card">
+    <view class="setting-row">
       <text class="setting-label">养护提醒</text>
       <switch checked="{{settings.reminderEnabled}}" bindchange="toggleReminder" color="#4CAF50" />
     </view>
-    <view class="setting-item" wx:if="{{settings.reminderEnabled}}">
+    <view class="setting-row">
       <text class="setting-label">提醒时间</text>
       <picker mode="time" value="{{settings.reminderTime}}" bindchange="changeReminderTime">
         <text class="setting-value">{{settings.reminderTime}} ›</text>
@@ -49,14 +66,18 @@
     </view>
   </view>
 
-  <!-- 功能列表 -->
-  <view class="func-list card">
-    <view class="func-item" bindtap="showAbout">
+  <view class="card" style="padding:0;">
+    <view class="func-row" bindtap="exportGardenReport">
+      <text class="func-icon">📤</text>
+      <text class="func-name">导出花园报告</text>
+      <text class="func-arrow">›</text>
+    </view>
+    <view class="func-row" bindtap="showAbout">
       <text class="func-icon">ℹ️</text>
       <text class="func-name">关于养花助手</text>
       <text class="func-arrow">›</text>
     </view>
-    <view class="func-item danger" bindtap="clearData">
+    <view class="func-row danger" bindtap="clearData">
       <text class="func-icon">🗑️</text>
       <text class="func-name">清除所有数据</text>
       <text class="func-arrow">›</text>

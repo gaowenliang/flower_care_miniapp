@@ -223,6 +223,21 @@ Page({
     }
   },
 
+  // 导出报告
+  shareReport() {
+    const exportUtil = require('../../utils/export')
+    wx.showActionSheet({
+      itemList: ['复制养护报告', '分享给好友'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          exportUtil.copyReport(this.data.userPlant.id)
+        } else if (res.tapIndex === 1) {
+          wx.showShareMenu({ withShareTicket: true })
+        }
+      }
+    })
+  },
+
   // 编辑昵称
   editNickname() {
     wx.showModal({

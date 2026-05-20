@@ -108,6 +108,16 @@ Page({
       setTimeout(() => this.setData({ showTip: false }), 2000)
     }
 
+    // 检查成就
+    const achievement = require('../../utils/achievement')
+    const newBadges = achievement.checkAchievements()
+    if (newBadges.length > 0) {
+      const badge = newBadges[0]
+      setTimeout(() => {
+        wx.showToast({ title: `🏆 解锁成就：${badge.name}`, icon: 'none', duration: 3000 })
+      }, 2200)
+    }
+
     this.loadTodayTasks()
     this.loadGarden()
     this.loadStats()

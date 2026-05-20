@@ -126,6 +126,16 @@ Page({
 
     this.setData({ showModal: false })
     wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
+
+    // 检查成就
+    const achievement = require('../../utils/achievement')
+    const newBadges = achievement.checkAchievements()
+    if (newBadges.length > 0) {
+      setTimeout(() => {
+        wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 })
+      }, 1500)
+    }
+
     setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
   },
 

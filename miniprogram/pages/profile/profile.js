@@ -1,15 +1,21 @@
-// pages/profile/profile.js - 重构版
+// pages/profile/profile.js - 打磨版
 const storage = require('../../utils/storage')
 
 Page({
   data: {
     stats: null,
     garden: [],
-    settings: null
+    settings: null,
+    achievements: [],
+    unlockedCount: 0,
+    totalAchievements: 0,
+    careStreak: 0,
+    showAchievements: false
   },
 
   onShow() {
     this.loadStats()
+    this.loadAchievements()
   },
 
   loadStats() {
@@ -19,20 +25,51 @@ Page({
     this.setData({ stats, garden, settings })
   },
 
-  // 切换提醒
+  loadAchievements() {
+    const achievement = require('../../utils/achievement')
+    // 检查新成就
+    achievement.checkAchievements()
+    const all = achievement.getAll()
+    const achievementExport = require('../../utils/export')
+    const streak = achievement.getCareStreak()
+
+    this.setData({
+      achievements: all,
+      unlockedCount: all.filter(a => a.unlocked).length,
+      totalAchievements: all.length,
+      careStreak: streak
+    })
+  },
+
+  toggleAchievements() {
+    this.setData({ showAchievements: !this.data.showAchievements })
+  },
+
+  // 导出花园报告
+  exportGardenReport() {
+    const exportUtil = require('../../utils/export')
+    const text = exportUtil.generateGardenReport()
+    if (!text) {
+      wx.showToast({ title: '花园是空的', icon: 'none' })
+      return
+    }
+    wx.setClipboardData({
+      data: text,
+      success: () => wx.showToast({ title: '报告已复制', icon: 'none' })
+    })
+  },
+
   toggleReminder(e) {
     const settings = this.data.settings
     settings.reminderEnabled = e.detail.value
     storage.saveSettings(settings)
     this.setData({ settings })
-    // 如果开启，主动请求订阅授权
     if (settings.reminderEnabled) {
       const subscribe = require('../../utils/subscribe')
       subscribe.checkAndNotify(true)
     }
   },
 
-  // 修改提醒时间
   changeReminderTime(e) {
     const settings = this.data.settings
     settings.reminderTime = e.detail.value
@@ -49,6 +86,7 @@ Page({
         if (res.confirm) {
           wx.clearStorageSync()
           this.loadStats()
+          this.loadAchievements()
           wx.showToast({ title: '已清除', icon: 'none' })
         }
       }
@@ -58,7 +96,7 @@ Page({
   showAbout() {
     wx.showModal({
       title: '🪴 养花助手',
-      content: '版本：v1.0.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录',
+      content: '版本：v1.1.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录 · 智能贴士 · 成就系统',
       showCancel: false
     })
   }
