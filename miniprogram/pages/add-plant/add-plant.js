@@ -2,7 +2,6 @@
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
-const imageUtil = require('../../utils/image')
 
 Page({
   data: {

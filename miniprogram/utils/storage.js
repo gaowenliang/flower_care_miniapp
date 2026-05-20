@@ -179,21 +179,32 @@ const StorageManager = {
     records.unshift(record) // 最新的排前面
     // 最多保留500条
     if (records.length > 500) records.length = 500
-    wx.setStorageSync(this.KEYS.RECORDS, records)
+    try {
+      wx.setStorageSync(this.KEYS.RECORDS, records)
+    } catch (e) {
+      console.error('保存记录失败:', e)
+    }
     return record
   },
 
   removeRecordsByPlant(plantId) {
     let records = this.getRecords()
     records = records.filter(r => r.userPlantId !== plantId)
-    wx.setStorageSync(this.KEYS.RECORDS, records)
+    try {
+      wx.setStorageSync(this.KEYS.RECORDS, records)
+    } catch (e) {
+      console.error('删除记录失败:', e)
+    }
   },
 
-  // 删除单条记录
   deleteRecord(recordId) {
     let records = this.getRecords()
     records = records.filter(r => r.id !== recordId)
-    wx.setStorageSync(this.KEYS.RECORDS, records)
+    try {
+      wx.setStorageSync(this.KEYS.RECORDS, records)
+    } catch (e) {
+      console.error('删除记录失败:', e)
+    }
   },
 
   // ========== 设置 ==========
