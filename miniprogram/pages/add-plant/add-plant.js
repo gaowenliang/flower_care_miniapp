@@ -19,15 +19,17 @@ Page({
   },
 
   onLoad() {
+    this.setData({
+      categories: plantsData.categories,
+      filteredPlants: plantsData.plants
+    })
+  },
+
+  onShow() {
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
     const presetRooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
-    const allRooms = [...presetRooms, ...customRooms.filter(r => !presetRooms.includes(r))]
-    this.setData({
-      categories: plantsData.categories,
-      filteredPlants: plantsData.plants,
-      allRooms
-    })
+    this.setData({ allRooms: [...presetRooms, ...customRooms.filter(r => !presetRooms.includes(r))] })
   },
 
   onSearchInput(e) {

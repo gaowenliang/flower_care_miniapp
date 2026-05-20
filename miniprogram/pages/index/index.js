@@ -64,6 +64,10 @@ Page({
       wx.showToast({ title: '该房间已存在', icon: 'none' })
       return
     }
+    if (name.length > 6) {
+      wx.showToast({ title: '房间名最多6个字', icon: 'none' })
+      return
+    }
 
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
