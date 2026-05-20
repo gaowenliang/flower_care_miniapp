@@ -104,27 +104,34 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
   box-shadow: 0 1px 6px rgba(76,175,80,0.05);
 }
 
-.plant-card {
-  display: flex; align-items: center; padding: 14px 16px;
-  border-bottom: 1px solid #F0F2F0;
+/* 花园矩阵网格 */
+.garden-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
 }
-.plant-card:last-child { border-bottom: none; }
-.plant-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
+.garden-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 6px; border-radius: 16px; background: white;
+  box-shadow: 0 1px 8px rgba(76,175,80,0.05); cursor: pointer;
+}
+.garden-item:hover { transform: scale(0.96); }
+.garden-avatar {
+  width: 50px; height: 50px; border-radius: 50%;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   display: flex; align-items: center; justify-content: center;
-  margin-right: 14px; flex-shrink: 0; font-size: 22px;
+  margin-bottom: 8px; position: relative; font-size: 22px;
 }
-.plant-avatar.warn { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
-.plant-info { flex: 1; }
-.plant-name { font-size: 15px; font-weight: 600; color: #2D3436; }
-.plant-species { font-size: 12px; color: #90A4AE; margin-top: 2px; }
-.plant-status { font-size: 20px; }
-.due-badge {
+.garden-avatar.warn { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
+.garden-due {
+  position: absolute; top: -4px; right: -4px;
   background: #FF7043; color: white; font-size: 10px;
-  min-width: 18px; height: 18px; border-radius: 50%;
+  min-width: 16px; height: 16px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700;
+}
+.garden-name {
+  font-size: 12px; color: #2D3436; font-weight: 500;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; text-align: center;
 }
 
 /* ===== 添加页 ===== */
@@ -368,31 +375,38 @@ body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF 
 
     <!-- 我的花园 -->
     <div class="section-title">🪴 我的花园</div>
-    <div class="card" style="padding:0;">
-      <div class="plant-card">
-        <div class="plant-avatar">🌿</div>
-        <div class="plant-info"><div class="plant-name">小绿</div><div class="plant-species">绿萝 · 已养23天</div></div>
-        <span class="plant-status">😊</span>
+    <div class="garden-grid">
+      <div class="garden-item">
+        <div class="garden-avatar">🌿</div>
+        <span class="garden-name">小绿</span>
       </div>
-      <div class="plant-card">
-        <div class="plant-avatar warn">🌹</div>
-        <div class="plant-info"><div class="plant-name">小红</div><div class="plant-species">月季 · 已养15天</div></div>
-        <span class="plant-status">🥺</span><span class="due-badge">1</span>
+      <div class="garden-item">
+        <div class="garden-avatar warn">🌹<span class="garden-due">1</span></div>
+        <span class="garden-name">小红</span>
       </div>
-      <div class="plant-card">
-        <div class="plant-avatar">🪴</div>
-        <div class="plant-info"><div class="plant-name">大龟</div><div class="plant-species">龟背竹 · 已养45天</div></div>
-        <span class="plant-status">😊</span>
+      <div class="garden-item">
+        <div class="garden-avatar">🪴</div>
+        <span class="garden-name">大龟</span>
       </div>
-      <div class="plant-card">
-        <div class="plant-avatar">🌵</div>
-        <div class="plant-info"><div class="plant-name">肉肉</div><div class="plant-species">多肉 · 已养7天</div></div>
-        <span class="plant-status">😊</span>
+      <div class="garden-item">
+        <div class="garden-avatar">🌵</div>
+        <span class="garden-name">肉肉</span>
       </div>
-      <div class="plant-card">
-        <div class="plant-avatar warn">🍅</div>
-        <div class="plant-info"><div class="plant-name">番茄仔</div><div class="plant-species">小番茄 · 已养3天</div></div>
-        <span class="plant-status">🥺</span><span class="due-badge">2</span>
+      <div class="garden-item">
+        <div class="garden-avatar warn">🍅<span class="garden-due">2</span></div>
+        <span class="garden-name">番茄仔</span>
+      </div>
+      <div class="garden-item">
+        <div class="garden-avatar">🍃</div>
+        <span class="garden-name">薄荷</span>
+      </div>
+      <div class="garden-item">
+        <div class="garden-avatar">🦋</div>
+        <span class="garden-name">蝴蝶兰</span>
+      </div>
+      <div class="garden-item">
+        <div class="garden-avatar">🎍</div>
+        <span class="garden-name">虎皮兰</span>
       </div>
     </div>
   </div>
