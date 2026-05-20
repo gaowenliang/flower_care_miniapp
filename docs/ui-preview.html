@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>养花助手 - UI预览</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #E8E8E8; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 40px; }
+
+.phone {
+  width: 375px; height: 812px; background: #F7F9F7;
+  border-radius: 40px; overflow: hidden; position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 2px #333;
+  flex-shrink: 0;
+}
+.phone-label {
+  text-align: center; font-size: 14px; color: #666; margin-top: 12px; font-weight: 600;
+}
+
+/* 状态栏 */
+.status-bar {
+  height: 44px; background: #FFFFFF; display: flex;
+  align-items: center; justify-content: space-between;
+  padding: 0 24px; font-size: 14px; font-weight: 600; color: #2D3436;
+}
+.status-bar .time { font-weight: 700; }
+.status-bar .icons { display: flex; gap: 6px; font-size: 12px; }
+
+/* 导航栏 */
+.nav-bar {
+  height: 48px; background: #FFFFFF; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; color: #2D3436;
+  border-bottom: 0.5px solid #F0F2F0;
+  position: relative;
+}
+.nav-bar .back {
+  position: absolute; left: 16px; font-size: 20px; color: #4CAF50;
+}
+
+/* 内容区 */
+.content {
+  height: calc(100% - 44px - 48px - 80px);
+  overflow-y: auto; padding: 12px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+.content::-webkit-scrollbar { display: none; }
+
+/* TabBar */
+.tab-bar {
+  height: 80px; background: #FFFFFF;
+  border-top: 0.5px solid #F0F2F0;
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 8px;
+  position: absolute; bottom: 0; left: 0; right: 0;
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 10px; color: #90A4AE; gap: 2px;
+}
+.tab-item.active { color: #4CAF50; }
+.tab-item .icon { font-size: 24px; }
+
+/* ===== 通用组件 ===== */
+.card {
+  background: #FFFFFF; border-radius: 16px; padding: 16px;
+  margin-bottom: 12px; box-shadow: 0 1px 8px rgba(76,175,80,0.05);
+}
+.section-title {
+  display: flex; align-items: center; padding: 10px 4px;
+  font-size: 16px; font-weight: 600; color: #2D3436;
+}
+.badge {
+  margin-left: 8px; background: #FF7043; color: white;
+  font-size: 11px; padding: 1px 8px; border-radius: 10px;
+}
+.tag {
+  display: inline-block; padding: 3px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 500;
+}
+.tag-water { background: #E3F2FD; color: #1976D2; }
+.tag-sun { background: #FFF8E1; color: #F57F17; }
+
+/* ===== 首页 ===== */
+.task-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #F0F2F0;
+}
+.task-item:last-child { border-bottom: none; }
+.task-info { display: flex; align-items: center; flex: 1; }
+.task-emoji { font-size: 22px; margin-right: 12px; }
+.task-name { font-size: 14px; font-weight: 500; }
+.task-time { font-size: 12px; color: #FF7043; margin-top: 2px; font-weight: 600; }
+.task-btn {
+  background: #E8F5E9; color: #4CAF50; padding: 6px 14px;
+  border-radius: 22px; font-size: 12px; font-weight: 600;
+}
+
+.stats-bar { display: flex; gap: 8px; padding: 0 4px; margin-bottom: 10px; }
+.stat-chip {
+  padding: 4px 12px; background: white; border-radius: 12px;
+  font-size: 11px; color: #90A4AE;
+  box-shadow: 0 1px 6px rgba(76,175,80,0.05);
+}
+
+.plant-card {
+  display: flex; align-items: center; padding: 14px 16px;
+  border-bottom: 1px solid #F0F2F0;
+}
+.plant-card:last-child { border-bottom: none; }
+.plant-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 14px; flex-shrink: 0; font-size: 22px;
+}
+.plant-avatar.warn { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
+.plant-info { flex: 1; }
+.plant-name { font-size: 15px; font-weight: 600; color: #2D3436; }
+.plant-species { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+.plant-status { font-size: 20px; }
+.due-badge {
+  background: #FF7043; color: white; font-size: 10px;
+  min-width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+
+/* ===== 添加页 ===== */
+.search-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.search-wrap {
+  flex: 1; display: flex; align-items: center; background: white;
+  border-radius: 22px; padding: 10px 16px;
+  box-shadow: 0 1px 8px rgba(76,175,80,0.05);
+}
+.search-wrap input { flex: 1; border: none; outline: none; font-size: 14px; color: #2D3436; background: transparent; }
+.search-wrap input::placeholder { color: #90A4AE; }
+.camera-btn {
+  width: 42px; height: 42px; background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 1px 8px rgba(76,175,80,0.05);
+}
+
+.categories { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+.cat {
+  padding: 8px 16px; border-radius: 22px; background: white;
+  font-size: 13px; color: #90A4AE; white-space: nowrap; flex-shrink: 0;
+}
+.cat.active {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.25);
+}
+
+.plant-item {
+  display: flex; align-items: center; padding: 14px 16px;
+  border-bottom: 1px solid #F0F2F0;
+}
+.plant-item:last-child { border-bottom: none; }
+.plant-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, #F7F9F7, #E8F5E9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-right: 14px; flex-shrink: 0;
+}
+.plant-desc { flex: 1; }
+.p-name { font-size: 15px; font-weight: 600; color: #2D3436; }
+.p-latin { font-size: 11px; color: #B0BEC5; font-style: italic; }
+.p-tags { display: flex; gap: 6px; margin-top: 6px; }
+.difficulty { display: flex; align-items: center; gap: 4px; }
+.diff-dot { width: 6px; height: 6px; border-radius: 50%; }
+.diff-text { font-size: 11px; color: #90A4AE; }
+
+/* ===== 详情页 ===== */
+.detail-header { text-align: center; }
+.header-main { display: flex; align-items: center; margin-bottom: 16px; }
+.header-emoji { font-size: 48px; margin-right: 16px; }
+.header-info { flex: 1; text-align: left; }
+.header-name { font-size: 18px; font-weight: 700; color: #2D3436; }
+.header-species { font-size: 12px; color: #B0BEC5; font-style: italic; margin-top: 2px; }
+.header-location { font-size: 12px; color: #90A4AE; margin-top: 4px; }
+.header-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.action-btn {
+  padding: 8px 14px; border-radius: 22px; background: #F7F9F7;
+  font-size: 12px; color: #90A4AE;
+}
+.action-btn.danger { color: #FF7043; background: #FFF3E0; }
+
+.task-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #F0F2F0;
+}
+.task-row:last-child { border-bottom: none; }
+.t-left { display: flex; align-items: center; flex: 1; }
+.t-emoji { font-size: 18px; margin-right: 10px; }
+.t-name { font-size: 14px; font-weight: 500; color: #2D3436; }
+.t-status { font-size: 12px; color: #4CAF50; margin-top: 2px; }
+.t-status.overdue { color: #FF7043; font-weight: 600; }
+.t-right { display: flex; align-items: center; gap: 8px; }
+.interval-ctrl {
+  display: flex; align-items: center; gap: 2px;
+  background: #F7F9F7; border-radius: 22px; padding: 2px 6px;
+}
+.interval-ctrl span { font-size: 13px; padding: 2px 4px; color: #90A4AE; }
+.interval-ctrl .val { font-size: 12px; color: #2D3436; font-weight: 500; min-width: 24px; text-align: center; }
+.done-btn {
+  width: 30px; height: 30px; border-radius: 50%; background: #E8F5E9;
+  color: #4CAF50; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700;
+}
+.done-btn.highlight {
+  background: #4CAF50; color: white;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.3);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+.tabs {
+  display: flex; margin: 12px 0; background: white;
+  border-radius: 12px; padding: 4px;
+  box-shadow: 0 1px 6px rgba(76,175,80,0.05);
+}
+.tab { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; color: #90A4AE; }
+.tab.active { background: #E8F5E9; color: #4CAF50; font-weight: 600; }
+
+.care-item {
+  display: flex; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid #F0F2F0;
+}
+.care-item:last-child { border-bottom: none; }
+.care-label { font-size: 14px; color: #90A4AE; }
+.care-value { font-size: 14px; color: #2D3436; text-align: right; max-width: 200px; }
+
+.record-item {
+  display: flex; padding: 10px 0; border-bottom: 1px solid #F0F2F0;
+}
+.record-item:last-child { border-bottom: none; }
+.record-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #4CAF50;
+  margin-right: 12px; margin-top: 5px; flex-shrink: 0;
+}
+.record-content { flex: 1; }
+.record-type { font-size: 14px; font-weight: 500; color: #2D3436; }
+.record-note { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+.record-time { font-size: 11px; color: #B0BEC5; margin-top: 2px; }
+
+/* ===== 日历 ===== */
+.month-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; background: white; border-radius: 16px; margin-bottom: 10px;
+}
+.nav-arrow { font-size: 14px; color: #4CAF50; padding: 4px 10px; border-radius: 22px; }
+.month-text { font-size: 16px; font-weight: 600; color: #2D3436; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.cal-weekday { font-size: 12px; color: #90A4AE; padding: 6px 0; }
+.cal-day {
+  padding: 6px 0; border-radius: 10px; margin: 1px;
+  font-size: 14px; color: #2D3436; position: relative;
+  min-height: 38px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.cal-day.today { color: #4CAF50; font-weight: 700; }
+.cal-day.has-task { background: #F1F8E9; }
+.cal-day.selected { background: #4CAF50; color: white; box-shadow: 0 2px 6px rgba(76,175,80,0.2); }
+.cal-dots { display: flex; gap: 2px; margin-top: 2px; }
+.cal-dot { width: 4px; height: 4px; border-radius: 50%; background: #4CAF50; }
+.cal-day.selected .cal-dot { background: rgba(255,255,255,0.8); }
+.cal-day.overdue .cal-dot { background: #FF7043; }
+.cal-day.empty { pointer-events: none; }
+
+.day-tasks { margin-top: 8px; }
+.day-task {
+  display: flex; align-items: center; padding: 10px 14px;
+  border-bottom: 1px solid #F0F2F0;
+}
+.day-task:last-child { border-bottom: none; }
+.day-task .emoji { font-size: 18px; margin-right: 10px; }
+.day-task .name { font-size: 14px; font-weight: 500; color: #2D3436; }
+.day-task .type { font-size: 12px; color: #90A4AE; }
+.empty-hint { text-align: center; padding: 20px; color: #90A4AE; font-size: 13px; }
+
+/* ===== 我的 ===== */
+.profile-header { text-align: center; padding: 24px 16px; }
+.pf-avatar {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; margin: 0 auto 12px;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.15);
+}
+.pf-name { font-size: 17px; font-weight: 600; color: #2D3436; display: block; margin-bottom: 16px; }
+.pf-stats { display: flex; justify-content: center; gap: 36px; }
+.pf-stat { display: flex; flex-direction: column; align-items: center; }
+.pf-num { font-size: 20px; font-weight: 700; color: #4CAF50; }
+.pf-label { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+
+.cat-bar-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.cat-bar-name { font-size: 13px; color: #90A4AE; min-width: 32px; }
+.cat-bar-wrap { flex: 1; height: 8px; background: #F0F2F0; border-radius: 4px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+.cat-bar-count { font-size: 12px; color: #4CAF50; font-weight: 500; min-width: 28px; text-align: right; }
+
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #F0F2F0;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 14px; color: #2D3436; }
+.setting-value { font-size: 14px; color: #4CAF50; }
+.toggle {
+  width: 44px; height: 26px; background: #4CAF50; border-radius: 13px;
+  position: relative;
+}
+.toggle::after {
+  content: ''; position: absolute; width: 22px; height: 22px;
+  background: white; border-radius: 50%; right: 2px; top: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.func-row {
+  display: flex; align-items: center; padding: 14px 16px;
+  border-bottom: 1px solid #F0F2F0;
+}
+.func-row:last-child { border-bottom: none; }
+.func-icon { font-size: 16px; margin-right: 12px; }
+.func-name { flex: 1; font-size: 14px; color: #2D3436; }
+.func-arrow { color: #B0BEC5; font-size: 16px; }
+.func-row.danger .func-name { color: #FF7043; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 首页 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">18:52</span>
+    <span class="icons">📶 🔋</span>
+  </div>
+  <div class="nav-bar">我的花园</div>
+  <div class="content">
+    <!-- 今日待办 -->
+    <div class="section-title">🔔 今日待办 <span class="badge">3</span></div>
+    <div class="card">
+      <div class="task-item">
+        <div class="task-info"><span class="task-emoji">🌿</span><div><div class="task-name">小绿 · 浇水</div><div class="task-time">今天</div></div></div>
+        <div class="task-btn">✅ 完成</div>
+      </div>
+      <div class="task-item">
+        <div class="task-info"><span class="task-emoji">🌹</span><div><div class="task-name">小红 · 浇水</div><div class="task-time">逾期2天</div></div></div>
+        <div class="task-btn">✅ 完成</div>
+      </div>
+      <div class="task-item">
+        <div class="task-info"><span class="task-emoji">🪴</span><div><div class="task-name">大龟 · 施肥</div><div class="task-time">今天</div></div></div>
+        <div class="task-btn">✅ 完成</div>
+      </div>
+    </div>
+
+    <!-- 统计条 -->
+    <div class="stats-bar">
+      <span class="stat-chip">🌱 5棵</span>
+      <span class="stat-chip">🔔 3项待办</span>
+      <span class="stat-chip">📝 12条记录</span>
+    </div>
+
+    <!-- 我的花园 -->
+    <div class="section-title">🪴 我的花园</div>
+    <div class="card" style="padding:0;">
+      <div class="plant-card">
+        <div class="plant-avatar">🌿</div>
+        <div class="plant-info"><div class="plant-name">小绿</div><div class="plant-species">绿萝 · 已养23天</div></div>
+        <span class="plant-status">😊</span>
+      </div>
+      <div class="plant-card">
+        <div class="plant-avatar warn">🌹</div>
+        <div class="plant-info"><div class="plant-name">小红</div><div class="plant-species">月季 · 已养15天</div></div>
+        <span class="plant-status">🥺</span><span class="due-badge">1</span>
+      </div>
+      <div class="plant-card">
+        <div class="plant-avatar">🪴</div>
+        <div class="plant-info"><div class="plant-name">大龟</div><div class="plant-species">龟背竹 · 已养45天</div></div>
+        <span class="plant-status">😊</span>
+      </div>
+      <div class="plant-card">
+        <div class="plant-avatar">🌵</div>
+        <div class="plant-info"><div class="plant-name">肉肉</div><div class="plant-species">多肉 · 已养7天</div></div>
+        <span class="plant-status">😊</span>
+      </div>
+      <div class="plant-card">
+        <div class="plant-avatar warn">🍅</div>
+        <div class="plant-info"><div class="plant-name">番茄仔</div><div class="plant-species">小番茄 · 已养3天</div></div>
+        <span class="plant-status">🥺</span><span class="due-badge">2</span>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item active"><span class="icon">🌿</span>花园</div>
+    <div class="tab-item"><span class="icon">➕</span>添加</div>
+    <div class="tab-item"><span class="icon">📅</span>日历</div>
+    <div class="tab-item"><span class="icon">👤</span>我的</div>
+  </div>
+</div>
+<div class="phone-label">首页 · 我的花园</div>
+</div>
+
+<!-- ==================== 添加植物 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span class="time">18:52</span><span class="icons">📶 🔋</span></div>
+  <div class="nav-bar">添加植物</div>
+  <div class="content">
+    <div class="search-bar">
+      <div class="search-wrap">
+        <span style="margin-right:8px;">🔍</span>
+        <input placeholder="搜索植物名称..." value="绿">
+        <span style="color:#90A4AE; padding:2px 6px;">✕</span>
+      </div>
+      <div class="camera-btn">📷</div>
+    </div>
+    <div class="categories">
+      <div class="cat active">🌱 全部</div>
+      <div class="cat">🪴 绿植</div>
+      <div class="cat">🌸 花卉</div>
+      <div class="cat">🌵 多肉</div>
+      <div class="cat">🌿 香草</div>
+      <div class="cat">🍅 蔬果</div>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="plant-item">
+        <div class="plant-icon">🌿</div>
+        <div class="plant-desc">
+          <div class="p-name">绿萝</div>
+          <div class="p-latin">Epipremnum aureum</div>
+          <div class="p-tags"><span class="tag tag-sun">耐阴散射光</span><span class="tag tag-water">💧 5天</span></div>
+        </div>
+        <div class="difficulty"><div class="diff-dot" style="background:#4CAF50"></div><div class="diff-text">超简单</div></div>
+      </div>
+      <div class="plant-item">
+        <div class="plant-icon">🪴</div>
+        <div class="plant-desc">
+          <div class="p-name">龟背竹</div>
+          <div class="p-latin">Monstera deliciosa</div>
+          <div class="p-tags"><span class="tag tag-sun">明亮散射光</span><span class="tag tag-water">💧 7天</span></div>
+        </div>
+        <div class="difficulty"><div class="diff-dot" style="background:#8BC34A"></div><div class="diff-text">简单</div></div>
+      </div>
+      <div class="plant-item">
+        <div class="plant-icon">🎍</div>
+        <div class="plant-desc">
+          <div class="p-name">虎皮兰</div>
+          <div class="p-latin">Sansevieria trifasciata</div>
+          <div class="p-tags"><span class="tag tag-sun">耐阴到明亮</span><span class="tag tag-water">💧 14天</span></div>
+        </div>
+        <div class="difficulty"><div class="diff-dot" style="background:#4CAF50"></div><div class="diff-text">超简单</div></div>
+      </div>
+      <div class="plant-item">
+        <div class="plant-icon">🍃</div>
+        <div class="plant-desc">
+          <div class="p-name">豆瓣绿</div>
+          <div class="p-latin">Peperomia obtusifolia</div>
+          <div class="p-tags"><span class="tag tag-sun">散射光</span><span class="tag tag-water">💧 7天</span></div>
+        </div>
+        <div class="difficulty"><div class="diff-dot" style="background:#8BC34A"></div><div class="diff-text">简单</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="icon">🌿</span>花园</div>
+    <div class="tab-item active"><span class="icon">➕</span>添加</div>
+    <div class="tab-item"><span class="icon">📅</span>日历</div>
+    <div class="tab-item"><span class="icon">👤</span>我的</div>
+  </div>
+</div>
+<div class="phone-label">添加植物</div>
+</div>
+
+<!-- ==================== 植物详情 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span class="time">18:52</span><span class="icons">📶 🔋</span></div>
+  <div class="nav-bar"><span class="back">‹</span>植物详情</div>
+  <div class="content">
+    <div class="card detail-header">
+      <div class="header-main">
+        <div class="header-emoji">🪴</div>
+        <div class="header-info">
+          <div class="header-name">大龟</div>
+          <div class="header-species">龟背竹 · Monstera deliciosa</div>
+          <div class="header-location">📍 阳台 · 绿植</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="action-btn">📷 拍照</span>
+        <span class="action-btn">📝 备注</span>
+        <span class="action-btn">➕ 任务</span>
+        <span class="action-btn danger">🗑️</span>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;">
+      <span style="font-size:15px;font-weight:600;color:#2D3436;">📋 养护任务</span>
+      <span style="font-size:13px;color:#4CAF50;">+ 添加</span>
+    </div>
+    <div class="card">
+      <div class="task-row">
+        <div class="t-left"><span class="t-emoji">💧</span><div><div class="t-name">浇水</div><div class="t-status">3天后</div></div></div>
+        <div class="t-right">
+          <div class="interval-ctrl"><span>−</span><span class="val">7天</span><span>+</span></div>
+          <div class="done-btn">✓</div>
+          <span style="font-size:14px;color:#90A4AE;">⏸</span>
+        </div>
+      </div>
+      <div class="task-row">
+        <div class="t-left"><span class="t-emoji">🧪</span><div><div class="t-name">施肥</div><div class="t-status overdue">逾期5天！</div></div></div>
+        <div class="t-right">
+          <div class="interval-ctrl"><span>−</span><span class="val">30天</span><span>+</span></div>
+          <div class="done-btn highlight">✓</div>
+          <span style="font-size:14px;color:#90A4AE;">⏸</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">养护指南</div>
+      <div class="tab">养护记录</div>
+      <div class="tab">💡 小贴士</div>
+    </div>
+
+    <div class="card">
+      <div class="care-item"><span class="care-label">☀️ 光照</span><span class="care-value">明亮散射光</span></div>
+      <div class="care-item"><span class="care-label">💧 浇水</span><span class="care-value">每7天，浇透</span></div>
+      <div class="care-item"><span class="care-label">🌡️ 温度</span><span class="care-value">15-30°C</span></div>
+      <div class="care-item"><span class="care-label">💦 湿度</span><span class="care-value">60-80%</span></div>
+      <div class="care-item"><span class="care-label">🏺 土壤</span><span class="care-value">疏松透气营养土</span></div>
+      <div class="care-item"><span class="care-label">🧪 施肥</span><span class="care-value">春秋每月一次稀薄液肥</span></div>
+      <div class="care-item"><span class="care-label">⚡ 难度</span><span class="care-value">简单</span></div>
+      <div class="care-item"><span class="care-label">⚠️ 安全</span><span class="care-value">对宠物有毒</span></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item active"><span class="icon">🌿</span>花园</div>
+    <div class="tab-item"><span class="icon">➕</span>添加</div>
+    <div class="tab-item"><span class="icon">📅</span>日历</div>
+    <div class="tab-item"><span class="icon">👤</span>我的</div>
+  </div>
+</div>
+<div class="phone-label">植物详情</div>
+</div>
+
+<!-- ==================== 日历 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span class="time">18:52</span><span class="icons">📶 🔋</span></div>
+  <div class="nav-bar">养护日历</div>
+  <div class="content">
+    <div class="month-nav">
+      <span class="nav-arrow">◀</span>
+      <span class="month-text">2026年5月</span>
+      <span class="nav-arrow">▶</span>
+    </div>
+    <div class="card">
+      <div class="cal-grid">
+        <span class="cal-weekday">日</span><span class="cal-weekday">一</span><span class="cal-weekday">二</span><span class="cal-weekday">三</span><span class="cal-weekday">四</span><span class="cal-weekday">五</span><span class="cal-weekday">六</span>
+        <!-- Row 1 -->
+        <span class="cal-day"></span><span class="cal-day"></span><span class="cal-day"></span><span class="cal-day"></span><span class="cal-day">1</span><span class="cal-day">2</span><span class="cal-day has-task">3<div class="cal-dots"><div class="cal-dot"></div></div></span>
+        <!-- Row 2 -->
+        <span class="cal-day">4</span><span class="cal-day has-task">5<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">6</span><span class="cal-day">7</span><span class="cal-day has-task">8<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">9</span><span class="cal-day">10</span><span class="cal-day">11</span>
+        <!-- Row 3 -->
+        <span class="cal-day">12</span><span class="cal-day has-task">13<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">14</span><span class="cal-day selected">15<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">16</span><span class="cal-day">17</span><span class="cal-day">18</span>
+        <!-- Row 4 -->
+        <span class="cal-day">19</span><span class="cal-day today overdue">20<div class="cal-dots"><div class="cal-dot" style="background:#FF7043"></div></div></span><span class="cal-day">21</span><span class="cal-day has-task">22<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">23</span><span class="cal-day">24</span><span class="cal-day">25</span>
+        <!-- Row 5 -->
+        <span class="cal-day">26</span><span class="cal-day">27</span><span class="cal-day has-task">28<div class="cal-dots"><div class="cal-dot"></div></div></span><span class="cal-day">29</span><span class="cal-day">30</span><span class="cal-day">31</span><span class="cal-day"></span>
+      </div>
+    </div>
+
+    <div style="font-size:15px;font-weight:600;color:#2D3436;padding:12px 4px 8px;">📋 5月20日 的养护任务</div>
+    <div class="card">
+      <div class="day-task"><span class="emoji">🌿</span><div><div class="name">小绿</div><div class="type">💧 浇水</div></div></div>
+      <div class="day-task"><span class="emoji">🌹</span><div><div class="name">小红</div><div class="type">🧪 施肥</div></div></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="icon">🌿</span>花园</div>
+    <div class="tab-item"><span class="icon">➕</span>添加</div>
+    <div class="tab-item active"><span class="icon">📅</span>日历</div>
+    <div class="tab-item"><span class="icon">👤</span>我的</div>
+  </div>
+</div>
+<div class="phone-label">养护日历</div>
+</div>
+
+<!-- ==================== 我的 ==================== -->
+<div>
+<div class="phone">
+  <div class="status-bar"><span class="time">18:52</span><span class="icons">📶 🔋</span></div>
+  <div class="nav-bar">我的</div>
+  <div class="content">
+    <div class="card">
+      <div class="profile-header" style="padding:16px 0;">
+        <div class="pf-avatar">🌱</div>
+        <span class="pf-name">养花达人</span>
+        <div class="pf-stats">
+          <div class="pf-stat"><span class="pf-num">5</span><span class="pf-label">棵植物</span></div>
+          <div class="pf-stat"><span class="pf-num">12</span><span class="pf-label">条记录</span></div>
+          <div class="pf-stat"><span class="pf-num">3</span><span class="pf-label">项待办</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">🌿 花园分布</div>
+    <div class="card">
+      <div class="cat-bar-row"><span class="cat-bar-name">绿植</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:60%"></div></div><span class="cat-bar-count">3棵</span></div>
+      <div class="cat-bar-row"><span class="cat-bar-name">花卉</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:20%"></div></div><span class="cat-bar-count">1棵</span></div>
+      <div class="cat-bar-row"><span class="cat-bar-name">多肉</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:20%"></div></div><span class="cat-bar-count">1棵</span></div>
+    </div>
+
+    <div class="section-title">⚙️ 提醒设置</div>
+    <div class="card">
+      <div class="setting-row"><span class="setting-label">养护提醒</span><div class="toggle"></div></div>
+      <div class="setting-row"><span class="setting-label">提醒时间</span><span class="setting-value">09:00 ›</span></div>
+    </div>
+
+    <div class="card" style="padding:0;">
+      <div class="func-row"><span class="func-icon">ℹ️</span><span class="func-name">关于养花助手</span><span class="func-arrow">›</span></div>
+      <div class="func-row danger"><span class="func-icon">🗑️</span><span class="func-name">清除所有数据</span><span class="func-arrow">›</span></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="icon">🌿</span>花园</div>
+    <div class="tab-item"><span class="icon">➕</span>添加</div>
+    <div class="tab-item"><span class="icon">📅</span>日历</div>
+    <div class="tab-item active"><span class="icon">👤</span>我的</div>
+  </div>
+</div>
+<div class="phone-label">我的</div>
+</div>
+
+</body>
+</html>
