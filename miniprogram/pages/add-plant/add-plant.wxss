@@ -95,6 +95,22 @@
 }
 .loc-opt.active { background: #E8F5E9; color: #4CAF50; font-weight: 600; }
 
+.interval-control {
+  display: flex; align-items: center; gap: 12rpx;
+}
+.interval-btn {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  background: #F7F9F7; display: flex; align-items: center; justify-content: center;
+  font-size: 32rpx; color: #4CAF50; font-weight: 600;
+}
+.interval-btn:active { background: #E8F5E9; }
+.interval-input {
+  width: 80rpx; text-align: center; font-size: 32rpx; font-weight: 600; color: #2D3436;
+  border: 2rpx solid #E8F5E9; border-radius: 16rpx; padding: 8rpx;
+}
+.interval-unit { font-size: 28rpx; color: #90A4AE; }
+.form-hint { font-size: 22rpx; color: #B0BEC5; margin-top: 8rpx; display: block; }
+
 .modal-footer { display: flex; border-top: 1rpx solid #F0F2F0; }
 .modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
 .btn-cancel { color: #90A4AE; }

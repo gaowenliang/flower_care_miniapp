@@ -13,7 +13,8 @@ Page({
     showModal: false,
     selectedPlant: null,
     nickName: '',
-    location: '阳台'
+    location: '阳台',
+    waterDays: 7
   },
 
   onLoad() {
@@ -65,7 +66,7 @@ Page({
     const plantId = e.currentTarget.dataset.id
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
-    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台' })
+    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays })
   },
 
   onNickNameInput(e) {
@@ -74,6 +75,17 @@ Page({
 
   selectLocation(e) {
     this.setData({ location: e.currentTarget.dataset.value })
+  },
+
+  onWaterDaysInput(e) {
+    const val = parseInt(e.detail.value) || 1
+    this.setData({ waterDays: Math.max(1, val) })
+  },
+
+  adjustWaterDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    const newVal = Math.max(1, this.data.waterDays + delta)
+    this.setData({ waterDays: newVal })
   },
 
   async confirmAdd() {
@@ -100,7 +112,7 @@ Page({
 
     // 自动创建多个养护任务
     const defaultTasks = [
-      { type: 'water', typeName: '浇水', days: plant.care.waterDays },
+      { type: 'water', typeName: '浇水', days: this.data.waterDays },
       { type: 'fertilize', typeName: '施肥', days: 30 },
       { type: 'prune', typeName: '修剪', days: 60 }
     ]
