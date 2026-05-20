@@ -76,13 +76,37 @@ const LOCATION_TIPS = {
 }
 
 /**
- * 获取天气信息（高德天气API）
+ * 获取天气信息
+ * 优先走云函数代理（Key不暴露），降级直接请求（开发阶段）
  */
 function fetchWeather(city) {
   return new Promise((resolve) => {
-    const AMAP_KEY = 'de9c6192fc5bc7a1e4dfa319f6c26ee8'
-    const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${AMAP_KEY}&city=${city || '310000'}&extensions=base`
-    
+    // 优先云函数
+    if (wx.cloud) {
+      wx.cloud.callFunction({
+        name: 'getWeather',
+        data: { city: city || '310000' },
+        success: (res) => {
+          if (res.result && res.result.success && res.result.weather) {
+            resolve(res.result.weather)
+          } else {
+            resolve(null)
+          }
+        },
+        fail: () => {
+          // 云函数失败，降级直接请求（开发阶段保留）
+          fetchWeatherDirect(city).then(resolve)
+        }
+      })
+    } else {
+      fetchWeatherDirect(city).then(resolve)
+    }
+  })
+}
+
+function fetchWeatherDirect(city) {
+  return new Promise((resolve) => {
+    const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=${city || '310000'}&extensions=base`
     wx.request({
       url,
       success: (res) => {
@@ -172,6 +196,22 @@ function pickTips(ruleSet, conditions, count) {
 }
 
 /**
+ * 清理过期的智能贴士缓存（只保留当天的）
+ */
+function cleanOldCache(todayStr) {
+  try {
+    const info = wx.getStorageInfoSync()
+    info.keys.forEach(key => {
+      if (key.startsWith('smartTips_') && !key.includes(todayStr)) {
+        wx.removeStorageSync(key)
+      }
+    })
+  } catch (e) {
+    // ignore
+  }
+}
+
+/**
  * 生成智能贴士（主入口）
  * @param {Object} plantInfo  植物数据库中的信息
  * @param {string} location   养护位置（阳台/室内/花园/窗台）
@@ -182,6 +222,9 @@ async function generateSmartTips(plantInfo, location, city) {
   const now = new Date()
   const season = getSeason(now.getMonth() + 1)
   const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+
+  // 清理过期缓存（非当天的）
+  cleanOldCache(dateStr)
 
   // 检查缓存
   const cacheKey = `smartTips_${plantInfo.id}_${dateStr}`

@@ -68,7 +68,12 @@ Page({
 
   changeInterval(e) {
     const { taskId, delta } = e.currentTarget.dataset
-    storage.updateTaskInterval(taskId, parseInt(delta))
+    const tasks = storage.getTasksByPlant(this.data.userPlant.id)
+    const task = tasks.find(t => t.id === taskId)
+    if (task) {
+      const newInterval = Math.max(1, task.intervalDays + parseInt(delta))
+      storage.updateTaskInterval(taskId, newInterval)
+    }
     this.loadTasks()
   },
 
