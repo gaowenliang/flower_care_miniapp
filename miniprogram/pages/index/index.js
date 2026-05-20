@@ -84,6 +84,7 @@ Page({
     const filtered = garden.filter(p =>
       p.nickname.toLowerCase().includes(searchKeyword) ||
       p.name.toLowerCase().includes(searchKeyword) ||
+      (p.latin && p.latin.toLowerCase().includes(searchKeyword)) ||
       (p.category && p.category.includes(searchKeyword))
     )
     this.setData({ filteredGarden: filtered })

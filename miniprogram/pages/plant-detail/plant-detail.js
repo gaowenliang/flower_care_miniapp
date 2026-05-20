@@ -257,7 +257,7 @@ Page({
 
   // 编辑位置
   editLocation() {
-    const locations = ['阳台', '室内', '花园', '窗台']
+    const locations = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
     wx.showActionSheet({
       itemList: locations,
       success: (res) => {
