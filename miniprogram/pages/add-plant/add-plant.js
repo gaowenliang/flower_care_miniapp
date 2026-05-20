@@ -105,16 +105,23 @@ Page({
 
     storage.addPlant(userPlant)
 
-    // 自动创建浇水任务
-    storage.addTask({
-      id: util.genId(),
-      userPlantId: userPlant.id,
-      type: 'water',
-      typeName: '浇水',
-      intervalDays: plant.care.waterDays,
-      nextDate: util.nextCareDate(Date.now(), plant.care.waterDays),
-      lastDoneDate: Date.now(),
-      enabled: true
+    // 自动创建多个养护任务
+    const defaultTasks = [
+      { type: 'water', typeName: '浇水', days: plant.care.waterDays },
+      { type: 'fertilize', typeName: '施肥', days: 30 },
+      { type: 'prune', typeName: '修剪', days: 60 }
+    ]
+    defaultTasks.forEach(t => {
+      storage.addTask({
+        id: util.genId(),
+        userPlantId: userPlant.id,
+        type: t.type,
+        typeName: t.typeName,
+        intervalDays: t.days,
+        nextDate: util.nextCareDate(Date.now(), t.days),
+        lastDoneDate: Date.now(),
+        enabled: true
+      })
     })
 
     this.setData({ showModal: false })

@@ -1,4 +1,4 @@
-<!-- pages/index/index.wxml - 首页重构版 -->
+<!-- pages/index/index.wxml - 首页 v3（打磨版） -->
 <view class="container">
   <!-- 完成提示 Toast -->
   <view class="tip-toast {{showTip ? 'show' : ''}}" wx:if="{{tipText}}">
@@ -11,6 +11,7 @@
       <text class="section-icon">🔔</text>
       <text>今日待办</text>
       <text class="badge">{{todayTasks.length}}</text>
+      <text class="complete-all" bindtap="completeAllTasks">✨ 一键完成</text>
     </view>
     <view class="card">
       <view class="task-item" wx:for="{{todayTasks}}" wx:key="id">
@@ -48,6 +49,15 @@
       <text>我的花园</text>
     </view>
 
+    <!-- 搜索栏 -->
+    <view class="search-bar" wx:if="{{hasPlants}}">
+      <view class="search-wrap">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索植物..." value="{{searchKeyword}}" bindinput="onSearchInput" />
+        <text class="search-clear" wx:if="{{searching}}" bindtap="clearSearch">✕</text>
+      </view>
+    </view>
+
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!hasPlants}}">
       <text class="emoji">🌱</text>
@@ -56,9 +66,15 @@
       <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
     </view>
 
+    <!-- 搜索无结果 -->
+    <view class="empty-state small" wx:if="{{hasPlants && searching && filteredGarden.length === 0}}">
+      <text class="title">没有找到"{{searchKeyword}}"</text>
+      <text class="desc">换个关键词试试？</text>
+    </view>
+
     <!-- 矩阵网格 -->
-    <view class="garden-grid" wx:if="{{hasPlants}}">
-      <view class="garden-item" wx:for="{{garden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="garden-grid" wx:if="{{hasPlants && filteredGarden.length > 0}}">
+      <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
         <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
           <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
           <text wx:else class="garden-emoji">{{item.emoji}}</text>

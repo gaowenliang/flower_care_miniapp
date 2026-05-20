@@ -1,7 +1,5 @@
 {
-  "navigationBarTitleText": "我的花园",
-  "navigationBarBackgroundColor": "#FFFFFF",
+  "usingComponents": {},
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
-  "backgroundColor": "#F7F9F7"
+  "backgroundTextStyle": "dark"
 }

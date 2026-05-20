@@ -164,6 +164,12 @@
 .btn-cancel { color: #90A4AE; }
 .btn-primary { color: #4CAF50; font-weight: 600; }
 
+/* 编辑入口 */
+.header-name-row { display: flex; align-items: center; gap: 8rpx; }
+.edit-icon { font-size: 24rpx; opacity: 0.5; }
+.header-location-row { display: flex; align-items: center; }
+.edit-icon-sm { font-size: 28rpx; color: #90A4AE; margin-left: 8rpx; }
+
 /* 智能贴士 */
 .tip-header {
   display: flex; justify-content: space-between; align-items: center;

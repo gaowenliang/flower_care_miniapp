@@ -9,9 +9,15 @@
         <view class="avatar-camera">📷</view>
       </view>
       <view class="header-info">
-        <text class="header-name">{{userPlant.nickname}}</text>
+        <view class="header-name-row">
+          <text class="header-name">{{userPlant.nickname}}</text>
+          <text class="edit-icon" bindtap="editNickname">✏️</text>
+        </view>
         <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>
-        <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
+        <view class="header-location-row" bindtap="editLocation">
+          <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
+          <text class="edit-icon-sm">›</text>
+        </view>
       </view>
     </view>
     <view class="header-actions">

@@ -223,9 +223,42 @@ Page({
     }
   },
 
+  // 编辑昵称
+  editNickname() {
+    wx.showModal({
+      title: '修改昵称',
+      editable: true,
+      placeholderText: this.data.userPlant.nickname,
+      success: (res) => {
+        if (res.confirm && res.content && res.content.trim()) {
+          const nickname = res.content.trim()
+          storage.updatePlant(this.data.userPlant.id, { nickname })
+          this.setData({ 'userPlant.nickname': nickname })
+          wx.showToast({ title: '已修改', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  // 编辑位置
+  editLocation() {
+    const locations = ['阳台', '室内', '花园', '窗台']
+    wx.showActionSheet({
+      itemList: locations,
+      success: (res) => {
+        const location = locations[res.tapIndex]
+        storage.updatePlant(this.data.userPlant.id, { location })
+        this.setData({ 'userPlant.location': location })
+        wx.showToast({ title: '已修改', icon: 'none' })
+      }
+    })
+  },
+
   onShareAppMessage() {
+    const plant = this.data.userPlant
+    const days = Math.floor((Date.now() - plant.addedAt) / 86400000)
     return {
-      title: `我的${this.data.userPlant.nickname}长得真好！`,
+      title: `我的${plant.nickname}已经养了${days}天，状态不错！`,
       path: '/pages/index/index'
     }
   }

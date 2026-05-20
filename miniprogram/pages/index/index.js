@@ -1,4 +1,4 @@
-// pages/index/index.js - 首页：我的花园
+// pages/index/index.js - 首页：我的花园（打磨版）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const subscribe = require('../../utils/subscribe')
@@ -10,19 +10,21 @@ Page({
     hasPlants: false,
     stats: null,
     showTip: false,
-    tipText: ''
+    tipText: '',
+    searchKeyword: '',
+    searching: false,
+    filteredGarden: []
   },
 
   onShow() {
     this.loadGarden()
     this.loadTodayTasks()
     this.loadStats()
-    // 检查订阅提醒
     subscribe.checkAndNotify()
   },
 
   loadGarden() {
-    const garden = storage.getGarden()
+    let garden = storage.getGarden()
     garden.forEach(plant => {
       const tasks = storage.getTasksByPlant(plant.id).filter(t => t.enabled)
       const dueCount = tasks.filter(t => util.isDueToday(t.nextDate)).length
@@ -31,7 +33,13 @@ Page({
       plant.dueCount = dueCount
       plant.addedDays = Math.floor((Date.now() - plant.addedAt) / 86400000)
     })
+    // 逾期排最前，然后按添加时间
+    garden.sort((a, b) => {
+      if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
+      return b.addedAt - a.addedAt
+    })
     this.setData({ garden, hasPlants: garden.length > 0 })
+    this.applyFilter()
   },
 
   loadTodayTasks() {
@@ -55,6 +63,32 @@ Page({
     this.setData({ stats })
   },
 
+  // 搜索
+  onSearchInput(e) {
+    const keyword = e.detail.value.trim().toLowerCase()
+    this.setData({ searchKeyword: keyword, searching: keyword.length > 0 })
+    this.applyFilter()
+  },
+
+  clearSearch() {
+    this.setData({ searchKeyword: '', searching: false })
+    this.applyFilter()
+  },
+
+  applyFilter() {
+    const { garden, searchKeyword } = this.data
+    if (!searchKeyword) {
+      this.setData({ filteredGarden: garden })
+      return
+    }
+    const filtered = garden.filter(p =>
+      p.nickname.toLowerCase().includes(searchKeyword) ||
+      p.name.toLowerCase().includes(searchKeyword) ||
+      (p.category && p.category.includes(searchKeyword))
+    )
+    this.setData({ filteredGarden: filtered })
+  },
+
   goAddPlant() {
     wx.switchTab({ url: '/pages/add-plant/add-plant' })
   },
@@ -67,10 +101,10 @@ Page({
   completeTask(e) {
     const taskId = e.currentTarget.dataset.id
     storage.completeTask(taskId)
-    
+
     const task = storage.getTasks().find(t => t.id === taskId)
     if (task) {
-      this.setData({ showTip: true, tipText: `${task.typeName}完成！下次${util.daysUntilNext(task.nextDate)}天后` })
+      this.setData({ showTip: true, tipText: `${task.typeName}完成！` })
       setTimeout(() => this.setData({ showTip: false }), 2000)
     }
 
@@ -79,10 +113,39 @@ Page({
     this.loadStats()
   },
 
+  // 批量完成今日所有任务
+  completeAllTasks() {
+    const tasks = this.data.todayTasks
+    if (tasks.length === 0) return
+
+    wx.showModal({
+      title: '一键完成',
+      content: `确认完成今天的 ${tasks.length} 项养护任务？`,
+      success: (res) => {
+        if (res.confirm) {
+          tasks.forEach(t => storage.completeTask(t.id))
+          this.setData({ showTip: true, tipText: `${tasks.length}项任务全部完成！` })
+          setTimeout(() => this.setData({ showTip: false }), 2000)
+          this.loadTodayTasks()
+          this.loadGarden()
+          this.loadStats()
+        }
+      }
+    })
+  },
+
   onPullDownRefresh() {
     this.loadGarden()
     this.loadTodayTasks()
     this.loadStats()
     wx.stopPullDownRefresh()
+  },
+
+  onShareAppMessage() {
+    const count = this.data.garden.length
+    return {
+      title: `我在养${count}棵植物，快来一起养花吧！🌸`,
+      path: '/pages/index/index'
+    }
   }
 })
