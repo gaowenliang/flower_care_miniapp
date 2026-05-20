@@ -21,10 +21,44 @@ Page({
   },
 
   loadStats() {
-    const stats = storage.getStats()
-    const garden = storage.getGarden()
-    const settings = storage.getSettings()
-    this.setData({ stats, garden, settings })
+    this.setData({ stats: storage.getStats(), settings: storage.getSettings() })
+  },
+
+  // 云同步
+  async syncToCloud() {
+    const cloudSync = require('../../utils/cloud-sync')
+    if (!cloudSync.isCloudEnabled()) {
+      wx.showToast({ title: '云开发未启用', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '同步中...' })
+    const localData = {
+      garden: storage.getGarden(),
+      tasks: storage.getTasks(),
+      records: storage.getRecords(),
+      settings: storage.getSettings()
+    }
+    const result = await cloudSync.uploadAll(localData)
+    wx.hideLoading()
+    if (result.success) {
+      wx.showToast({ title: '同步成功 ☁️', icon: 'none' })
+    } else {
+      wx.showToast({ title: '同步失败', icon: 'none' })
+    }
+  },
+
+  async syncFromCloud() {
+    wx.showLoading({ title: '恢复中...' })
+    const cloudSync = require('../../utils/cloud-sync')
+    const result = await cloudSync.syncOnStartup(storage)
+    wx.hideLoading()
+    if (result.synced) {
+      this.loadStats()
+      this.loadAchievements()
+      wx.showToast({ title: '恢复成功 ☁️', icon: 'none' })
+    } else {
+      wx.showToast({ title: '恢复失败', icon: 'none' })
+    }
   },
 
   loadAchievements() {

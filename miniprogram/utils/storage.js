@@ -1,6 +1,7 @@
 // utils/storage.js - 数据存储管理
 
 const util = require('./util')
+const cloudSync = require('./cloud-sync')
 
 /**
  * StorageManager - 管理所有本地存储操作
@@ -31,6 +32,7 @@ const StorageManager = {
   saveGarden(garden) {
     try {
       wx.setStorageSync(this.KEYS.GARDEN, garden)
+      cloudSync.syncItem('garden', garden)
     } catch (e) {
       console.error('保存花园数据失败:', e)
       wx.showToast({ title: '存储空间不足', icon: 'none' })
@@ -83,6 +85,7 @@ const StorageManager = {
   saveTasks(tasks) {
     try {
       wx.setStorageSync(this.KEYS.TASKS, tasks)
+      cloudSync.syncItem('tasks', tasks)
     } catch (e) {
       console.error('保存任务数据失败:', e)
     }
@@ -177,11 +180,11 @@ const StorageManager = {
 
   addRecord(record) {
     const records = this.getRecords()
-    records.unshift(record) // 最新的排前面
-    // 最多保留500条
+    records.unshift(record)
     if (records.length > 500) records.length = 500
     try {
       wx.setStorageSync(this.KEYS.RECORDS, records)
+      cloudSync.syncItem('records', records)
     } catch (e) {
       console.error('保存记录失败:', e)
     }
@@ -220,6 +223,7 @@ const StorageManager = {
 
   saveSettings(settings) {
     wx.setStorageSync(this.KEYS.SETTINGS, settings)
+    cloudSync.syncItem('settings', settings)
   },
 
   // ========== 统计 ==========
@@ -308,7 +312,7 @@ const StorageManager = {
     // 记录补卡次数
     thisMonth.push({ date: dateStr, plantId: userPlantId, time: Date.now() })
     retroData[monthKey] = thisMonth
-    try { wx.setStorageSync(this.KEYS.RETRO, retroData) } catch (e) {}
+    try { wx.setStorageSync(this.KEYS.RETRO, retroData); cloudSync.syncItem('retroCards', retroData) } catch (e) {}
 
     return { success: true }
   },
