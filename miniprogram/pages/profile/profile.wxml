@@ -17,6 +17,10 @@
         <text class="pf-num">{{careStreak}}</text>
         <text class="pf-label">天连续</text>
       </view>
+      <view class="pf-stat">
+        <text class="pf-num">{{retroRemaining}}</text>
+        <text class="pf-label">次补卡</text>
+      </view>
     </view>
   </view>
 

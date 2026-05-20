@@ -13,7 +13,8 @@ const StorageManager = {
     PLANT_DB: 'plantDB',
     RECORDS: 'careRecords',
     SETTINGS: 'userSettings',
-    SUBSCRIBE: 'subscribeState'
+    SUBSCRIBE: 'subscribeState',
+    RETRO: 'retroCards' // 补卡记录
   },
 
   // ========== 花园 ==========
@@ -243,6 +244,81 @@ const StorageManager = {
       totalRecords: records.length,
       categories: categoryCount
     }
+  },
+
+  // ========== 补卡 ==========
+
+  /**
+   * 获取本月补卡次数
+   */
+  getRetroCardsThisMonth() {
+    const now = new Date()
+    const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`
+    try {
+      const all = wx.getStorageSync(this.KEYS.RETRO) || {}
+      return all[monthKey] || []
+    } catch (e) {
+      return []
+    }
+  },
+
+  /**
+   * 补卡（给过去某天补充养护记录）
+   * @param {number} dateTs 那天的时间戳（0点）
+   * @param {string} userPlantId 植物ID
+   * @returns {{success: boolean, reason?: string}}
+   */
+  retroCard(dateTs, userPlantId) {
+    const MAX_RETRO_PER_MONTH = 3
+    const now = new Date()
+    const target = new Date(dateTs)
+
+    // 只能补过去7天内的
+    const daysDiff = Math.floor((now.getTime() - dateTs) / 86400000)
+    if (daysDiff < 1) return { success: false, reason: '今天的不需要补卡' }
+    if (daysDiff > 7) return { success: false, reason: '只能补7天内的记录' }
+
+    // 检查本月补卡次数
+    const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`
+    let retroData = {}
+    try { retroData = wx.getStorageSync(this.KEYS.RETRO) || {} } catch (e) {}
+    const thisMonth = retroData[monthKey] || []
+    if (thisMonth.length >= MAX_RETRO_PER_MONTH) {
+      return { success: false, reason: `本月补卡次数已用完（${MAX_RETRO_PER_MONTH}次/月）` }
+    }
+
+    // 检查该天是否已有记录
+    const dateStr = util.formatDate(dateTs)
+    const existing = this.getRecords().find(r =>
+      r.userPlantId === userPlantId && util.formatDate(r.date) === dateStr
+    )
+    if (existing) return { success: false, reason: '该天已有养护记录' }
+
+    // 添加补卡记录
+    const plant = this.getPlantById(userPlantId)
+    this.addRecord({
+      id: util.genId(),
+      userPlantId,
+      type: 'retro',
+      typeName: '补卡记录',
+      date: dateTs + 12 * 3600000, // 设为中午
+      note: '补卡'
+    })
+
+    // 记录补卡次数
+    thisMonth.push({ date: dateStr, plantId: userPlantId, time: Date.now() })
+    retroData[monthKey] = thisMonth
+    try { wx.setStorageSync(this.KEYS.RETRO, retroData) } catch (e) {}
+
+    return { success: true }
+  },
+
+  /**
+   * 获取补卡剩余次数
+   */
+  getRetroRemaining() {
+    const used = this.getRetroCardsThisMonth().length
+    return Math.max(0, 3 - used)
   }
 }
 

@@ -187,6 +187,62 @@ Page({
     wx.navigateTo({ url: '/pages/diagnose/diagnose' })
   },
 
+  retroCard() {
+    const remaining = storage.getRetroRemaining()
+    if (remaining <= 0) {
+      wx.showToast({ title: '本月补卡次数已用完（3次/月）', icon: 'none', duration: 2500 })
+      return
+    }
+
+    // 计算最近7天可补的日期
+    const dates = []
+    const now = new Date()
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(now.getTime() - i * 86400000)
+      d.setHours(0, 0, 0, 0)
+      const dateStr = util.formatDate(d.getTime())
+      const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()]
+      // 检查该天是否已有记录
+      const existing = storage.getRecordsByPlant(this.data.userPlant.id)
+        .find(r => util.formatDate(r.date) === dateStr)
+      if (!existing) {
+        dates.push({
+          ts: d.getTime(),
+          label: `${d.getMonth() + 1}/${d.getDate()} 周${weekDay}`,
+          daysAgo: i
+        })
+      }
+    }
+
+    if (dates.length === 0) {
+      wx.showToast({ title: '最近7天都有记录了~', icon: 'none' })
+      return
+    }
+
+    wx.showActionSheet({
+      alertText: `本月剩余 ${remaining} 次补卡`,
+      itemList: dates.map(d => d.label + ` (${d.daysAgo}天前)`),
+      success: (res) => {
+        const selected = dates[res.tapIndex]
+        wx.showModal({
+          title: '确认补卡',
+          content: `为 ${this.data.userPlant.nickname} 补 ${selected.label} 的养护记录？`,
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              const result = storage.retroCard(selected.ts, this.data.userPlant.id)
+              if (result.success) {
+                wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
+                this.loadRecords()
+              } else {
+                wx.showToast({ title: result.reason, icon: 'none' })
+              }
+            }
+          }
+        })
+      }
+    })
+  },
+
   // 修改植物头像
   changeAvatar() {
     wx.chooseMedia({

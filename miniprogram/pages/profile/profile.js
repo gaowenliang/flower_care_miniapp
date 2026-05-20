@@ -39,7 +39,8 @@ Page({
       achievements: all,
       achGroups: groups,
       achProgress: progress,
-      careStreak: streak
+      careStreak: streak,
+      retroRemaining: storage.getRetroRemaining()
     })
   },
 
