@@ -1,4 +1,4 @@
-// pages/calendar/calendar.js - 养护日历
+// pages/calendar/calendar.js - 优化版：按周期循环计算每月所有到期日
 const app = getApp()
 const util = require('../../utils/util')
 
@@ -28,7 +28,29 @@ Page({
     this.buildCalendar()
   },
 
-  // 构建日历
+  // 计算某任务在指定月份的所有到期日期
+  getDueDatesInMonth(task, year, month) {
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const dueDates = []
+
+    // 从 lastDoneDate 开始，按 intervalDays 递推
+    let cursor = task.lastDoneDate + task.intervalDays * 86400000
+    const monthStart = new Date(year, month - 1, 1).getTime()
+    const monthEnd = new Date(year, month, 0, 23, 59, 59).getTime()
+
+    // 安全限制：最多推算365天避免死循环
+    let safety = 0
+    while (cursor <= monthEnd && safety < 365) {
+      if (cursor >= monthStart) {
+        dueDates.push(cursor)
+      }
+      cursor += task.intervalDays * 86400000
+      safety++
+    }
+
+    return dueDates
+  },
+
   buildCalendar() {
     const { year, month } = this.data
     const firstDay = new Date(year, month - 1, 1).getDay()
@@ -40,62 +62,56 @@ Page({
     const taskMap = {}
     tasks.forEach(task => {
       const plant = garden.find(p => p.id === task.userPlantId)
-      // 生成本月所有日期
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-        const next = new Date(task.nextDate)
-        const check = new Date(dateStr)
-        if (next.toDateString() === check.toDateString()) {
-          if (!taskMap[dateStr]) taskMap[dateStr] = []
-          taskMap[dateStr].push({
-            ...task,
-            plantName: plant ? plant.nickname : '未知',
-            plantEmoji: plant ? plant.emoji : '🌱'
-          })
-        }
-      }
+      const dueDates = this.getDueDatesInMonth(task, year, month)
+
+      dueDates.forEach(dateTs => {
+        const dateStr = util.formatDate(dateTs)
+        if (!taskMap[dateStr]) taskMap[dateStr] = []
+        taskMap[dateStr].push({
+          ...task,
+          plantName: plant ? plant.nickname : '未知',
+          plantEmoji: plant ? plant.emoji : '🌱'
+        })
+      })
     })
 
     // 构建日历天数
     const days = []
-    // 填充空白
     for (let i = 0; i < firstDay; i++) {
       days.push({ day: '', empty: true })
     }
-    // 填充日期
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      const tasksForDay = taskMap[dateStr] || []
       days.push({
         day: d,
         date: dateStr,
         isToday: dateStr === this.data.today,
-        hasTask: (taskMap[dateStr] || []).length > 0,
-        taskCount: (taskMap[dateStr] || []).length
+        hasTask: tasksForDay.length > 0,
+        taskCount: tasksForDay.length,
+        isPast: new Date(dateStr) < new Date(this.data.today)
       })
     }
 
     this.setData({ days, taskMap })
   },
 
-  // 上个月
   prevMonth() {
     let { year, month } = this.data
     month--
     if (month < 1) { month = 12; year-- }
-    this.setData({ year, month })
+    this.setData({ year, month, selectedDate: null })
     this.buildCalendar()
   },
 
-  // 下个月
   nextMonth() {
     let { year, month } = this.data
     month++
     if (month > 12) { month = 1; year++ }
-    this.setData({ year, month })
+    this.setData({ year, month, selectedDate: null })
     this.buildCalendar()
   },
 
-  // 选择日期
   selectDate(e) {
     const date = e.currentTarget.dataset.date
     if (!date) return

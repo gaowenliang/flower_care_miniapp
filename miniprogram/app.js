@@ -1,41 +1,42 @@
-// app.js
+// app.js - 全局入口（优化版）
 App({
   onLaunch() {
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
-    } else {
-      wx.cloud.init({
-        traceUser: true,
-      })
+    // 兼容：本地开发不需要云开发
+    try {
+      if (wx.cloud) {
+        wx.cloud.init({ traceUser: true })
+      }
+    } catch (e) {
+      console.log('云开发未启用，使用本地存储模式')
     }
+
     this.globalData = {}
     this.initPlantData()
   },
 
-  // 初始化本地植物数据库
   initPlantData() {
     const stored = wx.getStorageSync('plantDB')
-    if (!stored) {
-      wx.setStorageSync('plantDB', require('./data/plants.js').plants)
+    if (!stored || stored.length === 0) {
+      try {
+        wx.setStorageSync('plantDB', require('./data/plants.js').plants)
+      } catch (e) {
+        console.error('初始化植物数据失败:', e)
+      }
     }
   },
 
-  // 获取用户花园
   getMyGarden() {
     return wx.getStorageSync('myGarden') || []
   },
 
-  // 保存用户花园
   saveMyGarden(garden) {
     wx.setStorageSync('myGarden', garden)
   },
 
-  // 获取养护任务
   getCareTasks() {
     return wx.getStorageSync('careTasks') || []
   },
 
-  // 保存养护任务
   saveCareTasks(tasks) {
     wx.setStorageSync('careTasks', tasks)
   },

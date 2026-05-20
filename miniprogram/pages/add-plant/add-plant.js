@@ -1,4 +1,4 @@
-// pages/add-plant/add-plant.js - 添加植物页
+// pages/add-plant/add-plant.js - 优化版
 const app = getApp()
 const util = require('../../utils/util')
 const plantsData = require('../../data/plants')
@@ -9,7 +9,11 @@ Page({
     categories: [],
     activeCategory: 'all',
     filteredPlants: [],
-    searching: false
+    searching: false,
+    showModal: false,
+    selectedPlant: null,
+    nickName: '',
+    location: '阳台'
   },
 
   onLoad() {
@@ -19,27 +23,23 @@ Page({
     })
   },
 
-  // 搜索输入
   onSearchInput(e) {
     const keyword = e.detail.value.trim().toLowerCase()
     this.setData({ keyword, searching: keyword.length > 0 })
     this.filterPlants()
   },
 
-  // 清空搜索
   clearSearch() {
     this.setData({ keyword: '', searching: false, activeCategory: 'all' })
     this.filterPlants()
   },
 
-  // 切换分类
   switchCategory(e) {
     const id = e.currentTarget.dataset.id
     this.setData({ activeCategory: id, keyword: '', searching: false })
     this.filterPlants()
   },
 
-  // 过滤植物
   filterPlants() {
     let list = plantsData.plants
     const { keyword, activeCategory } = this.data
@@ -57,38 +57,40 @@ Page({
     this.setData({ filteredPlants: list })
   },
 
-  // 拍照识别（Phase 2）
+  // 拍照识别
   takePhoto() {
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
-      sourceType: ['camera'],
-      success: (res) => {
+      sourceType: ['camera', 'album'],
+      success: () => {
         wx.showToast({ title: 'AI识别功能开发中~', icon: 'none' })
-        // TODO: Phase 2 - 调用植物识别API
       }
     })
   },
 
-  // 选择植物
   selectPlant(e) {
     const plantId = e.currentTarget.dataset.id
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
-
-    // 弹出设置弹窗
-    this.setData({ selectedPlant: plant, showModal: true })
+    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台' })
   },
 
-  // 确认添加
+  onNickNameInput(e) {
+    this.setData({ nickName: e.detail.value })
+  },
+
+  selectLocation(e) {
+    this.setData({ location: e.currentTarget.dataset.value })
+  },
+
   confirmAdd() {
     const plant = this.data.selectedPlant
     if (!plant) return
 
-    const nickname = this.data.nickName || plant.name
+    const nickname = this.data.nickName.trim() || plant.name
     const location = this.data.location || '阳台'
 
-    // 创建用户植物
     const userPlant = {
       id: util.genId(),
       plantId: plant.id,
@@ -96,13 +98,12 @@ Page({
       latin: plant.latin,
       emoji: plant.emoji,
       category: plant.category,
-      nickname: nickname,
-      location: location,
+      nickname,
+      location,
       addedAt: Date.now(),
       photo: null
     }
 
-    // 保存到花园
     const garden = app.getMyGarden()
     garden.push(userPlant)
     app.saveMyGarden(garden)
@@ -121,24 +122,11 @@ Page({
     })
     app.saveCareTasks(tasks)
 
+    this.setData({ showModal: false })
     wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
-    
-    setTimeout(() => {
-      wx.switchTab({ url: '/pages/index/index' })
-    }, 1000)
+    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
   },
 
-  // 输入昵称
-  onNickNameInput(e) {
-    this.setData({ nickName: e.detail.value })
-  },
-
-  // 选择位置
-  selectLocation(e) {
-    this.setData({ location: e.currentTarget.dataset.value })
-  },
-
-  // 关闭弹窗
   closeModal() {
     this.setData({ showModal: false })
   }
