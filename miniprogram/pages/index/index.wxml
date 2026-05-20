@@ -60,7 +60,8 @@
     <view class="plant-grid" wx:if="{{hasPlants}}">
       <view class="plant-card card" wx:for="{{garden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
         <view class="plant-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
-          <text class="plant-emoji">{{item.emoji}}</text>
+          <image wx:if="{{item.avatar}}" class="plant-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
+          <text wx:else class="plant-emoji">{{item.emoji}}</text>
         </view>
         <view class="plant-info">
           <text class="plant-name">{{item.nickname}}</text>

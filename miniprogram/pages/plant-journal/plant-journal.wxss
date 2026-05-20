@@ -7,7 +7,10 @@
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin-right: 14px;
+  font-size: 26px; margin-right: 14px; overflow: hidden; position: relative;
+}
+.jh-avatar-img {
+  width: 100%; height: 100%; position: absolute; top: 0; left: 0;
 }
 .jh-info { display: flex; flex-direction: column; }
 .jh-name { font-size: 17px; font-weight: 700; color: #2D3436; }

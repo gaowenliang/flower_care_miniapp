@@ -3,7 +3,11 @@
   <!-- 植物头部 -->
   <view class="plant-header card">
     <view class="header-main">
-      <view class="header-emoji">{{userPlant.emoji}}</view>
+      <view class="header-avatar" bindtap="changeAvatar">
+        <image wx:if="{{userPlant.avatar}}" class="header-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" />
+        <text wx:else class="header-emoji-text">{{userPlant.emoji}}</text>
+        <view class="avatar-camera">📷</view>
+      </view>
       <view class="header-info">
         <text class="header-name">{{userPlant.nickname}}</text>
         <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>

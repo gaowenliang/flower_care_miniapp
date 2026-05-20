@@ -3,7 +3,10 @@
   <!-- 植物头部 -->
   <view class="journal-header card" wx:if="{{userPlant}}">
     <view class="jh-left">
-      <view class="jh-avatar">{{userPlant.emoji}}</view>
+      <view class="jh-avatar">
+        <image wx:if="{{userPlant.avatar}}" class="jh-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" />
+        <text wx:else>{{userPlant.emoji}}</text>
+      </view>
       <view class="jh-info">
         <text class="jh-name">{{userPlant.nickname}}</text>
         <text class="jh-sub">{{userPlant.name}} · 成长日记</text>

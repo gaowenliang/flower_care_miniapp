@@ -174,6 +174,22 @@ Page({
     wx.navigateTo({ url: `/pages/plant-journal/plant-journal?id=${this.data.userPlant.id}` })
   },
 
+  // 修改植物头像
+  changeAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const photo = res.tempFiles[0].tempFilePath
+        storage.updatePlant(this.data.userPlant.id, { avatar: photo })
+        this.setData({ 'userPlant.avatar': photo })
+        wx.showToast({ title: '头像已更新', icon: 'none' })
+      }
+    })
+  }
+
   onShareAppMessage() {
     return {
       title: `我的${this.data.userPlant.nickname}长得真好！`,
