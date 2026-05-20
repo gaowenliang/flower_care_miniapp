@@ -1,7 +1,10 @@
-// pages/index/index.js - 首页：我的花园（打磨版）
+// pages/index/index.js - 首页：我的花园（房间筛选+自定义房间）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const subscribe = require('../../utils/subscribe')
+
+// 预设房间
+const DEFAULT_ROOMS = ['全部', '阳台', '客厅', '卧室', '书房', '窗台', '花园']
 
 Page({
   data: {
@@ -13,15 +16,102 @@ Page({
     tipText: '',
     searchKeyword: '',
     searching: false,
-    filteredGarden: []
+    filteredGarden: [],
+    // 房间筛选
+    rooms: [],
+    activeRoom: '全部',
+    showAddRoom: false,
+    newRoomName: ''
   },
 
   onShow() {
+    this.loadRooms()
     this.loadGarden()
     this.loadTodayTasks()
     this.loadStats()
     subscribe.checkAndNotify()
   },
+
+  // ========== 房间管理 ==========
+
+  loadRooms() {
+    let customRooms = []
+    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    this.setData({ rooms: [...DEFAULT_ROOMS, ...customRooms] })
+  },
+
+  switchRoom(e) {
+    const room = e.currentTarget.dataset.room
+    if (room === '+ 添加') {
+      this.setData({ showAddRoom: true, newRoomName: '' })
+      return
+    }
+    this.setData({ activeRoom: room })
+    this.applyFilter()
+  },
+
+  onNewRoomInput(e) {
+    this.setData({ newRoomName: e.detail.value })
+  },
+
+  confirmAddRoom() {
+    const name = this.data.newRoomName.trim()
+    if (!name) {
+      wx.showToast({ title: '请输入房间名', icon: 'none' })
+      return
+    }
+    if (this.data.rooms.includes(name)) {
+      wx.showToast({ title: '该房间已存在', icon: 'none' })
+      return
+    }
+
+    let customRooms = []
+    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    customRooms.push(name)
+    try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+
+    this.setData({
+      rooms: [...DEFAULT_ROOMS, ...customRooms],
+      activeRoom: name,
+      showAddRoom: false,
+      newRoomName: ''
+    })
+    this.applyFilter()
+    wx.showToast({ title: '已添加', icon: 'none' })
+  },
+
+  cancelAddRoom() {
+    this.setData({ showAddRoom: false })
+  },
+
+  // 长按删除自定义房间
+  deleteRoom(e) {
+    const room = e.currentTarget.dataset.room
+    if (DEFAULT_ROOMS.includes(room)) {
+      wx.showToast({ title: '预设房间不能删除', icon: 'none' })
+      return
+    }
+
+    wx.showModal({
+      title: '删除房间',
+      content: `确定删除「${room}」？该房间下的植物不会删除。`,
+      success: (res) => {
+        if (res.confirm) {
+          let customRooms = []
+          try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+          customRooms = customRooms.filter(r => r !== room)
+          try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+          this.setData({
+            rooms: [...DEFAULT_ROOMS, ...customRooms],
+            activeRoom: this.data.activeRoom === room ? '全部' : this.data.activeRoom
+          })
+          this.applyFilter()
+        }
+      }
+    })
+  },
+
+  // ========== 花园数据 ==========
 
   loadGarden() {
     let garden = storage.getGarden()
@@ -33,7 +123,6 @@ Page({
       plant.dueCount = dueCount
       plant.addedDays = Math.floor((Date.now() - plant.addedAt) / 86400000)
     })
-    // 逾期排最前，然后按添加时间
     garden.sort((a, b) => {
       if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
       return b.addedAt - a.addedAt
@@ -45,7 +134,6 @@ Page({
   loadTodayTasks() {
     const dueTasks = storage.getDueTasks()
     const garden = storage.getGarden()
-
     dueTasks.forEach(task => {
       const plant = garden.find(p => p.id === task.userPlantId)
       task.plantName = plant ? plant.nickname : '未知植物'
@@ -54,19 +142,16 @@ Page({
       const daysOver = Math.abs(util.daysUntilNext(task.nextDate))
       task.daysText = daysOver === 0 ? '今天' : `逾期${daysOver}天`
     })
-
     this.setData({ todayTasks: dueTasks })
   },
 
   loadStats() {
-    const stats = storage.getStats()
-    this.setData({ stats })
+    this.setData({ stats: storage.getStats() })
   },
 
   // 搜索
   onSearchInput(e) {
-    const keyword = e.detail.value.trim().toLowerCase()
-    this.setData({ searchKeyword: keyword, searching: keyword.length > 0 })
+    this.setData({ searchKeyword: e.detail.value.trim().toLowerCase(), searching: e.detail.value.trim().length > 0 })
     this.applyFilter()
   },
 
@@ -76,46 +161,50 @@ Page({
   },
 
   applyFilter() {
-    const { garden, searchKeyword } = this.data
-    if (!searchKeyword) {
-      this.setData({ filteredGarden: garden })
-      return
+    let filtered = [...this.data.garden]
+    const { searchKeyword, activeRoom } = this.data
+
+    // 房间筛选
+    if (activeRoom !== '全部') {
+      filtered = filtered.filter(p => p.location === activeRoom)
     }
-    const filtered = garden.filter(p =>
-      p.nickname.toLowerCase().includes(searchKeyword) ||
-      p.name.toLowerCase().includes(searchKeyword) ||
-      (p.latin && p.latin.toLowerCase().includes(searchKeyword)) ||
-      (p.category && p.category.includes(searchKeyword))
-    )
+
+    // 搜索筛选
+    if (searchKeyword) {
+      filtered = filtered.filter(p =>
+        p.nickname.toLowerCase().includes(searchKeyword) ||
+        p.name.toLowerCase().includes(searchKeyword) ||
+        (p.latin && p.latin.toLowerCase().includes(searchKeyword)) ||
+        (p.category && p.category.includes(searchKeyword))
+      )
+    }
+
     this.setData({ filteredGarden: filtered })
   },
+
+  // ========== 操作 ==========
 
   goAddPlant() {
     wx.switchTab({ url: '/pages/add-plant/add-plant' })
   },
 
   goDetail(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${id}` })
+    wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${e.currentTarget.dataset.id}` })
   },
 
   completeTask(e) {
-    const taskId = e.currentTarget.dataset.id
-    storage.completeTask(taskId)
-
-    const task = storage.getTasks().find(t => t.id === taskId)
+    storage.completeTask(e.currentTarget.dataset.id)
+    const task = storage.getTasks().find(t => t.id === e.currentTarget.dataset.id)
     if (task) {
       this.setData({ showTip: true, tipText: `${task.typeName}完成！` })
       setTimeout(() => this.setData({ showTip: false }), 2000)
     }
 
-    // 检查成就
     const achievement = require('../../utils/achievement')
     const newBadges = achievement.checkAchievements()
     if (newBadges.length > 0) {
-      const badge = newBadges[0]
       setTimeout(() => {
-        wx.showToast({ title: `🏆 解锁成就：${badge.name}`, icon: 'none', duration: 3000 })
+        wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 })
       }, 2200)
     }
 
@@ -124,18 +213,16 @@ Page({
     this.loadStats()
   },
 
-  // 批量完成今日所有任务
   completeAllTasks() {
     const tasks = this.data.todayTasks
     if (tasks.length === 0) return
-
     wx.showModal({
       title: '一键完成',
       content: `确认完成今天的 ${tasks.length} 项养护任务？`,
       success: (res) => {
         if (res.confirm) {
           tasks.forEach(t => storage.completeTask(t.id))
-          this.setData({ showTip: true, tipText: `${tasks.length}项任务全部完成！` })
+          this.setData({ showTip: true, tipText: `${tasks.length}项全部完成！` })
           setTimeout(() => this.setData({ showTip: false }), 2000)
           this.loadTodayTasks()
           this.loadGarden()
@@ -153,10 +240,6 @@ Page({
   },
 
   onShareAppMessage() {
-    const count = this.data.garden.length
-    return {
-      title: `我在养${count}棵植物，快来一起养花吧！🌸`,
-      path: '/pages/index/index'
-    }
+    return { title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！🌸`, path: '/pages/index/index' }
   }
 })

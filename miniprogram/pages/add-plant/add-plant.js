@@ -14,13 +14,19 @@ Page({
     selectedPlant: null,
     nickName: '',
     location: '阳台',
-    waterDays: 7
+    waterDays: 7,
+    allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
   },
 
   onLoad() {
+    let customRooms = []
+    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    const presetRooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+    const allRooms = [...presetRooms, ...customRooms.filter(r => !presetRooms.includes(r))]
     this.setData({
       categories: plantsData.categories,
-      filteredPlants: plantsData.plants
+      filteredPlants: plantsData.plants,
+      allRooms
     })
   },
 

@@ -66,12 +66,7 @@
         <view class="form-item">
           <text class="form-label">放在哪里</text>
           <view class="location-options">
-            <view class="loc-opt {{location === '阳台' ? 'active' : ''}}" bindtap="selectLocation" data-value="阳台">☀️ 阳台</view>
-            <view class="loc-opt {{location === '客厅' ? 'active' : ''}}" bindtap="selectLocation" data-value="客厅">🛋️ 客厅</view>
-            <view class="loc-opt {{location === '卧室' ? 'active' : ''}}" bindtap="selectLocation" data-value="卧室">🛏️ 卧室</view>
-            <view class="loc-opt {{location === '书房' ? 'active' : ''}}" bindtap="selectLocation" data-value="书房">📚 书房</view>
-            <view class="loc-opt {{location === '窗台' ? 'active' : ''}}" bindtap="selectLocation" data-value="窗台">🪟 窗台</view>
-            <view class="loc-opt {{location === '花园' ? 'active' : ''}}" bindtap="selectLocation" data-value="花园">🌻 花园</view>
+            <view class="loc-opt {{location === item ? 'active' : ''}}" wx:for="{{allRooms}}" wx:key="*this" bindtap="selectLocation" data-value="{{item}}">{{item}}</view>
           </view>
         </view>
         <view class="form-item">

@@ -44,6 +44,25 @@
 .search-input { flex: 1; font-size: 28rpx; color: #2D3436; }
 .search-clear { font-size: 28rpx; color: #90A4AE; padding: 4rpx 12rpx; }
 
+/* 房间标签栏 */
+.room-scroll {
+  display: flex; white-space: nowrap; margin-bottom: 16rpx;
+}
+.room-tag {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10rpx 24rpx; margin-right: 12rpx;
+  border-radius: 44rpx; font-size: 24rpx; color: #607D8B;
+  background: #F7F9F7; flex-shrink: 0;
+}
+.room-tag.active {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white;
+  font-weight: 600;
+}
+.room-tag.add {
+  background: #FFFFFF; color: #4CAF50; font-size: 28rpx; font-weight: 600;
+  border: 2rpx dashed #C8E6C9; min-width: 56rpx;
+}
+
 /* 今日任务 */
 .task-item {
   display: flex; justify-content: space-between; align-items: center;
@@ -96,6 +115,9 @@
   max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; text-align: center;
 }
+.garden-location {
+  font-size: 18rpx; color: #B0BEC5; margin-top: 2rpx;
+}
 
 /* 空状态 */
 .empty-state {
@@ -112,3 +134,24 @@
   font-size: 30rpx; font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(76,175,80,0.25);
 }
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed; top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.45); display:flex;
+  align-items:center; justify-content:center; z-index:999;
+}
+.modal-content {
+  width: 80%; background: #FFFFFF; border-radius: 28rpx;
+  overflow: hidden;
+}
+.modal-header { padding: 36rpx 30rpx 12rpx; text-align: center; }
+.modal-title { font-size: 32rpx; font-weight: 600; color: #2D3436; }
+.modal-body { padding: 16rpx 40rpx 28rpx; }
+.form-input {
+  border: 2rpx solid #E8F5E9; border-radius: 20rpx;
+  padding: 20rpx; font-size: 28rpx; background: #F7F9F7; color: #2D3436;
+}
+.modal-footer { display: flex; border-top: 1rpx solid #F0F2F0; }
+.modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
+.btn-cancel { color: #90A4AE; }

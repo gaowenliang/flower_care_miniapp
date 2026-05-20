@@ -1,6 +1,5 @@
-<!-- pages/index/index.wxml - 首页 v3（打磨版） -->
+<!-- pages/index/index.wxml - 首页 v4（房间筛选+自定义房间） -->
 <view class="container">
-  <!-- 完成提示 Toast -->
   <view class="tip-toast {{showTip ? 'show' : ''}}" wx:if="{{tipText}}">
     <text>✅ {{tipText}}</text>
   </view>
@@ -29,17 +28,11 @@
     </view>
   </view>
 
-  <!-- 花园统计 -->
+  <!-- 统计条 -->
   <view class="stats-bar" wx:if="{{hasPlants && stats}}">
-    <view class="stat-chip">
-      <text>🌱 {{stats.totalPlants}}棵</text>
-    </view>
-    <view class="stat-chip" wx:if="{{stats.dueToday > 0}}">
-      <text>🔔 {{stats.dueToday}}项待办</text>
-    </view>
-    <view class="stat-chip">
-      <text>📝 {{stats.totalRecords}}条记录</text>
-    </view>
+    <view class="stat-chip"><text>🌱 {{stats.totalPlants}}棵</text></view>
+    <view class="stat-chip" wx:if="{{stats.dueToday > 0}}"><text>🔔 {{stats.dueToday}}项待办</text></view>
+    <view class="stat-chip"><text>📝 {{stats.totalRecords}}条记录</text></view>
   </view>
 
   <!-- 我的花园 -->
@@ -48,6 +41,15 @@
       <text class="section-icon">🪴</text>
       <text>我的花园</text>
     </view>
+
+    <!-- 房间标签栏 -->
+    <scroll-view class="room-scroll" scroll-x enable-flex wx:if="{{hasPlants}}">
+      <view class="room-tag {{activeRoom === item ? 'active' : ''}}" 
+            wx:for="{{rooms}}" wx:key="*this"
+            bindtap="switchRoom" data-room="{{item}}"
+            longpress="deleteRoom">{{item}}</view>
+      <view class="room-tag add" bindtap="switchRoom" data-room="+ 添加">+</view>
+    </scroll-view>
 
     <!-- 搜索栏 -->
     <view class="search-bar" wx:if="{{hasPlants}}">
@@ -66,14 +68,15 @@
       <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
     </view>
 
-    <!-- 搜索无结果 -->
-    <view class="empty-state small" wx:if="{{hasPlants && searching && filteredGarden.length === 0}}">
-      <text class="title">没有找到"{{searchKeyword}}"</text>
-      <text class="desc">换个关键词试试？</text>
+    <!-- 搜索/筛选无结果 -->
+    <view class="empty-state small" wx:if="{{hasPlants && filteredGarden.length === 0 && (searching || activeRoom !== '全部')}}">
+      <text class="title">{{activeRoom !== '全部' ? activeRoom + '没有植物' : '没有找到"' + searchKeyword + '"'}}
+      </text>
+      <text class="desc">{{activeRoom !== '全部' ? '换个房间看看？' : '换个关键词试试？'}}</text>
     </view>
 
     <!-- 矩阵网格 -->
-    <view class="garden-grid" wx:if="{{hasPlants && filteredGarden.length > 0}}">
+    <view class="garden-grid" wx:if="{{filteredGarden.length > 0}}">
       <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
         <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
           <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
@@ -81,6 +84,24 @@
           <text class="garden-due" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
         </view>
         <text class="garden-name">{{item.nickname}}</text>
+        <text class="garden-location">📍 {{item.location}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加房间弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddRoom}}" bindtap="cancelAddRoom">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">添加房间</text>
+      </view>
+      <view class="modal-body">
+        <input class="form-input" placeholder="输入房间名称，如：厨房、走廊..." 
+               value="{{newRoomName}}" bindinput="onNewRoomInput" focus="{{showAddRoom}}" />
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="cancelAddRoom">取消</view>
+        <view class="btn-primary" bindtap="confirmAddRoom">添加</view>
       </view>
     </view>
   </view>

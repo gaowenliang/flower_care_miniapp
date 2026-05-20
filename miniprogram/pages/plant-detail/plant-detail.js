@@ -317,13 +317,18 @@ Page({
 
   // 编辑位置
   editLocation() {
-    const locations = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+    const rooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+    // 加上自定义房间
+    try {
+      const custom = wx.getStorageSync('customRooms') || []
+      custom.forEach(r => { if (!rooms.includes(r)) rooms.push(r) })
+    } catch (e) {}
     wx.showActionSheet({
-      itemList: locations,
+      itemList: rooms,
       success: (res) => {
-        const location = locations[res.tapIndex]
-        storage.updatePlant(this.data.userPlant.id, { location })
-        this.setData({ 'userPlant.location': location })
+        const room = rooms[res.tapIndex]
+        storage.updatePlant(this.data.userPlant.id, { location: room })
+        this.setData({ 'userPlant.location': room })
         wx.showToast({ title: '已修改', icon: 'none' })
       }
     })
