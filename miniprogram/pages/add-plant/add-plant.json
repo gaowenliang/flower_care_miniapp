@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "添加植物"
+  "navigationBarTitleText": "添加植物",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "backgroundColor": "#F7F9F7"
 }

@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "植物详情"
+  "navigationBarTitleText": "植物详情",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "backgroundColor": "#F7F9F7"
 }
