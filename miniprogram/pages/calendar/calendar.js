@@ -33,6 +33,7 @@ Page({
   },
 
   getDueDatesInMonth(task, year, month) {
+    if (!task.intervalDays || task.intervalDays <= 0) return []
     const monthStart = new Date(year, month - 1, 1).getTime()
     const monthEnd = new Date(year, month, 0, 23, 59, 59).getTime()
     const dueDates = []

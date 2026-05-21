@@ -161,16 +161,18 @@ Page({
   },
 
   checkRainyDay() {
-    // 检查今天天气，如果下雨且有待浇水任务则提示
+    // 通过云函数获取天气，不暴露API Key
     try {
       const weatherTip = wx.getStorageSync('weatherTip_' + util.formatDate(Date.now()))
       if (weatherTip) return
-      wx.request({
-        url: 'https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=310000&extensions=base',
+      if (!wx.cloud) return
+      wx.cloud.callFunction({
+        name: 'getWeather',
+        data: { city: '310000' },
         success: (res) => {
-          if (res.data && res.data.lives && res.data.lives[0]) {
-            const w = res.data.lives[0]
-            if (w.weather && (w.weather.includes('雨'))) {
+          if (res.result && res.result.weather) {
+            const w = res.result.weather
+            if (w.weather && w.weather.includes('雨')) {
               const waterTasks = this.data.todayTasks.filter(t => t.typeName === '浇水')
               if (waterTasks.length > 0) {
                 wx.showToast({ title: `雨天可暂缓浇水（${waterTasks.length}项）`, icon: 'none', duration: 3000 })

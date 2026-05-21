@@ -30,11 +30,9 @@ App({
     })
 
     // 捕获小程序错误
-    const originalOnError = wx.onError
     wx.onError((error) => {
       console.error('全局错误:', error)
       this.reportError('globalError', error)
-      if (originalOnError) originalOnError(error)
     })
   },
 

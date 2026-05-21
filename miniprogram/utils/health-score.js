@@ -87,13 +87,16 @@ function getHealthLevel(score) {
  */
 function calculateAllHealthScores() {
   const garden = storage.getGarden()
-  return garden.map(plant => ({
-    id: plant.id,
-    nickname: plant.nickname,
-    emoji: plant.emoji,
-    ...calculateHealthScore(plant),
-    level: getHealthLevel(calculateHealthScore(plant).score)
-  })).sort((a, b) => b.score - a.score)
+  return garden.map(plant => {
+    const result = calculateHealthScore(plant)
+    return {
+      id: plant.id,
+      nickname: plant.nickname,
+      emoji: plant.emoji,
+      ...result,
+      level: getHealthLevel(result.score)
+    }
+  }).sort((a, b) => b.score - a.score)
 }
 
 module.exports = {

@@ -10,10 +10,14 @@
  */
 
 const SUBSCRIBE_TEMPLATES = {
-  // 浇水提醒模板 - 需替换为实际申请到的模板ID
+  // TODO: 上线前替换为公众平台申请的真实模板ID
   WATER_REMINDER: 'YOUR_WATER_TEMPLATE_ID',
-  // 养护任务提醒
   CARE_REMINDER: 'YOUR_CARE_TEMPLATE_ID'
+}
+
+// 检测模板ID是否为占位符
+function isTemplatePlaceholder(id) {
+  return !id || id.startsWith('YOUR_')
 }
 
 /**
@@ -101,6 +105,13 @@ async function checkAndNotify(force) {
   // 请求订阅授权（force=true时忽略每日限制）
   const subscribeState = wx.getStorageSync('subscribeState') || {}
   const today = util.formatDate(Date.now())
+
+  // 模板ID未替换时跳过订阅
+  if (isTemplatePlaceholder(SUBSCRIBE_TEMPLATES.WATER_REMINDER)) {
+    console.warn('订阅消息模板ID未替换，跳过订阅')
+    return
+  }
+
   if (force || subscribeState.lastAskDate !== today) {
     const accepted = await requestSubscribe(SUBSCRIBE_TEMPLATES.WATER_REMINDER)
     wx.setStorageSync('subscribeState', {

@@ -105,20 +105,9 @@ function fetchWeather(city) {
 }
 
 function fetchWeatherDirect(city) {
-  return new Promise((resolve) => {
-    const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=${city || '310000'}&extensions=base`
-    wx.request({
-      url,
-      success: (res) => {
-        if (res.data && res.data.lives && res.data.lives[0]) {
-          resolve(res.data.lives[0])
-        } else {
-          resolve(null)
-        }
-      },
-      fail: () => resolve(null)
-    })
-  })
+  // 前端不再直连高德API，避免暴露Key
+  // 如果云函数不可用，返回null让贴士降级为纯季节建议
+  return Promise.resolve(null)
 }
 
 /**

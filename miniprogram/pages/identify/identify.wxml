@@ -10,7 +10,7 @@
     <view class="card result-card" wx:for="{{plants}}" wx:key="name">
       <view class="result-header">
         <text class="result-name">{{item.name}}</text>
-        <text class="result-score">{{item.score}}%</text>
+        <text class="result-score">{{item.score ? item.score + '%' : '参考'}}</text>
       </view>
       <view class="result-desc" wx:if="{{item.description}}">
         <text>{{item.description}}</text>

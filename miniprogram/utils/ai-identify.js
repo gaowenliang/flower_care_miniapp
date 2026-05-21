@@ -83,11 +83,11 @@ function callCloudIdentify(base64) {
  * 本地匹配 — 基于用户选择的特征引导匹配
  */
 async function localMatch(imagePath) {
-  // 用本地数据库做模糊展示，让用户自己选
+  // AI服务不可用时，展示常见植物让用户手动选择，不造假分数
   return plantsData.plants.slice(0, 8).map(p => ({
     name: p.name,
     latin: p.latin,
-    score: Math.floor(Math.random() * 20 + 60),
+    score: null, // 标记为非AI识别结果
     description: `${p.category} · ${p.care.difficulty} · ${p.care.light}`,
     matched: true,
     localId: p.id,

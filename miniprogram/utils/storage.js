@@ -167,7 +167,8 @@ const StorageManager = {
 
   getRecords() {
     try {
-      return wx.getStorageSync(this.KEYS.RECORDS) || []
+      const records = wx.getStorageSync(this.KEYS.RECORDS) || []
+      return records.reverse() // push写入，读取时倒序（最新在前）
     } catch (e) {
       console.error('读取记录数据失败:', e)
       return []
@@ -180,8 +181,8 @@ const StorageManager = {
 
   addRecord(record) {
     const records = this.getRecords()
-    records.unshift(record)
-    if (records.length > 500) records.length = 500
+    records.push(record)
+    if (records.length > 1000) records = records.slice(-1000)
     try {
       wx.setStorageSync(this.KEYS.RECORDS, records)
       cloudSync.syncItem('records', records)
