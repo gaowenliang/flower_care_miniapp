@@ -115,3 +115,55 @@
 .modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
 .btn-cancel { color: #90A4AE; }
 .btn-primary { color: #4CAF50; font-weight: 600; }
+
+/* 自定义添加入口 */
+.custom-add-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: 28rpx;
+  color: #4CAF50;
+  border-top: 1rpx solid #F0F2F0;
+  box-shadow: 0 -2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+/* 识别结果 */
+.identify-result-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F2F0;
+}
+.identify-result-item:active { background: #F7F9F7; }
+.identify-result-item:last-child { border-bottom: none; }
+.identify-emoji { font-size: 40rpx; margin-right: 16rpx; }
+.identify-info { flex: 1; }
+.identify-name { font-size: 30rpx; color: #2D3436; display: block; }
+.identify-desc { font-size: 24rpx; color: #90A4AE; margin-top: 4rpx; display: block; }
+.identify-score { font-size: 28rpx; font-weight: 600; }
+
+/* emoji选择 */
+.emoji-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.emoji-opt {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+}
+.emoji-opt.active {
+  border-color: #4CAF50;
+  background: #E8F5E9;
+}

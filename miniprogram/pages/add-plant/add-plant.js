@@ -1,4 +1,4 @@
-// pages/add-plant/add-plant.js - 统一走 StorageManager
+// pages/add-plant/add-plant.js - 添加植物（含拍照识别+自定义添加）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
@@ -16,7 +16,14 @@ Page({
     nickName: '',
     location: '阳台',
     waterDays: 7,
-    allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+    allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园'],
+    // 自定义添加
+    showCustomModal: false,
+    customName: '',
+    customEmoji: '🌱',
+    customLocation: '阳台',
+    customWaterDays: 7,
+    emojiOptions: ['🌱', '🌿', '🪴', '🌸', '🌺', '🌻', '🌹', '🌵', '🍀', '🪻', '🪷', '🌾', '🍃', '🌳', '🌴', '🫐', '🍅', '🌶️', '🧄', '💐']
   },
 
   onLoad() {
@@ -24,6 +31,22 @@ Page({
       categories: plantsData.categories,
       filteredPlants: plantsData.plants
     })
+    // 从识花页跳回来的
+    const identified = wx.getStorageSync('identifiedPlant')
+    if (identified) {
+      wx.removeStorageSync('identifiedPlant')
+      const match = plantsData.plants.find(p => p.name === identified.name)
+      if (match) {
+        this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays })
+      } else {
+        // 识花结果不在数据库，走自定义
+        this.setData({
+          showCustomModal: true,
+          customName: identified.name,
+          customEmoji: '🌱'
+        })
+      }
+    }
   },
 
   onShow() {
@@ -61,14 +84,154 @@ Page({
       list = list.filter(p =>
         p.name.toLowerCase().includes(keyword) ||
         p.latin.toLowerCase().includes(keyword) ||
+        (p.family && p.family.includes(keyword)) ||
         p.category.includes(keyword)
       )
     }
     this.setData({ filteredPlants: list })
   },
 
+  // 拍照识花 — 内联拍照，不走跳转
   takePhoto() {
-    wx.navigateTo({ url: '/pages/identify/identify' })
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const tempPath = res.tempFiles[0].tempFilePath
+        this.doIdentify(tempPath)
+      },
+      fail: () => {
+        // 用户取消或无权限
+      }
+    })
+  },
+
+  async doIdentify(imagePath) {
+    wx.showLoading({ title: '识别中...' })
+    try {
+      const aiIdentify = require('../../utils/ai-identify')
+      const result = await aiIdentify.identify(imagePath)
+      wx.hideLoading()
+
+      if (result && result.length > 0) {
+        // 识别成功，展示结果让用户选
+        this.setData({ identifyResults: result, showIdentifyModal: true })
+      } else {
+        wx.showToast({ title: '未能识别，请手动选择或自定义添加', icon: 'none' })
+      }
+    } catch (e) {
+      wx.hideLoading()
+      wx.showToast({ title: '识别失败，请手动选择', icon: 'none' })
+    }
+  },
+
+  // 选择识别结果
+  pickIdentifyResult(e) {
+    const idx = e.currentTarget.dataset.index
+    const result = this.data.identifyResults[idx]
+    this.setData({ showIdentifyModal: false })
+
+    const match = plantsData.plants.find(p => p.name === result.name)
+    if (match) {
+      this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays })
+    } else {
+      this.setData({
+        showCustomModal: true,
+        customName: result.name,
+        customEmoji: result.emoji || '🌱'
+      })
+    }
+  },
+
+  closeIdentifyModal() {
+    this.setData({ showIdentifyModal: false })
+  },
+
+  // 打开自定义添加
+  openCustomAdd() {
+    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7 })
+  },
+
+  selectCustomEmoji(e) {
+    this.setData({ customEmoji: e.currentTarget.dataset.emoji })
+  },
+
+  onCustomNameInput(e) {
+    this.setData({ customName: e.detail.value })
+  },
+
+  selectCustomLocation(e) {
+    this.setData({ customLocation: e.currentTarget.dataset.value })
+  },
+
+  onCustomWaterDaysInput(e) {
+    this.setData({ customWaterDays: Math.max(1, parseInt(e.detail.value) || 1) })
+  },
+
+  adjustCustomWaterDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    this.setData({ customWaterDays: Math.max(1, this.data.customWaterDays + delta) })
+  },
+
+  async confirmCustomAdd() {
+    const nameCheck = validator.validateNickname(this.data.customName)
+    if (!nameCheck.valid) {
+      wx.showToast({ title: nameCheck.msg, icon: 'none' })
+      return
+    }
+    const intervalCheck = validator.validateInterval(this.data.customWaterDays)
+    if (!intervalCheck.valid) {
+      wx.showToast({ title: intervalCheck.msg, icon: 'none' })
+      return
+    }
+
+    const nickname = nameCheck.value
+    const userPlant = {
+      id: util.genId(),
+      plantId: 'custom_' + Date.now(),
+      name: nickname,
+      latin: '',
+      family: '自定义',
+      emoji: this.data.customEmoji,
+      category: '自定义',
+      nickname,
+      location: this.data.customLocation,
+      addedAt: Date.now(),
+      photo: null
+    }
+
+    storage.addPlant(userPlant)
+
+    const defaultTasks = [
+      { type: 'water', typeName: '浇水', days: this.data.customWaterDays },
+      { type: 'fertilize', typeName: '施肥', days: 30 },
+      { type: 'prune', typeName: '修剪', days: 60 }
+    ]
+    defaultTasks.forEach(t => {
+      storage.addTask({
+        id: util.genId(),
+        userPlantId: userPlant.id,
+        type: t.type,
+        typeName: t.typeName,
+        intervalDays: t.days,
+        nextDate: util.nextCareDate(Date.now(), t.days),
+        lastDoneDate: Date.now(),
+        enabled: true
+      })
+    })
+
+    this.setData({ showCustomModal: false })
+    wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
+
+    const achievement = require('../../utils/achievement')
+    achievement.checkAchievements()
+
+    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+  },
+
+  closeCustomModal() {
+    this.setData({ showCustomModal: false })
   },
 
   selectPlant(e) {
@@ -101,7 +264,6 @@ Page({
     const plant = this.data.selectedPlant
     if (!plant) return
 
-    // 输入校验
     const nameCheck = validator.validateNickname(this.data.nickName || plant.name)
     if (!nameCheck.valid && this.data.nickName.trim()) {
       wx.showToast({ title: nameCheck.msg, icon: 'none' })
@@ -132,7 +294,6 @@ Page({
 
     storage.addPlant(userPlant)
 
-    // 自动创建多个养护任务
     const defaultTasks = [
       { type: 'water', typeName: '浇水', days: this.data.waterDays },
       { type: 'fertilize', typeName: '施肥', days: 30 },
@@ -154,7 +315,6 @@ Page({
     this.setData({ showModal: false })
     wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
 
-    // 检查成就
     const achievement = require('../../utils/achievement')
     const newBadges = achievement.checkAchievements()
     if (newBadges.length > 0) {
@@ -170,7 +330,5 @@ Page({
     this.setData({ showModal: false })
   },
 
-  preventBubble() {
-    // 阻止事件冒泡到 modal-mask
-  }
+  preventBubble() {}
 })

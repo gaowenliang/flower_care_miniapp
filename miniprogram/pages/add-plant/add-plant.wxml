@@ -43,15 +43,46 @@
       </view>
     </view>
 
-    <!-- 无结果 -->
-    <view class="empty-state" wx:if="{{filteredPlants.length === 0}}">
+    <!-- 无结果 — 显示自定义添加按钮 -->
+    <view class="empty-state" wx:if="{{filteredPlants.length === 0 && searching}}">
       <text class="emoji">🔍</text>
-      <text class="title">没有找到</text>
-      <text class="desc">换个关键词试试？</text>
+      <text class="title">没有找到 "{{keyword}}"</text>
+      <text class="desc">数据库暂时没有这种植物</text>
+      <view class="btn-primary" style="margin-top:24rpx;padding:16rpx 40rpx;font-size:28rpx" bindtap="openCustomAdd">
+        ✏️ 自定义添加 "{{keyword}}"
+      </view>
     </view>
   </view>
 
-  <!-- 添加弹窗 -->
+  <!-- 底部自定义添加入口 -->
+  <view class="custom-add-bar" wx:if="{{!searching || filteredPlants.length > 0}}" bindtap="openCustomAdd">
+    <text>➕ 自定义添加植物</text>
+  </view>
+
+  <!-- 识别结果弹窗 -->
+  <view class="modal-mask" wx:if="{{showIdentifyModal}}" bindtap="closeIdentifyModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-emoji">🔍</text>
+        <text class="modal-title">识别结果</text>
+      </view>
+      <view class="modal-body">
+        <view class="identify-result-item" wx:for="{{identifyResults}}" wx:key="name" bindtap="pickIdentifyResult" data-index="{{index}}">
+          <text class="identify-emoji">{{item.emoji || '🌱'}}</text>
+          <view class="identify-info">
+            <text class="identify-name">{{item.name}}</text>
+            <text class="identify-desc">{{item.description || '点击选择'}}</text>
+          </view>
+          <text class="identify-score" style="color:{{item.score ? '#4CAF50' : '#B0BEC5'}}">{{item.score ? item.score + '%' : '参考'}}</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeIdentifyModal">都不对，手动选</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加弹窗（数据库植物） -->
   <view class="modal-mask" wx:if="{{showModal}}" bindtap="closeModal">
     <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
@@ -83,6 +114,47 @@
       <view class="modal-footer">
         <view class="btn-cancel" bindtap="closeModal">取消</view>
         <view class="btn-primary" bindtap="confirmAdd">添加到花园</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自定义添加弹窗 -->
+  <view class="modal-mask" wx:if="{{showCustomModal}}" bindtap="closeCustomModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-emoji">✏️</text>
+        <text class="modal-title">自定义添加</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">选个图标</text>
+          <view class="emoji-options">
+            <view class="emoji-opt {{customEmoji === item ? 'active' : ''}}" wx:for="{{emojiOptions}}" wx:key="*this" bindtap="selectCustomEmoji" data-emoji="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">植物名称</text>
+          <input class="form-input" placeholder="比如：薄荷" value="{{customName}}" bindinput="onCustomNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">放在哪里</text>
+          <view class="location-options">
+            <view class="loc-opt {{customLocation === item ? 'active' : ''}}" wx:for="{{allRooms}}" wx:key="*this" bindtap="selectCustomLocation" data-value="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">💧 浇水周期</text>
+          <view class="interval-control">
+            <view class="interval-btn" bindtap="adjustCustomWaterDays" data-delta="-1">−</view>
+            <input class="interval-input" type="number" value="{{customWaterDays}}" bindinput="onCustomWaterDaysInput" />
+            <text class="interval-unit">天</text>
+            <view class="interval-btn" bindtap="adjustCustomWaterDays" data-delta="1">+</view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeCustomModal">取消</view>
+        <view class="btn-primary" bindtap="confirmCustomAdd">添加到花园</view>
       </view>
     </view>
   </view>
