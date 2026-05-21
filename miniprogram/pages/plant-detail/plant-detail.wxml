@@ -3,15 +3,15 @@
   <!-- 骨架屏 -->
   <view class="skeleton" wx:if="{{loading}}">
     <view class="card" style="padding:20rpx">
-      <view class="sk-row"><view class="sk-circle-lg"></view><view class="sk-lines-lg"><view class="sk-line long"></view><view class="sk-line short"></view><view class="sk-line short"></div></view></div>
+      <view class="sk-row"><view class="sk-circle-lg"></view><view class="sk-lines-lg"><view class="sk-line long"></view><view class="sk-line short"></view><view class="sk-line short"></view></view></view>
     </view>
     <view style="height:24rpx"></view>
-    <view class="card"><view class="sk-row"><view class="sk-circle-sm"></view><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></div><view class="sk-row"><div class="sk-circle-sm"></div><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></view><view class="sk-row"><div class="sk-circle-sm"></div><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></view></div>
-    <div class="tabs" style="margin:16rpx 0;background:#FFF;border-radius:16rpx;padding:8rpx">
-      <div style="height:40rpx;background:#F0F2F0;border-radius:12rpx;flex:1"></div>
-    </div>
-    <div class="card"><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div></div>
-  </div>
+    <view class="card"><view class="sk-row"><view class="sk-circle-sm"></view><view class="sk-lines"><view class="sk-line long"></view><view class="sk-line short"></view></view></view><view class="sk-row"><view class="sk-circle-sm"></view><view class="sk-lines"><view class="sk-line long"></view><view class="sk-line short"></view></view></view><view class="sk-row"><view class="sk-circle-sm"></view><view class="sk-lines"><view class="sk-line long"></view><view class="sk-line short"></view></view></view></view>
+    <view class="tabs" style="margin:16rpx 0;background:#FFF;border-radius:16rpx;padding:8rpx">
+      <view style="height:40rpx;background:#F0F2F0;border-radius:12rpx;flex:1"></view>
+    </view>
+    <view class="card"><view class="sk-row" style="justify-content:space-between"><view class="sk-line" style="width:30%"></view><view class="sk-line" style="width:40%"></view></view><view class="sk-row" style="justify-content:space-between"><view class="sk-line" style="width:30%"></view><view class="sk-line" style="width:40%"></view></view><view class="sk-row" style="justify-content:space-between"><view class="sk-line" style="width:30%"></view><view class="sk-line" style="width:40%"></view></view></view>
+  </view>
   <!-- 植物头部 -->
   <view class="plant-header card">
     <view class="header-main">

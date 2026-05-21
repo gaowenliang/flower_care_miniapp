@@ -14,7 +14,7 @@
       <view class="jh-btn primary" bindtap="takePhoto">📷</view>
       <view class="jh-btn" bindtap="addNote">📝</view>
     </view>
-  </div>
+  </view>
 
   <!-- 成长对比 -->
   <view class="compare-section" wx:if="{{comparePhotos.length >= 2}}">
