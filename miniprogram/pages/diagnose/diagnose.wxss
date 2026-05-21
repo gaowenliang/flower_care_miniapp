@@ -30,8 +30,8 @@
 .result-title { flex: 1; display: flex; align-items: center; gap: 12rpx; }
 .result-name { font-size: 30rpx; font-weight: 600; color: #2D3436; }
 .result-severity { font-size: 22rpx; padding: 4rpx 12rpx; border-radius: 16rpx; }
-.severity-high { background: #FFEBEE; color: #F44336; }
-.severity-medium { background: #FFF3E0; color: #FF9800; }
+.severity-high { background: #E8F5E9; color: #2E7D32; }
+.severity-medium { background: #F1F8E9; color: #558B2F; }
 .severity-low { background: #E8F5E9; color: #4CAF50; }
 
 .result-cause { font-size: 26rpx; color: #607D8B; margin-bottom: 16rpx; line-height: 1.5; }

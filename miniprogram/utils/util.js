@@ -83,7 +83,7 @@ function getWeatherIcon(weather) {
  * 获取难度颜色
  */
 function getDifficultyColor(diff) {
-  const map = { '超简单': '#4CAF50', '简单': '#8BC34A', '中等': '#FF9800', '较难': '#F44336' }
+  const map = { '超简单': '#4CAF50', '简单': '#66BB6A', '中等': '#8BC34A', '较难': '#33691E' }
   return map[diff] || '#999'
 }
 

@@ -38,7 +38,7 @@
         </view>
       </view>
       <view class="plant-difficulty">
-        <text class="diff-dot" style="background: {{item.care.difficulty === '超简单' ? '#4CAF50' : item.care.difficulty === '简单' ? '#8BC34A' : '#FF9800'}}"></text>
+        <text class="diff-dot" style="background: {{item.care.difficulty === '超简单' ? '#4CAF50' : item.care.difficulty === '简单' ? '#66BB6A' : '#8BC34A'}}"></text>
         <text class="diff-text">{{item.care.difficulty}}</text>
       </view>
     </view>

@@ -492,8 +492,8 @@ module.exports = {
   taskTypes: [
     { id: 'water', name: '浇水', emoji: '💧', color: '#E3F2FD' },
     { id: 'fertilize', name: '施肥', emoji: '🧪', color: '#E8F5E9' },
-    { id: 'prune', name: '修剪', emoji: '✂️', color: '#FFF3E0' },
+    { id: 'prune', name: '修剪', emoji: '✂️', color: '#F1F8E9' },
     { id: 'repot', name: '换盆', emoji: '🏺', color: '#F3E5F5' },
-    { id: 'spray', name: '喷药', emoji: '💉', color: '#FFEBEE' }
+    { id: 'spray', name: '喷药', emoji: '💉', color: '#E8F5E9' }
   ]
 }

@@ -133,7 +133,7 @@ Page({
     wx.showModal({
       title: '⚠️ 清除所有数据',
       content: '将清除你的花园和所有养护记录，无法恢复！',
-      confirmColor: '#FF5252',
+      confirmColor: '#2E7D32',
       success: (res) => {
         if (res.confirm) {
           wx.clearStorageSync()

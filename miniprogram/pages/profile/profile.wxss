@@ -71,6 +71,6 @@
 .func-icon { font-size: 32rpx; margin-right: 20rpx; }
 .func-name { flex: 1; font-size: 28rpx; color: #2D3436; }
 .func-arrow { color: #B0BEC5; font-size: 32rpx; }
-.func-row.danger .func-name { color: #FF7043; }
+.func-row.danger .func-name { color: #5D4037; }
 
 .empty-hint { text-align: center; padding: 20rpx; color: #90A4AE; font-size: 26rpx; }

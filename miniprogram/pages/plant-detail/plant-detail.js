@@ -126,7 +126,7 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: `确定要把 ${this.data.userPlant.nickname} 从花园移除吗？所有养护记录也将删除。`,
-      confirmColor: '#FF5252',
+      confirmColor: '#2E7D32',
       success: (res) => {
         if (res.confirm) {
           storage.removePlant(this.data.userPlant.id)

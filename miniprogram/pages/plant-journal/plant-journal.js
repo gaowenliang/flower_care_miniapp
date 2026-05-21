@@ -160,7 +160,7 @@ Page({
     wx.showModal({
       title: '删除记录',
       content: '确定删除这条记录吗？',
-      confirmColor: '#FF7043',
+      confirmColor: '#2E7D32',
       success: (res) => {
         if (res.confirm) {
           storage.deleteRecord(recordId)
