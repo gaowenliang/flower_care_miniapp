@@ -22,11 +22,15 @@ Page({
     rooms: [],
     activeRoom: '全部',
     showAddRoom: false,
-    newRoomName: ''
+    newRoomName: '',
+    _lastLoadTime: 0
   },
 
   onShow() {
-    this.setData({ loading: true })
+    // 节流：500ms内不重复加载
+    const now = Date.now()
+    if (now - this.data._lastLoadTime < 500) return
+    this.setData({ loading: true, _lastLoadTime: now })
     this.loadRooms()
     this.loadGarden()
     this.loadTodayTasks()
@@ -202,6 +206,8 @@ Page({
 
   completeTask(e) {
     const taskId = e.currentTarget.dataset.id
+    // 触感反馈
+    wx.vibrateShort({ type: 'light' })
     // 播放滑出动画
     const tasks = this.data.todayTasks.map(t =>
       t.id === taskId ? { ...t, completing: true } : t

@@ -16,7 +16,7 @@
   <view class="plant-header card">
     <view class="header-main">
       <view class="header-avatar" bindtap="changeAvatar">
-        <image wx:if="{{userPlant.avatar}}" class="header-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" />
+        <image wx:if="{{userPlant.avatar}}" class="header-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" binderror="onAvatarError" />
         <text wx:else class="header-emoji-text">{{userPlant.emoji}}</text>
         <view class="avatar-camera">📷</view>
       </view>

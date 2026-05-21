@@ -2,6 +2,7 @@
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
+const validator = require('../../utils/validator')
 
 Page({
   data: {
@@ -100,7 +101,19 @@ Page({
     const plant = this.data.selectedPlant
     if (!plant) return
 
-    const nickname = this.data.nickName.trim() || plant.name
+    // 输入校验
+    const nameCheck = validator.validateNickname(this.data.nickName || plant.name)
+    if (!nameCheck.valid && this.data.nickName.trim()) {
+      wx.showToast({ title: nameCheck.msg, icon: 'none' })
+      return
+    }
+    const intervalCheck = validator.validateInterval(this.data.waterDays)
+    if (!intervalCheck.valid) {
+      wx.showToast({ title: intervalCheck.msg, icon: 'none' })
+      return
+    }
+
+    const nickname = nameCheck.value || plant.name
     const location = this.data.location || '阳台'
 
     const userPlant = {

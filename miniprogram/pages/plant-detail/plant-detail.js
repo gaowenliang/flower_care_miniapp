@@ -65,10 +65,12 @@ Page({
   },
 
   completeTask(e) {
+    wx.vibrateShort({ type: 'light' })
     storage.completeTask(e.currentTarget.dataset.id)
     this.loadTasks()
     this.loadRecords()
-    wx.showToast({ title: '完成啦~ 🎉', icon: 'none' })
+    this.loadHealthScore()
+    wx.showToast({ title: '完成啦~', icon: 'none' })
   },
 
   changeInterval(e) {
@@ -352,5 +354,10 @@ Page({
       title: `我的${plant.nickname}已经养了${days}天，状态不错！`,
       path: '/pages/index/index'
     }
+  },
+
+  // 图片加载失败兜底
+  onAvatarError() {
+    this.setData({ 'userPlant.avatar': '' })
   }
 })
