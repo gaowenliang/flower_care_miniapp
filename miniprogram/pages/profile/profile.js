@@ -18,6 +18,7 @@ Page({
   onShow() {
     this.loadStats()
     this.loadAchievements()
+    this.loadMonthlyStats()
   },
 
   loadStats() {
@@ -92,6 +93,55 @@ Page({
 
   toggleAchievements() {
     this.setData({ showAchievements: !this.data.showAchievements })
+  },
+
+  loadMonthlyStats() {
+    const records = storage.getRecords()
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+    const monthRecords = records.filter(r => r.date >= monthStart && r.type !== 'photo' && r.type !== 'note')
+
+    // 统计各类型
+    const typeCount = {}
+    monthRecords.forEach(r => {
+      const name = r.typeName || '其他'
+      typeCount[name] = (typeCount[name] || 0) + 1
+    })
+
+    const monthlyStats = Object.entries(typeCount)
+      .map(([label, count]) => {
+        const emojiMap = { '浇水': '💧', '施肥': '🧪', '修剪': '✂️', '换盆': '🏺', '喷药': '💉', '补卡': '🔖' }
+        return { emoji: emojiMap[label] || '📝', label, value: count + '次' }
+      })
+
+    if (monthlyStats.length === 0) {
+      monthlyStats.push({ emoji: '📝', label: '养护记录', value: '0次' })
+    }
+
+    // 最近7天柱状图
+    const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+    const today = now.getDay() === 0 ? 6 : now.getDay() - 1 // 周一=0
+    const weekBars = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(d.getDate() - i)
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      const dayEnd = dayStart + 86400000
+      const dayCount = records.filter(r => r.date >= dayStart && r.date < dayEnd && r.type !== 'photo' && r.type !== 'note').length
+      const maxCount = Math.max(1, ...Array.from({ length: 7 }, (_, j) => {
+        const dd = new Date(now); dd.setDate(dd.getDate() - (6 - j))
+        const ds = new Date(dd.getFullYear(), dd.getMonth(), dd.getDate()).getTime()
+        return records.filter(r => r.date >= ds && r.date < ds + 86400000 && r.type !== 'photo' && r.type !== 'note').length
+      }))
+      const dayIdx = (today - i + 7) % 7
+      weekBars.push({
+        day: weekDays[dayIdx],
+        count: dayCount,
+        height: (dayCount / maxCount * 100) + 'rpx'
+      })
+    }
+
+    this.setData({ monthlyStats, weekBars })
   },
 
   goDiagnose() {

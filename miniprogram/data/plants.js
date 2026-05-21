@@ -32,7 +32,7 @@ module.exports = {
       latin: 'Succulents',
       family: '景天科',
       category: '多肉',
-      emoji: '🌵',
+      emoji: '🪸',
       image: '/images/plants/succulent.png',
       care: {
         light: '充足直射光',
@@ -57,7 +57,7 @@ module.exports = {
       latin: 'Epipremnum aureum',
       family: '天南星科',
       category: '绿植',
-      emoji: '🌿',
+      emoji: '🪻',
       image: '/images/plants/pothos.png',
       care: {
         light: '耐阴，散射光即可',
@@ -307,7 +307,7 @@ module.exports = {
       latin: 'Aloe vera',
       family: '阿福花科',
       category: '多肉',
-      emoji: '🌿',
+      emoji: '🌾',
       image: '/images/plants/aloe.png',
       care: {
         light: '明亮散射光到直射光',
@@ -483,7 +483,7 @@ module.exports = {
       latin: 'Ficus elastica',
       family: '桑科',
       category: '绿植',
-      emoji: '🌳',
+      emoji: '🛢️',
       care: { light: '明亮散射光', waterDays: 7, waterAmount: '浇透等干', temperature: '15-28°C', humidity: '50-70%', soil: '疏松透气营养土', fertilizer: '春夏每月一次', difficulty: '简单', toxicity: '汁液微毒' },
       tips: ['叶片油亮有光泽，可定期擦拭', '耐阴能力较强', '修剪可促进分枝']
     },
@@ -493,7 +493,7 @@ module.exports = {
       latin: 'Chlorophytum comosum',
       family: '天门冬科',
       category: '绿植',
-      emoji: '🌿',
+      emoji: '🎈',
       care: { light: '散射光到半阴', waterDays: 5, waterAmount: '浇透', temperature: '15-30°C', humidity: '40-60%', soil: '普通营养土', fertilizer: '春夏每月一次', difficulty: '超简单', toxicity: '无毒' },
       tips: ['净化空气效果极佳', '匍匐茎上会长小吊兰，可以剪下繁殖', '叶片发黄多为光照不足']
     },
@@ -503,7 +503,7 @@ module.exports = {
       latin: 'Syngonium podophyllum',
       family: '天南星科',
       category: '绿植',
-      emoji: '🍃',
+      emoji: '🏹',
       care: { light: '散射光', waterDays: 5, waterAmount: '浇透', temperature: '18-30°C', humidity: '60-80%', soil: '疏松营养土', fertilizer: '春夏每月一次', difficulty: '超简单', toxicity: '汁液微毒' },
       tips: ['叶片形状会随生长变化', '可以攀爬也可以垂吊', '品种很多，白蝶合果芋最受欢迎']
     },
@@ -513,7 +513,7 @@ module.exports = {
       latin: 'Calathea',
       family: '竹芋科',
       category: '绿植',
-      emoji: '🌿',
+      emoji: '🎯',
       care: { light: '明亮散射光', waterDays: 4, waterAmount: '保持湿润', temperature: '18-28°C', humidity: '70-90%', soil: '疏松保湿营养土', fertilizer: '春夏每月一次', difficulty: '中等', toxicity: '无毒' },
       tips: ['对湿度要求很高', '叶片会在夜间合拢，白天展开', '用纯净水或放置过的自来水浇']
     },
@@ -523,7 +523,7 @@ module.exports = {
       latin: 'Philodendron',
       family: '天南星科',
       category: '绿植',
-      emoji: '🪴',
+      emoji: '🦎',
       care: { light: '散射光', waterDays: 6, waterAmount: '浇透等干', temperature: '18-30°C', humidity: '50-70%', soil: '疏松透气营养土', fertilizer: '春夏每月一次', difficulty: '简单', toxicity: '汁液微毒' },
       tips: ['品种超级多，颜值都很高', '可以攀爬苔藓柱', '生长速度较快']
     },
@@ -563,7 +563,7 @@ module.exports = {
       latin: 'Aglaonema',
       family: '天南星科',
       category: '绿植',
-      emoji: '💚',
+      emoji: '🎭',
       care: { light: '耐阴，散射光', waterDays: 7, waterAmount: '浇透等干', temperature: '18-30°C', humidity: '50-70%', soil: '疏松营养土', fertilizer: '春夏每月一次', difficulty: '超简单', toxicity: '汁液微毒' },
       tips: ['超级耐阴，适合光线不好的房间', '品种多，红粉 champion 很漂亮', '非常好养的新手植物']
     },
@@ -593,7 +593,7 @@ module.exports = {
       latin: 'Jasminum',
       family: '木犀科',
       category: '花卉',
-      emoji: '🤍',
+      emoji: '🌙',
       care: { light: '充足直射光', waterDays: 2, waterAmount: '浇透', temperature: '20-35°C', humidity: '50-70%', soil: '微酸性营养土', fertilizer: '花期每周磷钾肥', difficulty: '中等', toxicity: '无毒' },
       tips: ['花香浓郁，可做花茶', '花后修剪促进复花', '喜欢阳光和水分']
     },
@@ -613,7 +613,7 @@ module.exports = {
       latin: 'Camellia',
       family: '山茶科',
       category: '花卉',
-      emoji: '🌺',
+      emoji: '🏵️',
       care: { light: '半阴到散射光', waterDays: 4, waterAmount: '浇透', temperature: '10-25°C', humidity: '60-80%', soil: '酸性营养土', fertilizer: '花后施一次有机肥', difficulty: '中等', toxicity: '无毒' },
       tips: ['冬季开花，花期很长', '需要酸性土壤', '花蕾期不要移动位置']
     },
@@ -623,7 +623,7 @@ module.exports = {
       latin: 'Gardenia jasminoides',
       family: '茜草科',
       category: '花卉',
-      emoji: '🤍',
+      emoji: '🧊',
       care: { light: '充足散射光', waterDays: 3, waterAmount: '保持湿润', temperature: '18-28°C', humidity: '60-80%', soil: '酸性营养土', fertilizer: '生长期每两周施硫酸亚铁', difficulty: '较难', toxicity: '无毒' },
       tips: ['花香非常好闻', '对土壤酸碱度很敏感', '黄叶多为缺铁或土壤偏碱']
     },
@@ -643,7 +643,7 @@ module.exports = {
       latin: 'Echeveria',
       family: '景天科',
       category: '多肉',
-      emoji: '🌺',
+      emoji: '🪷',
       care: { light: '充足直射光', waterDays: 14, waterAmount: '浇透等干透', temperature: '10-35°C', humidity: '20-40%', soil: '颗粒土为主', fertilizer: '春秋少量', difficulty: '简单', toxicity: '无毒' },
       tips: ['光照不足会徒长变丑', '叶片上有白粉不要擦', '叶插繁殖非常容易']
     },
@@ -653,7 +653,7 @@ module.exports = {
       latin: 'Sedum',
       family: '景天科',
       category: '多肉',
-      emoji: '🌿',
+      emoji: '🥬',
       care: { light: '充足光照', waterDays: 10, waterAmount: '浇透等干', temperature: '5-35°C', humidity: '20-40%', soil: '砂质土', fertilizer: '少量即可', difficulty: '超简单', toxicity: '无毒' },
       tips: ['超级好养，几乎死不了', '可以铺面做地被', '开小黄花很可爱']
     },
@@ -663,7 +663,7 @@ module.exports = {
       latin: 'Haworthia',
       family: '阿福花科',
       category: '多肉',
-      emoji: '💎',
+      emoji: '🔮',
       care: { light: '明亮散射光', waterDays: 10, waterAmount: '浇透等干透', temperature: '10-30°C', humidity: '30-50%', soil: '颗粒土为主', fertilizer: '春秋少量', difficulty: '简单', toxicity: '无毒' },
       tips: ['叶片顶部有透明窗', '不要暴晒，散射光最好', '闷养可以让窗更透亮']
     },
@@ -673,7 +673,7 @@ module.exports = {
       latin: 'Ceropegia woodii',
       family: '夹竹桃科',
       category: '多肉',
-      emoji: '💚',
+      emoji: '💝',
       care: { light: '明亮散射光', waterDays: 10, waterAmount: '浇透等干透', temperature: '15-28°C', humidity: '30-50%', soil: '颗粒土为主', fertilizer: '春夏少量', difficulty: '简单', toxicity: '无毒' },
       tips: ['心形叶片，适合送人', '垂吊种植很好看', '会长小土豆可以繁殖']
     },
@@ -683,7 +683,7 @@ module.exports = {
       latin: 'Sansevieria hahnii',
       family: '天门冬科',
       category: '绿植',
-      emoji: '🌿',
+      emoji: '📎',
       care: { light: '耐阴到明亮光', waterDays: 14, waterAmount: '浇透等干透', temperature: '10-35°C', humidity: '30-50%', soil: '疏松砂质土', fertilizer: '春夏少量', difficulty: '超简单', toxicity: '微毒' },
       tips: ['矮生品种，适合桌面', '非常好养', '净化空气效果极佳']
     },
@@ -693,7 +693,7 @@ module.exports = {
       latin: 'Rosmarinus officinalis',
       family: '唇形科',
       category: '香草',
-      emoji: '🌿',
+      emoji: '🧂',
       care: { light: '充足直射光（6h+）', waterDays: 4, waterAmount: '浇透等干', temperature: '10-30°C', humidity: '30-50%', soil: '疏松排水好的土', fertilizer: '春夏少量', difficulty: '中等', toxicity: '可食用' },
       tips: ['西餐常用香料', '喜欢通风好的环境', '可以扦插繁殖']
     },
@@ -703,7 +703,7 @@ module.exports = {
       latin: 'Thymus vulgaris',
       family: '唇形科',
       category: '香草',
-      emoji: '🌿',
+      emoji: '🫖',
       care: { light: '充足直射光', waterDays: 5, waterAmount: '浇透等干', temperature: '10-30°C', humidity: '30-50%', soil: '疏松碱性土', fertilizer: '少量即可', difficulty: '简单', toxicity: '可食用' },
       tips: ['可以做菜调味', '地被种植也很好看', '耐旱耐贫瘠']
     },
@@ -713,7 +713,7 @@ module.exports = {
       latin: 'Melissa officinalis',
       family: '唇形科',
       category: '香草',
-      emoji: '🍋',
+      emoji: '🐝',
       care: { light: '充足光照', waterDays: 3, waterAmount: '保持湿润', temperature: '15-30°C', humidity: '50-70%', soil: '肥沃营养土', fertilizer: '每月一次', difficulty: '超简单', toxicity: '可食用' },
       tips: ['叶片有柠檬香味', '泡茶非常好', '生长很快，定期修剪']
     },
@@ -753,7 +753,7 @@ module.exports = {
       latin: 'Ficus carica',
       family: '桑科',
       category: '蔬果',
-      emoji: '🫐',
+      emoji: '🫓',
       care: { light: '充足直射光', waterDays: 4, waterAmount: '浇透', temperature: '15-35°C', humidity: '40-60%', soil: '肥沃疏松营养土', fertilizer: '果期磷钾肥', difficulty: '简单', toxicity: '果实可食' },
       tips: ['不用授粉也能结果', '盆栽选矮生品种', '果实成熟后很快掉落要及时采摘']
     },
@@ -763,7 +763,7 @@ module.exports = {
       latin: 'Coriandrum sativum',
       family: '伞形科',
       category: '香草',
-      emoji: '🌿',
+      emoji: '🍜',
       care: { light: '充足光照', waterDays: 2, waterAmount: '保持湿润', temperature: '15-25°C', humidity: '50-70%', soil: '肥沃营养土', fertilizer: '每两周一次', difficulty: '简单', toxicity: '可食用' },
       tips: ['不耐热，夏天容易开花', '播种繁殖', '生长周期短，30天可收获']
     },

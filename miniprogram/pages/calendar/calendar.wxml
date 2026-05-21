@@ -1,67 +1,79 @@
 <!-- pages/calendar/calendar.wxml -->
 <view class="container">
-  <!-- 月份导航 -->
-  <view class="month-nav">
-    <view class="nav-btn" bindtap="prevMonth">◀</view>
-    <text class="month-text">{{year}}年{{month}}月</text>
-    <view class="nav-btn" bindtap="nextMonth">▶</view>
-  </view>
-
-  <!-- 日历 -->
-  <view class="calendar card">
-    <!-- 星期标题 -->
-    <view class="week-header">
-      <text class="week-day" wx:for="{{weekDays}}" wx:key="*this">{{item}}</text>
-    </view>
-    <!-- 日期格子 -->
-    <view class="days-grid">
-      <view class="day-cell {{item.isToday ? 'today' : ''}} {{item.hasTask ? 'has-task' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.empty ? 'empty' : ''}}" 
-            wx:for="{{days}}" wx:key="index"
-            bindtap="selectDate" data-date="{{item.date}}">
-        <text class="day-num">{{item.day}}</text>
-        <view class="task-dots" wx:if="{{item.taskCount > 0}}">
-          <view class="dot" wx:for="{{item.taskCount > 3 ? 3 : item.taskCount}}" wx:for-item="dot" wx:key="*this"></view>
-        </view>
+  <!-- 骨架屏 -->
+  <view wx:if="{{loading}}">
+    <view class="sk-nav"></view>
+    <view class="card" style="margin-top:12rpx">
+      <view class="sk-week"></view>
+      <view class="sk-grid">
+        <view class="sk-cell" wx:for="{{[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}}" wx:key="*this"></view>
       </view>
     </view>
   </view>
 
-  <!-- 选中日期的任务 -->
-  <view class="day-tasks" wx:if="{{selectedDate}}">
-    <view class="section-title">
-      <text>📋 {{selectedDate}} 的养护任务</text>
+  <!-- 真实内容 -->
+  <view wx:if="{{!loading}}">
+    <!-- 月份导航 -->
+    <view class="month-nav">
+      <view class="nav-btn" bindtap="prevMonth">◀</view>
+      <text class="month-text">{{year}}年{{month}}月</text>
+      <view class="nav-btn" bindtap="nextMonth">▶</view>
     </view>
-    <view class="card" wx:if="{{selectedTasks.length > 0}}">
-      <view class="day-task-item" wx:for="{{selectedTasks}}" wx:key="id">
-        <text class="day-task-emoji">{{item.plantEmoji}}</text>
-        <view class="day-task-info">
-          <text class="day-task-name">{{item.plantName}}</text>
-          <text class="day-task-type">{{item.typeName}}</text>
-        </view>
-      </view>
-    </view>
-    <view class="empty-hint" wx:else>
-      <text>这一天没有养护任务，好好休息~ 😴</text>
-    </view>
-  </view>
 
-  <!-- 成长照片时间线 -->
-  <view class="section-title" style="margin-top:20rpx">
-    <text>📷 成长相册</text>
-  </view>
-  <view class="card photo-timeline" wx:if="{{photoTimeline.length > 0}}">
-    <view class="photo-grid">
-      <view class="photo-item" wx:for="{{photoTimeline}}" wx:key="id"
-            bindtap="previewPhoto" data-url="{{item.photo}}">
-        <image class="photo-img" src="{{item.photo}}" mode="aspectFill" lazy-load />
-        <view class="photo-info">
-          <text class="photo-plant">{{item.plantEmoji}} {{item.plantName}}</text>
-          <text class="photo-date">{{item.dateStr}}</text>
+    <!-- 日历 -->
+    <view class="calendar card">
+      <view class="week-header">
+        <text class="week-day" wx:for="{{weekDays}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="days-grid">
+        <view class="day-cell {{item.isToday ? 'today' : ''}} {{item.hasTask ? 'has-task' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.empty ? 'empty' : ''}}" 
+              wx:for="{{days}}" wx:key="index"
+              bindtap="selectDate" data-date="{{item.date}}">
+          <text class="day-num">{{item.day}}</text>
+          <view class="task-dots" wx:if="{{item.taskCount > 0}}">
+            <view class="dot" wx:for="{{item.taskCount > 3 ? 3 : item.taskCount}}" wx:for-item="dot" wx:key="*this"></view>
+          </view>
         </view>
       </view>
     </view>
-  </view>
-  <view class="card empty-hint" wx:else>
-    <text>还没有成长照片，去给植物拍几张吧~ 📷</text>
+
+    <!-- 选中日期的任务 -->
+    <view class="day-tasks" wx:if="{{selectedDate}}">
+      <view class="section-title">
+        <text>📋 {{selectedDate}} 的养护任务</text>
+      </view>
+      <view class="card" wx:if="{{selectedTasks.length > 0}}">
+        <view class="day-task-item" wx:for="{{selectedTasks}}" wx:key="id">
+          <text class="day-task-emoji">{{item.plantEmoji}}</text>
+          <view class="day-task-info">
+            <text class="day-task-name">{{item.plantName}}</text>
+            <text class="day-task-type">{{item.typeName}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-hint" wx:else>
+        <text>这一天没有养护任务，好好休息~</text>
+      </view>
+    </view>
+
+    <!-- 成长照片时间线 -->
+    <view class="section-title" style="margin-top:20rpx">
+      <text>📷 成长相册</text>
+    </view>
+    <view class="card photo-timeline" wx:if="{{photoTimeline.length > 0}}">
+      <view class="photo-grid">
+        <view class="photo-item" wx:for="{{photoTimeline}}" wx:key="id"
+              bindtap="previewPhoto" data-url="{{item.photo}}">
+          <image class="photo-img" src="{{item.photo}}" mode="aspectFill" lazy-load />
+          <view class="photo-info">
+            <text class="photo-plant">{{item.plantEmoji}} {{item.plantName}}</text>
+            <text class="photo-date">{{item.dateStr}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="card empty-hint" wx:else>
+      <text>还没有成长照片，去给植物拍几张吧~</text>
+    </view>
   </view>
 </view>

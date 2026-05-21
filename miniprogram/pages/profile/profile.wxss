@@ -74,3 +74,9 @@
 .func-row.danger .func-name { color: #5D4037; }
 
 .empty-hint { text-align: center; padding: 20rpx; color: #90A4AE; font-size: 26rpx; }
+
+/* 月度统计 */
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10rpx 0; border-bottom: 1rpx solid #F0F2F0; }
+.stat-row:last-of-type { border-bottom: none; }
+.stat-label { font-size: 28rpx; color: #2D3436; }
+.stat-value { font-size: 28rpx; }

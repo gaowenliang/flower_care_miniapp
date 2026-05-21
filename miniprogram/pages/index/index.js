@@ -155,6 +155,32 @@ Page({
       task.daysText = daysOver === 0 ? '今天' : `逾期${daysOver}天`
     })
     this.setData({ todayTasks: dueTasks })
+
+    // 雨天提示
+    this.checkRainyDay()
+  },
+
+  checkRainyDay() {
+    // 检查今天天气，如果下雨且有待浇水任务则提示
+    try {
+      const weatherTip = wx.getStorageSync('weatherTip_' + util.formatDate(Date.now()))
+      if (weatherTip) return
+      wx.request({
+        url: 'https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=310000&extensions=base',
+        success: (res) => {
+          if (res.data && res.data.lives && res.data.lives[0]) {
+            const w = res.data.lives[0]
+            if (w.weather && (w.weather.includes('雨'))) {
+              const waterTasks = this.data.todayTasks.filter(t => t.typeName === '浇水')
+              if (waterTasks.length > 0) {
+                wx.showToast({ title: `雨天可暂缓浇水（${waterTasks.length}项）`, icon: 'none', duration: 3000 })
+              }
+            }
+            try { wx.setStorageSync('weatherTip_' + util.formatDate(Date.now()), true) } catch(e) {}
+          }
+        }
+      })
+    } catch (e) {}
   },
 
   loadStats() {
@@ -263,6 +289,13 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！🌸`, path: '/pages/index/index' }
+    return { title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！`, path: '/pages/index/index' }
+  },
+
+  onShareTimeline() {
+    return {
+      title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！`,
+      query: ''
+    }
   }
 })

@@ -44,7 +44,7 @@
         <view class="photo-item" wx:for="{{item.photos}}" wx:for-item="photo" wx:key="id"
               bindtap="previewImage" data-url="{{photo.photo}}"
               longpress="deleteRecord" data-id="{{photo.id}}">
-          <image class="photo-img" src="{{photo.photo}}" mode="aspectFill" />
+          <image class="photo-img" src="{{photo.photo}}" lazy-load mode="aspectFill" />
           <view class="photo-time">
             <text>{{photo.time}}</text>
           </view>

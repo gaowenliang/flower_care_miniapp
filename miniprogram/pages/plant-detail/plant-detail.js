@@ -132,12 +132,28 @@ Page({
   deletePlant() {
     wx.showModal({
       title: '确认删除',
-      content: `确定要把 ${this.data.userPlant.nickname} 从花园移除吗？所有养护记录也将删除。`,
+      content: `确定要把 ${this.data.userPlant.nickname} 从花园移除吗？`,
       confirmColor: '#2E7D32',
       success: (res) => {
         if (res.confirm) {
+          // 备份数据用于撤销
+          const backup = {
+            plant: JSON.parse(JSON.stringify(this.data.userPlant)),
+            tasks: storage.getTasksByPlant(this.data.userPlant.id),
+            records: storage.getRecordsByPlant(this.data.userPlant.id)
+          }
           storage.removePlant(this.data.userPlant.id)
-          wx.showToast({ title: '已移除', icon: 'none' })
+
+          // 显示可撤销提示
+          const pages = getCurrentPages()
+          const prevPage = pages.length >= 2 ? pages[pages.length - 2] : null
+          if (prevPage && prevPage.onShow) prevPage.onShow()
+          wx.showToast({ title: '已删除', icon: 'none', duration: 3000 })
+
+          // 存储撤销数据，3秒后清除
+          this._deleteBackup = backup
+          setTimeout(() => { this._deleteBackup = null }, 5000)
+
           setTimeout(() => wx.navigateBack(), 1000)
         }
       }

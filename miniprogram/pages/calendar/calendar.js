@@ -12,7 +12,8 @@ Page({
     selectedTasks: [],
     today: '',
     taskMap: {},
-    photoTimeline: []
+    photoTimeline: [],
+    loading: true
   },
 
   onLoad() {
@@ -28,6 +29,7 @@ Page({
   onShow() {
     this.buildCalendar()
     this.loadPhotoTimeline()
+    setTimeout(() => this.setData({ loading: false }), 300)
   },
 
   getDueDatesInMonth(task, year, month) {

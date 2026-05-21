@@ -75,3 +75,10 @@
 .photo-date {
   font-size: 18rpx; color: rgba(255,255,255,0.7); display: block;
 }
+
+/* 骨架屏 */
+.sk-nav { height: 48rpx; background: linear-gradient(90deg, #F0F2F0 25%, #E8EAE8 50%, #F0F2F0 75%); background-size: 200% 100%; border-radius: 24rpx; animation: shimmer 1.5s ease-in-out infinite; margin-bottom: 12rpx; }
+.sk-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8rpx; margin-bottom: 16rpx; }
+.sk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6rpx; }
+.sk-cell { height: 76rpx; border-radius: 16rpx; background: linear-gradient(90deg, #F0F2F0 25%, #E8EAE8 50%, #F0F2F0 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }

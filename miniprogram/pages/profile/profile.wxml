@@ -72,6 +72,21 @@
     </view>
   </view>
 
+  <!-- 月度统计 -->
+  <view class="section-title">📊 本月养护</view>
+  <view class="card">
+    <view class="stat-row" wx:for="{{monthlyStats}}" wx:key="label">
+      <text class="stat-label">{{item.emoji}} {{item.label}}</text>
+      <text class="stat-value" style="color:#4CAF50;font-weight:600">{{item.value}}</text>
+    </view>
+    <view style="display:flex;align-items:flex-end;height:120rpx;gap:8rpx;margin-top:16rpx">
+      <view wx:for="{{weekBars}}" wx:key="day" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4rpx">
+        <view style="width:100%;height:{{item.height}};background:#E8F5E9;border-radius:6rpx 6rpx 0 0;min-height:8rpx"></view>
+        <text style="font-size:18rpx;color:#B0BEC5">{{item.day}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 功能 -->
   <view class="section-title">⚙️ 设置</view>
   <view class="card">
