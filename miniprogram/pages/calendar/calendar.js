@@ -11,7 +11,8 @@ Page({
     selectedDate: null,
     selectedTasks: [],
     today: '',
-    taskMap: {}
+    taskMap: {},
+    photoTimeline: []
   },
 
   onLoad() {
@@ -26,6 +27,7 @@ Page({
 
   onShow() {
     this.buildCalendar()
+    this.loadPhotoTimeline()
   },
 
   getDueDatesInMonth(task, year, month) {
@@ -105,5 +107,30 @@ Page({
       selectedDate: date,
       selectedTasks: this.data.taskMap[date] || []
     })
+  },
+
+  loadPhotoTimeline() {
+    const garden = storage.getGarden()
+    const records = storage.getRecords()
+      .filter(r => r.type === 'photo' && r.photo)
+      .sort((a, b) => b.date - a.date)
+      .map(r => {
+        const plant = garden.find(p => p.id === r.userPlantId)
+        return {
+          id: r.id,
+          photo: r.photo,
+          plantName: plant ? plant.nickname : '未知植物',
+          plantEmoji: plant ? plant.emoji : '🌱',
+          dateStr: util.formatDate(r.date),
+          timeStr: util.formatTime ? util.formatTime(r.date) : new Date(r.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        }
+      })
+    this.setData({ photoTimeline: records })
+  },
+
+  previewPhoto(e) {
+    const url = e.currentTarget.dataset.url
+    const urls = this.data.photoTimeline.map(p => p.photo)
+    wx.previewImage({ current: url, urls })
   }
 })
