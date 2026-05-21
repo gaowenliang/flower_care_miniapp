@@ -24,8 +24,41 @@
     </view>
   </view>
 
-  <!-- 功能 -->
-  <view class="section-title">🌿 花园分布（按科归类）</view>
+  <!-- 成就总进度 -->
+  <view class="section-title" bindtap="toggleAchievements">
+    <text>🏆 成就</text>
+    <text class="ach-progress">{{achProgress.done}}/{{achProgress.total}} · {{achProgress.percent}}%</text>
+    <text class="toggle-arrow">{{showAchievements ? '收起' : '展开'}}</text>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-bar-wrap" wx:if="{{!showAchievements}}">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{achProgress.percent}}%"></view>
+    </view>
+  </view>
+
+  <!-- 成就详情（按系列分组） -->
+  <view wx:if="{{showAchievements}}">
+    <view class="ach-series" wx:for="{{achGroups}}" wx:key="index" wx:for-item="group" wx:for-index="seriesKey">
+      <view class="series-header">
+        <text class="series-name">{{group.name}}</text>
+        <text class="series-desc">{{group.desc}}</text>
+      </view>
+      <view class="card">
+        <view class="ach-grid">
+          <view class="ach-item {{item.unlocked ? 'unlocked' : 'locked'}}"
+                wx:for="{{group.achievements}}" wx:key="id">
+            <text class="ach-emoji">{{item.unlocked ? item.emoji : '🔒'}}</text>
+            <text class="ach-name">{{item.unlocked ? item.name : '???'}}</text>
+            <text class="ach-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 花园分布 -->
   <view class="card">
     <view class="cat-bar-row" wx:for="{{familyList}}" wx:key="name">
       <text class="cat-bar-name">{{item.name}}</text>
