@@ -2,6 +2,8 @@
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
+const imageUtil = require('../../utils/image')
+const healthScore = require('../../utils/health-score')
 
 Page({
   data: {
@@ -16,7 +18,8 @@ Page({
     taskTypes: plantsData.taskTypes,
     smartTips: [],
     tipWeather: '',
-    tipDate: ''
+    tipDate: '',
+    loading: true
   },
 
   onLoad(options) {
@@ -34,6 +37,8 @@ Page({
     this.loadTasks()
     this.loadRecords()
     this.loadSmartTips()
+    setTimeout(() => this.setData({ loading: false }), 300)
+    this.loadHealthScore()
   },
 
   loadTasks() {
@@ -141,7 +146,8 @@ Page({
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
-      success: (res) => {
+      success: async (res) => {
+        const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
         storage.addRecord({
           id: util.genId(),
           userPlantId: this.data.userPlant.id,
@@ -149,7 +155,7 @@ Page({
           typeName: '拍照记录',
           date: Date.now(),
           note: '',
-          photo: res.tempFiles[0].tempFilePath
+          photo: photoUrl
         })
         this.loadRecords()
         wx.showToast({ title: '已记录 📷', icon: 'none' })
@@ -250,10 +256,10 @@ Page({
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
-      success: (res) => {
-        const photo = res.tempFiles[0].tempFilePath
-        storage.updatePlant(this.data.userPlant.id, { avatar: photo })
-        this.setData({ 'userPlant.avatar': photo })
+      success: async (res) => {
+        const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
+        storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
+        this.setData({ 'userPlant.avatar': photoUrl })
         wx.showToast({ title: '头像已更新', icon: 'none' })
       }
     })
@@ -266,7 +272,7 @@ Page({
       const result = await smartTips.generateSmartTips(
         this.data.plantInfo,
         this.data.userPlant.location,
-        '' // 城市编码，可从设置中读取
+        ''
       )
       this.setData({
         smartTips: result.tips,
@@ -274,13 +280,18 @@ Page({
         tipDate: result.date
       })
     } catch (e) {
-      // 降级用原始贴士
       this.setData({
         smartTips: this.data.plantInfo ? this.data.plantInfo.tips : [],
         tipWeather: '',
         tipDate: ''
       })
     }
+  },
+
+  loadHealthScore() {
+    const result = healthScore.calculateHealthScore(this.data.userPlant)
+    const level = healthScore.getHealthLevel(result.score)
+    this.setData({ healthScore: result.score, healthLevel: level })
   },
 
   // 导出报告

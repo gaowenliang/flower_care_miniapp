@@ -132,5 +132,11 @@ Page({
     const url = e.currentTarget.dataset.url
     const urls = this.data.photoTimeline.map(p => p.photo)
     wx.previewImage({ current: url, urls })
+  },
+
+  onPullDownRefresh() {
+    this.buildCalendar()
+    this.loadPhotoTimeline()
+    wx.stopPullDownRefresh()
   }
 })

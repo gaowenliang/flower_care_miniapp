@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "植物详情",
   "navigationBarBackgroundColor": "#FFFFFF",
-  "backgroundColor": "#F7F9F7"
+  "backgroundColor": "#F7F9F7",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
 }

@@ -1,12 +1,15 @@
 // pages/plant-journal/plant-journal.js - 植物成长日记
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
+const imageUtil = require('../../utils/image')
 
 Page({
   data: {
     userPlant: null,
     journal: [],       // 成长日记列表
     previewImage: '',   // 预览大图
+    compareMode: false, // 对比模式
+    comparePhotos: [],  // 对比照片（最早、最晚）
     showPreview: false
   },
 
@@ -55,7 +58,15 @@ Page({
       .filter(g => g.photos.length > 0 || g.notes.length > 0)
       .sort((a, b) => new Date(b.date) - new Date(a.date))
 
-    this.setData({ journal })
+    // 成长对比：找最早和最新的照片
+    const allPhotos = records.filter(r => r.type === 'photo' && r.photo).sort((a, b) => a.date - b.date)
+    const comparePhotos = []
+    if (allPhotos.length >= 2) {
+      comparePhotos.push({ photo: allPhotos[0].photo, date: allPhotos[0].date, label: '最初' })
+      comparePhotos.push({ photo: allPhotos[allPhotos.length - 1].photo, date: allPhotos[allPhotos.length - 1].date, label: '最近' })
+    }
+
+    this.setData({ journal, comparePhotos })
   },
 
   // 日期标签
@@ -95,21 +106,20 @@ Page({
       sizeType: ['compressed'],
       success: (res) => {
         const files = res.tempFiles
-        const promises = files.map((file, index) => {
-          return new Promise((resolve) => {
-            const record = {
-              id: util.genId() + '_' + index,
-              userPlantId: this.data.userPlant.id,
-              type: 'photo',
-              typeName: '拍照记录',
-              date: Date.now() + index, // 保证排序唯一
-              note: '',
-              photo: file.tempFilePath,
-              size: file.size
-            }
-            storage.addRecord(record)
-            resolve(record)
-          })
+        const promises = files.map(async (file, index) => {
+          const photoUrl = await imageUtil.uploadImage(file.tempFilePath)
+          const record = {
+            id: util.genId() + '_' + index,
+            userPlantId: this.data.userPlant.id,
+            type: 'photo',
+            typeName: '拍照记录',
+            date: Date.now() + index,
+            note: '',
+            photo: photoUrl,
+            size: file.size
+          }
+          storage.addRecord(record)
+          return record
         })
 
         Promise.all(promises).then(() => {

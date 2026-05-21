@@ -1,5 +1,17 @@
 <!-- pages/plant-detail/plant-detail.wxml - 重构版 -->
 <view class="container" wx:if="{{userPlant}}">
+  <!-- 骨架屏 -->
+  <view class="skeleton" wx:if="{{loading}}">
+    <view class="card" style="padding:20rpx">
+      <view class="sk-row"><view class="sk-circle-lg"></view><view class="sk-lines-lg"><view class="sk-line long"></view><view class="sk-line short"></view><view class="sk-line short"></div></view></div>
+    </view>
+    <view style="height:24rpx"></view>
+    <view class="card"><view class="sk-row"><view class="sk-circle-sm"></view><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></div><view class="sk-row"><div class="sk-circle-sm"></div><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></view><view class="sk-row"><div class="sk-circle-sm"></div><div class="sk-lines"><div class="sk-line long"></div><div class="sk-line short"></div></div></view></div>
+    <div class="tabs" style="margin:16rpx 0;background:#FFF;border-radius:16rpx;padding:8rpx">
+      <div style="height:40rpx;background:#F0F2F0;border-radius:12rpx;flex:1"></div>
+    </div>
+    <div class="card"><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div><div class="sk-row" style="justify-content:space-between"><div class="sk-line" style="width:30%"></div><div class="sk-line" style="width:40%"></div></div></div>
+  </div>
   <!-- 植物头部 -->
   <view class="plant-header card">
     <view class="header-main">
@@ -19,6 +31,15 @@
           <text class="edit-icon-sm">›</text>
         </view>
       </view>
+    </view>
+    <!-- 健康评分 -->
+    <view class="health-bar" wx:if="{{healthScore !== undefined}}">
+      <text class="health-emoji">{{healthLevel.emoji}}</text>
+      <text class="health-label" style="color:{{healthLevel.color}}">{{healthLevel.label}}</text>
+      <view class="health-progress">
+        <view class="health-fill" style="width:{{healthScore}}%;background:{{healthLevel.color}}"></view>
+      </view>
+      <text class="health-num" style="color:{{healthLevel.color}}">{{healthScore}}分</text>
     </view>
     <view class="header-actions">
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>

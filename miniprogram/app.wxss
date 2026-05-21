@@ -83,6 +83,26 @@ page {
 .empty-state .title { font-size: 32rpx; font-weight: 600; color: #2D3436; margin-bottom: 12rpx; }
 .empty-state .desc  { font-size: 26rpx; color: #90A4AE; margin-bottom: 40rpx; line-height: 1.5; }
 
+/* SVG风格空状态插画 */
+.empty-illust {
+  width: 200rpx; height: 200rpx; margin-bottom: 32rpx; position: relative;
+}
+.empty-illust .pot {
+  position: absolute; bottom: 20rpx; left: 50%; transform: translateX(-50%);
+  width: 80rpx; height: 60rpx; background: #A5D6A7; border-radius: 0 0 16rpx 16rpx;
+}
+.empty-illust .pot::before {
+  content: ''; position: absolute; top: -10rpx; left: -8rpx; right: -8rpx;
+  height: 14rpx; background: #81C784; border-radius: 8rpx;
+}
+.empty-illust .stem {
+  position: absolute; bottom: 80rpx; left: 50%; transform: translateX(-50%);
+  width: 6rpx; height: 60rpx; background: #66BB6A; border-radius: 3rpx;
+}
+.empty-illust .leaf {
+  position: absolute; width: 40rpx; height: 24rpx; background: #81C784; border-radius: 50%;
+}
+
 /* 分隔线 */
 .divider { height: 1rpx; background: #F0F2F0; margin: 16rpx 0; }
 
