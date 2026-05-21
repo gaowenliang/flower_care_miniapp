@@ -32,7 +32,7 @@ const StorageManager = {
   saveGarden(garden) {
     try {
       wx.setStorageSync(this.KEYS.GARDEN, garden)
-      cloudSync.syncItem('garden', garden)
+      cloudSync.syncItem('garden', () => this.getGarden())
     } catch (e) {
       console.error('保存花园数据失败:', e)
       wx.showToast({ title: '存储空间不足', icon: 'none' })
@@ -85,7 +85,7 @@ const StorageManager = {
   saveTasks(tasks) {
     try {
       wx.setStorageSync(this.KEYS.TASKS, tasks)
-      cloudSync.syncItem('tasks', tasks)
+      cloudSync.syncItem('tasks', () => this.getTasks())
     } catch (e) {
       console.error('保存任务数据失败:', e)
     }
@@ -185,7 +185,7 @@ const StorageManager = {
     if (records.length > 1000) records = records.slice(-1000)
     try {
       wx.setStorageSync(this.KEYS.RECORDS, records)
-      cloudSync.syncItem('records', records)
+      cloudSync.syncItem('records', () => { try { return wx.getStorageSync(this.KEYS.RECORDS) || [] } catch(e) { return [] } })
     } catch (e) {
       console.error('保存记录失败:', e)
     }
@@ -224,7 +224,7 @@ const StorageManager = {
 
   saveSettings(settings) {
     wx.setStorageSync(this.KEYS.SETTINGS, settings)
-    cloudSync.syncItem('settings', settings)
+    cloudSync.syncItem('settings', () => this.getSettings())
   },
 
   // ========== 统计 ==========

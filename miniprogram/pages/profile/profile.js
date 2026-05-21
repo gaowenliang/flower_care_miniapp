@@ -44,28 +44,22 @@ Page({
       wx.showToast({ title: '云开发未启用', icon: 'none' })
       return
     }
-    wx.showLoading({ title: '同步中...' })
-    const localData = {
-      garden: storage.getGarden(),
-      tasks: storage.getTasks(),
-      records: storage.getRecords(),
-      settings: storage.getSettings()
-    }
-    const result = await cloudSync.uploadAll(localData)
+    wx.showLoading({ title: '备份中...' })
+    const result = await cloudSync.uploadAll(storage)
     wx.hideLoading()
     if (result.success) {
-      wx.showToast({ title: '同步成功 ☁️', icon: 'none' })
+      wx.showToast({ title: '备份成功 ☁️', icon: 'none' })
     } else {
-      wx.showToast({ title: '同步失败', icon: 'none' })
+      wx.showToast({ title: '备份失败', icon: 'none' })
     }
   },
 
   async syncFromCloud() {
     wx.showLoading({ title: '恢复中...' })
     const cloudSync = require('../../utils/cloud-sync')
-    const result = await cloudSync.syncOnStartup(storage)
+    const result = await cloudSync.downloadAll(storage)
     wx.hideLoading()
-    if (result.synced) {
+    if (result.success) {
       this.loadStats()
       this.loadAchievements()
       wx.showToast({ title: '恢复成功 ☁️', icon: 'none' })
