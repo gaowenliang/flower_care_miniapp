@@ -1,90 +1,114 @@
-<!-- pages/index/index.wxml - 首页 v4（房间筛选+自定义房间） -->
+<!-- pages/index/index.wxml - 首页 v5（骨架屏+动画优化） -->
 <view class="container">
   <view class="tip-toast {{showTip ? 'show' : ''}}" wx:if="{{tipText}}">
     <text>✅ {{tipText}}</text>
   </view>
 
-  <!-- 今日任务 -->
-  <view class="section" wx:if="{{todayTasks.length > 0}}">
-    <view class="section-title">
-      <text class="section-icon">🔔</text>
-      <text>今日待办</text>
-      <text class="badge">{{todayTasks.length}}</text>
-      <text class="complete-all" bindtap="completeAllTasks">✨ 一键完成</text>
+  <!-- 骨架屏 -->
+  <view class="skeleton" wx:if="{{loading}}">
+    <view class="sk-title"></view>
+    <view class="sk-card">
+      <view class="sk-row" wx:for="{{[1,2,3]}}" wx:key="*this">
+        <view class="sk-circle"></view>
+        <view class="sk-lines">
+          <view class="sk-line long"></view>
+          <view class="sk-line short"></view>
+        </view>
+      </view>
     </view>
-    <view class="card">
-      <view class="task-item" wx:for="{{todayTasks}}" wx:key="id">
-        <view class="task-info" bindtap="goDetail" data-id="{{item.plantId}}">
-          <text class="task-emoji">{{item.plantEmoji}}</text>
-          <view class="task-detail">
-            <text class="task-name">{{item.plantName}} · {{item.typeName}}</text>
-            <text class="task-time overdue">{{item.daysText}}</text>
+    <view class="sk-title" style="margin-top:32rpx"></view>
+    <view class="sk-grid">
+      <view class="sk-item" wx:for="{{[1,2,3,4,5,6,7,8]}}" wx:key="*this">
+        <view class="sk-avatar"></view>
+        <view class="sk-name"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 真实内容 -->
+  <view class="content-fade {{loading ? 'hidden' : ''}}" wx:if="{{!loading}}">
+    <!-- 今日任务 -->
+    <view class="section" wx:if="{{todayTasks.length > 0}}">
+      <view class="section-title">
+        <text class="section-icon">🔔</text>
+        <text>今日待办</text>
+        <text class="badge">{{todayTasks.length}}</text>
+        <text class="complete-all" bindtap="completeAllTasks">✨ 一键完成</text>
+      </view>
+      <view class="card">
+        <view class="task-item {{item.completing ? 'completing' : ''}}" wx:for="{{todayTasks}}" wx:key="id">
+          <view class="task-info" bindtap="goDetail" data-id="{{item.plantId}}">
+            <text class="task-emoji">{{item.plantEmoji}}</text>
+            <view class="task-detail">
+              <text class="task-name">{{item.plantName}} · {{item.typeName}}</text>
+              <text class="task-time overdue">{{item.daysText}}</text>
+            </view>
+          </view>
+          <view class="task-btn" bindtap="completeTask" data-id="{{item.id}}">
+            <text>✅ 完成</text>
           </view>
         </view>
-        <view class="task-btn" bindtap="completeTask" data-id="{{item.id}}">
-          <text>✅ 完成</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 统计条 -->
-  <view class="stats-bar" wx:if="{{hasPlants && stats}}">
-    <view class="stat-chip"><text>🌱 {{stats.totalPlants}}棵</text></view>
-    <view class="stat-chip" wx:if="{{stats.dueToday > 0}}"><text>🔔 {{stats.dueToday}}项待办</text></view>
-    <view class="stat-chip"><text>📝 {{stats.totalRecords}}条记录</text></view>
-  </view>
-
-  <!-- 我的花园 -->
-  <view class="section">
-    <view class="section-title">
-      <text class="section-icon">🪴</text>
-      <text>我的花园</text>
-    </view>
-
-    <!-- 房间标签栏 -->
-    <scroll-view class="room-scroll" scroll-x enable-flex wx:if="{{hasPlants}}">
-      <view class="room-tag {{activeRoom === item ? 'active' : ''}}" 
-            wx:for="{{rooms}}" wx:key="*this"
-            bindtap="switchRoom" data-room="{{item}}"
-            longpress="deleteRoom">{{item}}</view>
-      <view class="room-tag add" bindtap="switchRoom" data-room="+ 添加">+</view>
-    </scroll-view>
-
-    <!-- 搜索栏 -->
-    <view class="search-bar" wx:if="{{hasPlants}}">
-      <view class="search-wrap">
-        <text class="search-icon">🔍</text>
-        <input class="search-input" placeholder="搜索植物..." value="{{searchKeyword}}" bindinput="onSearchInput" />
-        <text class="search-clear" wx:if="{{searching}}" bindtap="clearSearch">✕</text>
       </view>
     </view>
 
-    <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{!hasPlants}}">
-      <text class="emoji">🌱</text>
-      <text class="title">花园空空如也</text>
-      <text class="desc">添加第一棵植物，开启养花之旅~</text>
-      <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
+    <!-- 统计条 -->
+    <view class="stats-bar" wx:if="{{hasPlants && stats}}">
+      <view class="stat-chip"><text>🌱 {{stats.totalPlants}}棵</text></view>
+      <view class="stat-chip" wx:if="{{stats.dueToday > 0}}"><text>🔔 {{stats.dueToday}}项待办</text></view>
+      <view class="stat-chip"><text>📝 {{stats.totalRecords}}条记录</text></view>
     </view>
 
-    <!-- 搜索/筛选无结果 -->
-    <view class="empty-state small" wx:if="{{hasPlants && filteredGarden.length === 0 && (searching || activeRoom !== '全部')}}">
-      <text class="title">{{activeRoom !== '全部' ? activeRoom + '没有植物' : '没有找到"' + searchKeyword + '"'}}
-      </text>
-      <text class="desc">{{activeRoom !== '全部' ? '换个房间看看？' : '换个关键词试试？'}}</text>
-    </view>
+    <!-- 我的花园 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="section-icon">🪴</text>
+        <text>我的花园</text>
+      </view>
 
-    <!-- 矩阵网格 -->
-    <view class="garden-grid" wx:if="{{filteredGarden.length > 0}}">
-      <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
-        <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
-          <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
-          <text wx:else class="garden-emoji">{{item.emoji}}</text>
-          <text class="garden-due" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
+      <!-- 房间标签栏 -->
+      <scroll-view class="room-scroll" scroll-x enable-flex wx:if="{{hasPlants}}">
+        <view class="room-tag {{activeRoom === item ? 'active' : ''}}" 
+              wx:for="{{rooms}}" wx:key="*this"
+              bindtap="switchRoom" data-room="{{item}}"
+              longpress="deleteRoom">{{item}}</view>
+        <view class="room-tag add" bindtap="switchRoom" data-room="+ 添加">+</view>
+      </scroll-view>
+
+      <!-- 搜索栏 -->
+      <view class="search-bar" wx:if="{{hasPlants}}">
+        <view class="search-wrap">
+          <text class="search-icon">🔍</text>
+          <input class="search-input" placeholder="搜索植物..." value="{{searchKeyword}}" bindinput="onSearchInput" />
+          <text class="search-clear" wx:if="{{searching}}" bindtap="clearSearch">✕</text>
         </view>
-        <text class="garden-name">{{item.nickname}}</text>
-        <text class="garden-location">📍 {{item.location}}</text>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!hasPlants}}">
+        <text class="emoji">🌱</text>
+        <text class="title">花园空空如也</text>
+        <text class="desc">添加第一棵植物，开启养花之旅~</text>
+        <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
+      </view>
+
+      <!-- 搜索/筛选无结果 -->
+      <view class="empty-state small" wx:if="{{hasPlants && filteredGarden.length === 0 && (searching || activeRoom !== '全部')}}">
+        <text class="title">{{activeRoom !== '全部' ? activeRoom + '没有植物' : '没有找到"' + searchKeyword + '"'}}
+        </text>
+        <text class="desc">{{activeRoom !== '全部' ? '换个房间看看？' : '换个关键词试试？'}}</text>
+      </view>
+
+      <!-- 矩阵网格 -->
+      <view class="garden-grid" wx:if="{{filteredGarden.length > 0}}">
+        <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+          <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
+            <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" lazy-load />
+            <text wx:else class="garden-emoji">{{item.emoji}}</text>
+            <text class="garden-due" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
+          </view>
+          <text class="garden-name">{{item.nickname}}</text>
+          <text class="garden-location">📍 {{item.location}}</text>
+        </view>
       </view>
     </view>
   </view>

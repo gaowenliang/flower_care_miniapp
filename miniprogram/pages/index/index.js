@@ -8,6 +8,7 @@ const DEFAULT_ROOMS = ['全部', '阳台', '客厅', '卧室', '书房', '窗台
 
 Page({
   data: {
+    loading: true,
     garden: [],
     todayTasks: [],
     hasPlants: false,
@@ -25,11 +26,14 @@ Page({
   },
 
   onShow() {
+    this.setData({ loading: true })
     this.loadRooms()
     this.loadGarden()
     this.loadTodayTasks()
     this.loadStats()
     subscribe.checkAndNotify()
+    // 骨架屏最少显示300ms，避免闪烁
+    setTimeout(() => this.setData({ loading: false }), 300)
   },
 
   // ========== 房间管理 ==========
@@ -197,24 +201,33 @@ Page({
   },
 
   completeTask(e) {
-    storage.completeTask(e.currentTarget.dataset.id)
-    const task = storage.getTasks().find(t => t.id === e.currentTarget.dataset.id)
-    if (task) {
-      this.setData({ showTip: true, tipText: `${task.typeName}完成！` })
-      setTimeout(() => this.setData({ showTip: false }), 2000)
-    }
+    const taskId = e.currentTarget.dataset.id
+    // 播放滑出动画
+    const tasks = this.data.todayTasks.map(t =>
+      t.id === taskId ? { ...t, completing: true } : t
+    )
+    this.setData({ todayTasks: tasks })
 
-    const achievement = require('../../utils/achievement')
-    const newBadges = achievement.checkAchievements()
-    if (newBadges.length > 0) {
-      setTimeout(() => {
-        wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 })
-      }, 2200)
-    }
+    setTimeout(() => {
+      storage.completeTask(taskId)
+      const task = storage.getTasks().find(t => t.id === taskId)
+      if (task) {
+        this.setData({ showTip: true, tipText: `${task.typeName}完成！` })
+        setTimeout(() => this.setData({ showTip: false }), 2000)
+      }
 
-    this.loadTodayTasks()
-    this.loadGarden()
-    this.loadStats()
+      const achievement = require('../../utils/achievement')
+      const newBadges = achievement.checkAchievements()
+      if (newBadges.length > 0) {
+        setTimeout(() => {
+          wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 })
+        }, 2200)
+      }
+
+      this.loadTodayTasks()
+      this.loadGarden()
+      this.loadStats()
+    }, 280)
   },
 
   completeAllTasks() {

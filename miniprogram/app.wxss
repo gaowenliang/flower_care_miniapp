@@ -95,3 +95,15 @@ page {
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .flex-center { display: flex; justify-content: center; align-items: center; }
 .flex-1 { flex: 1; }
+
+/* 页面过渡动画 */
+page {
+  animation: pageIn 0.25s ease-out;
+}
+@keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+/* 按钮通用反馈 */
+view[class*="btn"]:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
+}
