@@ -59,16 +59,16 @@
   </view>
 
   <!-- 花园分布 -->
-  <view class="section-title">🌿 花园分布</view>
+  <view class="section-title">🌿 花园分布（按科归类）</view>
   <view class="card">
-    <view class="cat-bar-row" wx:for="{{stats.categories}}" wx:key="index" wx:for-index="cat" wx:for-item="count">
-      <text class="cat-bar-name">{{cat}}</text>
+    <view class="cat-bar-row" wx:for="{{familyList}}" wx:key="name">
+      <text class="cat-bar-name">{{item.name}}</text>
       <view class="cat-bar-wrap">
-        <view class="cat-bar-fill" style="width: {{count / stats.totalPlants * 100}}%"></view>
+        <view class="cat-bar-fill" style="width: {{item.percent}}%"></view>
       </view>
-      <text class="cat-bar-count">{{count}}棵</text>
+      <text class="cat-bar-count">{{item.count}}棵</text>
     </view>
-    <view class="empty-hint" wx:if="{{!stats.categories || stats.totalPlants === 0}}">
+    <view class="empty-hint" wx:if="{{!familyList || familyList.length === 0}}">
       <text>还没有植物哦~</text>
     </view>
   </view>

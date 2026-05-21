@@ -21,7 +21,19 @@ Page({
   },
 
   loadStats() {
-    this.setData({ stats: storage.getStats(), settings: storage.getSettings() })
+    const stats = storage.getStats()
+    // 把 families 对象转成排序数组给 wxml 用
+    let familyList = []
+    if (stats.families) {
+      familyList = Object.entries(stats.families)
+        .map(([name, count]) => ({
+          name,
+          count,
+          percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
+        }))
+        .sort((a, b) => b.count - a.count)
+    }
+    this.setData({ stats, familyList, settings: storage.getSettings() })
   },
 
   // 云同步

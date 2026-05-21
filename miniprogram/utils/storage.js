@@ -234,8 +234,12 @@ const StorageManager = {
     const records = this.getRecords()
 
     const categoryCount = {}
+    const familyCount = {}
     garden.forEach(p => {
       categoryCount[p.category] = (categoryCount[p.category] || 0) + 1
+      if (p.family) {
+        familyCount[p.family] = (familyCount[p.family] || 0) + 1
+      }
     })
 
     const dueTasks = this.getDueTasks()
@@ -246,7 +250,8 @@ const StorageManager = {
       activeTasks: tasks.filter(t => t.enabled).length,
       dueToday: dueTasks.length,
       totalRecords: records.length,
-      categories: categoryCount
+      categories: categoryCount,
+      families: familyCount
     }
   },
 

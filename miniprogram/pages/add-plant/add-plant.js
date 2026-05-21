@@ -108,6 +108,7 @@ Page({
       plantId: plant.id,
       name: plant.name,
       latin: plant.latin,
+      family: plant.family || '',
       emoji: plant.emoji,
       category: plant.category,
       nickname,
