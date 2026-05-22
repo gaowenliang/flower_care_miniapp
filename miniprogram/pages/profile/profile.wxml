@@ -1,4 +1,4 @@
-<!-- pages/profile/profile.wxml - v3 成就系统 -->
+<!-- pages/profile/profile.wxml - v3 成就系统 + 家庭管理 -->
 <view class="container">
   <!-- 头像和统计 -->
   <view class="card pf-header">
@@ -24,6 +24,20 @@
     </view>
   </view>
 
+  <!-- 家庭模式入口 -->
+  <view class="card" bindtap="goFamily" style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9);">
+    <view class="setting-row" style="border-bottom:none">
+      <view style="display:flex;align-items:center">
+        <text style="font-size:32rpx;margin-right:16rpx">🏠</text>
+        <view>
+          <text class="setting-label">{{inFamily ? familyName : '家庭管理'}}</text>
+          <text style="font-size:22rpx;color:#78909C">{{inFamily ? '已加入家庭' : '创建或加入家庭'}}</text>
+        </view>
+      </view>
+      <text class="setting-arrow">{{inFamily ? '管理' : '›'}}</text>
+    </view>
+  </view>
+
   <!-- 成就总进度 -->
   <view class="section-title" bindtap="toggleAchievements">
     <text>🏆 成就</text>
@@ -31,14 +45,12 @@
     <text class="toggle-arrow">{{showAchievements ? '收起' : '展开'}}</text>
   </view>
 
-  <!-- 进度条 -->
   <view class="progress-bar-wrap" wx:if="{{!showAchievements}}">
     <view class="progress-bar">
       <view class="progress-fill" style="width: {{achProgress.percent}}%"></view>
     </view>
   </view>
 
-  <!-- 成就详情（按系列分组） -->
   <view wx:if="{{showAchievements}}">
     <view class="ach-series" wx:for="{{achGroups}}" wx:key="index" wx:for-item="group" wx:for-index="seriesKey">
       <view class="series-header">

@@ -1,4 +1,4 @@
-/* pages/profile/profile.wxss — v3 */
+/* pages/profile/profile.wxss — v3 + 家庭模式入口 */
 .pf-header { text-align: center; padding: 48rpx 28rpx !important; }
 .pf-avatar {
   width: 140rpx; height: 140rpx; border-radius: 50%;
@@ -14,7 +14,6 @@
 .pf-num { font-size: 40rpx; font-weight: 700; color: #4CAF50; }
 .pf-label { font-size: 24rpx; color: #90A4AE; margin-top: 4rpx; }
 
-/* 通用 */
 .section-title {
   display: flex; align-items: center;
   font-size: 30rpx; font-weight: 600; color: #2D3436;
@@ -23,7 +22,6 @@
 .ach-count { margin-left: 12rpx; font-size: 24rpx; color: #4CAF50; font-weight: 400; }
 .toggle-arrow { margin-left: auto; font-size: 24rpx; color: #90A4AE; }
 
-/* 成就 */
 .ach-progress { margin-left: 12rpx; font-size: 24rpx; color: #4CAF50; font-weight: 400; }
 .progress-bar-wrap { padding: 0 8rpx; margin-bottom: 20rpx; }
 .progress-bar { height: 12rpx; background: #F0F2F0; border-radius: 6rpx; overflow: hidden; }
@@ -45,14 +43,12 @@
 .ach-name { font-size: 22rpx; font-weight: 600; color: #2D3436; margin-bottom: 4rpx; }
 .ach-desc { font-size: 18rpx; color: #90A4AE; }
 
-/* 花园分布 */
 .cat-bar-row { display: flex; align-items: center; gap: 14rpx; padding: 8rpx 0; }
 .cat-bar-name { font-size: 26rpx; color: #90A4AE; min-width: 56rpx; }
 .cat-bar-wrap { flex: 1; height: 16rpx; background: #F0F2F0; border-radius: 8rpx; overflow: hidden; }
 .cat-bar-fill { height: 100%; border-radius: 8rpx; background: linear-gradient(90deg, #4CAF50, #66BB6A); }
 .cat-bar-count { font-size: 24rpx; color: #4CAF50; font-weight: 500; min-width: 56rpx; text-align: right; }
 
-/* 设置 */
 .setting-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 18rpx 0; border-bottom: 1rpx solid #F0F2F0;
@@ -60,8 +56,8 @@
 .setting-row:last-child { border-bottom: none; }
 .setting-label { font-size: 28rpx; color: #2D3436; }
 .setting-value { font-size: 28rpx; color: #4CAF50; }
+.setting-arrow { color: #B0BEC5; font-size: 32rpx; }
 
-/* 功能列表 */
 .func-row {
   display: flex; align-items: center;
   padding: 28rpx; border-bottom: 1rpx solid #F0F2F0;
@@ -75,7 +71,6 @@
 
 .empty-hint { text-align: center; padding: 20rpx; color: #90A4AE; font-size: 26rpx; }
 
-/* 月度统计 */
 .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10rpx 0; border-bottom: 1rpx solid #F0F2F0; }
 .stat-row:last-of-type { border-bottom: none; }
 .stat-label { font-size: 28rpx; color: #2D3436; }

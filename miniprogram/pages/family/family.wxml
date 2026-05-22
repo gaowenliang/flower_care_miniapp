@@ -1,0 +1,169 @@
+<!-- pages/family/family.wxml -->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- ========== 未加入家庭 ========== -->
+  <view wx:if="{{!loading && !inFamily}}">
+    <view class="empty-hero">
+      <text class="hero-emoji">🏠</text>
+      <text class="hero-title">家庭共享</text>
+      <text class="hero-desc">和家人一起照顾植物，共享养护记录和任务提醒</text>
+    </view>
+
+    <view class="card action-card" bindtap="openCreateModal">
+      <view class="action-icon-wrap create">
+        <text class="action-icon">✨</text>
+      </view>
+      <view class="action-info">
+        <text class="action-title">创建家庭</text>
+        <text class="action-desc">创建一个家庭，邀请家人加入</text>
+      </view>
+      <text class="action-arrow">›</text>
+    </view>
+
+    <view class="card action-card" bindtap="openJoinModal">
+      <view class="action-icon-wrap join">
+        <text class="action-icon">🤝</text>
+      </view>
+      <view class="action-info">
+        <text class="action-title">加入家庭</text>
+        <text class="action-desc">输入邀请码，加入已有的家庭</text>
+      </view>
+      <text class="action-arrow">›</text>
+    </view>
+
+    <view class="card tips-card">
+      <text class="tips-title">💡 小提示</text>
+      <text class="tips-text">• 创建后可获得6位邀请码分享给家人</text>
+      <text class="tips-text">• 不加入家庭不影响个人模式使用</text>
+      <text class="tips-text">• 家庭成员可共同查看和养护植物</text>
+    </view>
+  </view>
+
+  <!-- ========== 已加入家庭 ========== -->
+  <view wx:if="{{!loading && inFamily && family}}">
+    <!-- 家庭头部 -->
+    <view class="card family-header">
+      <view class="fh-top">
+        <view class="fh-info">
+          <text class="fh-emoji">🏠</text>
+          <view class="fh-text">
+            <text class="fh-name">{{family.name}}</text>
+            <text class="fh-role">{{isAdmin ? '👑 管理员' : '👤 成员'}}</text>
+          </view>
+        </view>
+        <view class="fh-edit" wx:if="{{isAdmin}}" bindtap="openRenameModal">
+          <text>✏️</text>
+        </view>
+      </view>
+
+      <!-- 邀请码 -->
+      <view class="invite-section">
+        <text class="invite-label">邀请码</text>
+        <view class="invite-code-row">
+          <text class="invite-code">{{family.inviteCode}}</text>
+          <view class="invite-btn" bindtap="copyInviteCode">
+            <text>📋 复制</text>
+          </view>
+          <view class="invite-btn" wx:if="{{isAdmin}}" bindtap="refreshCode">
+            <text>🔄 刷新</text>
+          </view>
+        </view>
+        <text class="invite-hint">分享邀请码给家人即可加入</text>
+      </view>
+    </view>
+
+    <!-- 成员列表 -->
+    <view class="section-title">
+      <text>👨‍👩‍👧‍👦 家庭成员 ({{members.length}})</text>
+    </view>
+    <view class="card">
+      <view class="member-item" wx:for="{{members}}" wx:key="_id">
+        <view class="member-avatar">
+          <text>{{item.role === 'admin' ? '👑' : '👤'}}</text>
+        </view>
+        <view class="member-info">
+          <text class="member-name">{{item.nickname}}</text>
+          <text class="member-role">{{item.role === 'admin' ? '管理员' : '成员'}}</text>
+        </view>
+        <view class="member-kick" wx:if="{{isAdmin && item.role !== 'admin'}}" 
+              bindtap="kickMember" data-openid="{{item.openid}}" data-nickname="{{item.nickname}}">
+          <text>移除</text>
+        </view>
+      </view>
+      <view class="empty-hint" wx:if="{{members.length === 0}}">
+        <text>加载成员中...</text>
+      </view>
+    </view>
+
+    <!-- 操作区 -->
+    <view class="card action-area">
+      <view class="danger-btn" wx:if="{{isAdmin}}" bindtap="dissolveFamily">
+        <text>⚠️ 解散家庭</text>
+      </view>
+      <view class="danger-btn" wx:if="{{!isAdmin}}" bindtap="leaveFamily">
+        <text>🚪 退出家庭</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 创建家庭弹窗 ========== -->
+  <view class="modal-mask" wx:if="{{showCreateModal}}" bindtap="closeCreateModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">✨ 创建家庭</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">家庭名称</text>
+          <input class="form-input" placeholder="如：温馨小家" value="{{newFamilyName}}" bindinput="onCreateNameInput" focus="{{showCreateModal}}" maxlength="20" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeCreateModal">取消</view>
+        <view class="btn-primary" bindtap="confirmCreate">创建</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 加入家庭弹窗 ========== -->
+  <view class="modal-mask" wx:if="{{showJoinModal}}" bindtap="closeJoinModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">🤝 加入家庭</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">邀请码</text>
+          <input class="form-input invite-input" placeholder="请输入6位邀请码" value="{{inviteCode}}" bindinput="onInviteCodeInput" focus="{{showJoinModal}}" maxlength="6" />
+          <text class="form-hint">向家庭创建者索要6位邀请码</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeJoinModal">取消</view>
+        <view class="btn-primary" bindtap="confirmJoin">加入</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 重命名弹窗 ========== -->
+  <view class="modal-mask" wx:if="{{showRenameModal}}" bindtap="closeRenameModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">✏️ 修改名称</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <input class="form-input" placeholder="家庭名称" value="{{renameValue}}" bindinput="onRenameInput" focus="{{showRenameModal}}" maxlength="20" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="closeRenameModal">取消</view>
+        <view class="btn-primary" bindtap="confirmRename">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

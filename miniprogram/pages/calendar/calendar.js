@@ -1,6 +1,7 @@
-// pages/calendar/calendar.js - 统一走 StorageManager
+// pages/calendar/calendar.js - 统一走 StorageManager（支持家庭模式）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
+const family = require('../../utils/family')
 
 Page({
   data: {
@@ -18,17 +19,18 @@ Page({
 
   onLoad() {
     const now = new Date()
-    this.setData({
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      today: util.formatDate(now)
-    })
+    this.setData({ year: now.getFullYear(), month: now.getMonth() + 1, today: util.formatDate(now), isFamilyMode: family.isInFamily() })
     this.buildCalendar()
   },
 
   onShow() {
+    this.setData({ isFamilyMode: family.isInFamily() })
     this.buildCalendar()
-    this.loadPhotoTimeline()
+    if (this.data.isFamilyMode) {
+      this.loadFamilyPhotoTimeline()
+    } else {
+      this.loadPhotoTimeline()
+    }
     setTimeout(() => this.setData({ loading: false }), 300)
   },
 
@@ -49,25 +51,30 @@ Page({
     return dueDates
   },
 
-  buildCalendar() {
-    const { year, month } = this.data
+  async buildCalendar() {
+    const { year, month, isFamilyMode } = this.data
     const firstDay = new Date(year, month - 1, 1).getDay()
     const daysInMonth = new Date(year, month, 0).getDate()
-    const garden = storage.getGarden()
-    const tasks = storage.getActiveTasks()
+
+    let garden, tasks
+
+    if (isFamilyMode) {
+      garden = family.getCachedPlants().map(p => ({ ...p, id: p._id })) || []
+      const allTasks = family.getCachedTasks() || []
+      tasks = allTasks.filter(t => t.enabled)
+    } else {
+      garden = storage.getGarden()
+      tasks = storage.getActiveTasks()
+    }
 
     const taskMap = {}
     tasks.forEach(task => {
-      const plant = garden.find(p => p.id === task.userPlantId)
+      const plant = garden.find(p => p.id === (task.userPlantId || task.plantId))
       const dueDates = this.getDueDatesInMonth(task, year, month)
       dueDates.forEach(dateTs => {
         const dateStr = util.formatDate(dateTs)
         if (!taskMap[dateStr]) taskMap[dateStr] = []
-        taskMap[dateStr].push({
-          ...task,
-          plantName: plant ? plant.nickname : '未知',
-          plantEmoji: plant ? plant.emoji : '🌱'
-        })
+        taskMap[dateStr].push({ ...task, plantName: plant ? plant.nickname : '未知', plantEmoji: plant ? plant.emoji : '🌱' })
       })
     })
 
@@ -76,12 +83,7 @@ Page({
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
       const tasksForDay = taskMap[dateStr] || []
-      days.push({
-        day: d, date: dateStr,
-        isToday: dateStr === this.data.today,
-        hasTask: tasksForDay.length > 0,
-        taskCount: tasksForDay.length
-      })
+      days.push({ day: d, date: dateStr, isToday: dateStr === this.data.today, hasTask: tasksForDay.length > 0, taskCount: tasksForDay.length })
     }
 
     this.setData({ days, taskMap })
@@ -110,6 +112,16 @@ Page({
       selectedDate: date,
       selectedTasks: this.data.taskMap[date] || []
     })
+  },
+
+  async loadFamilyPhotoTimeline() {
+    const records = await family.getRecords('', 50) || []
+    const garden = family.getCachedPlants()
+    const timeline = records.filter(r => r.type === 'photo' && r.photo).sort((a, b) => b.date - a.date).map(r => {
+      const plant = garden.find(p => p._id === r.plantId)
+      return { id: r._id, photo: r.photo, plantName: plant ? plant.nickname : '未知植物', plantEmoji: plant ? plant.emoji : '🌱', dateStr: util.formatDate(r.date), timeStr: new Date(r.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
+    })
+    this.setData({ photoTimeline: timeline })
   },
 
   loadPhotoTimeline() {

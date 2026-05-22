@@ -1,7 +1,8 @@
-// pages/plant-journal/plant-journal.js - 植物成长日记
+// pages/plant-journal/plant-journal.js - 植物成长日记（支持家庭模式）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const imageUtil = require('../../utils/image')
+const family = require('../../utils/family')
 
 Page({
   data: {
@@ -15,20 +16,68 @@ Page({
 
   onLoad(options) {
     const id = options.id
-    const userPlant = storage.getPlantById(id)
-    if (!userPlant) {
-      wx.showToast({ title: '植物不存在', icon: 'none' })
-      setTimeout(() => wx.navigateBack(), 1000)
-      return
+    this.setData({ isFamilyMode: family.isInFamily() })
+
+    if (this.data.isFamilyMode) {
+      const userPlant = family.getPlantById(id)
+      if (!userPlant) {
+        wx.showToast({ title: '植物不存在', icon: 'none' })
+        setTimeout(() => wx.navigateBack(), 1000)
+        return
+      }
+      userPlant.id = userPlant._id || id
+      this.setData({ userPlant })
+    } else {
+      const userPlant = storage.getPlantById(id)
+      if (!userPlant) {
+        wx.showToast({ title: '植物不存在', icon: 'none' })
+        setTimeout(() => wx.navigateBack(), 1000)
+        return
+      }
+      this.setData({ userPlant })
     }
-    this.setData({ userPlant })
   },
 
   onShow() {
-    this.loadJournal()
+    if (this.data.isFamilyMode) {
+      this.loadFamilyJournal()
+    } else {
+      this.loadJournal()
+    }
   },
 
-  // 加载成长日记
+  // 加载家庭日记
+  async loadFamilyJournal() {
+    const records = await family.getRecords(this.data.userPlant._id, 100)
+    this.buildJournalFromRecords(records || [])
+  },
+
+  // 从记录构建日记
+  buildJournalFromRecords(records) {
+    const sorted = (records || []).sort((a, b) => b.date - a.date)
+    const grouped = {}
+    sorted.forEach(record => {
+      const dateStr = util.formatDate(record.date)
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = { date: dateStr, dateLabel: this.getDateLabel(record.date), weekday: this.getWeekday(record.date), photos: [], notes: [] }
+      }
+      if (record.type === 'photo' && record.photo) {
+        grouped[dateStr].photos.push({ ...record, time: this.formatTime(record.date) })
+      } else if ((record.type === 'note' || record.note) && record.note) {
+        grouped[dateStr].notes.push({ ...record, time: this.formatTime(record.date) })
+      }
+    })
+    const journal = Object.values(grouped).filter(g => g.photos.length > 0 || g.notes.length > 0).sort((a, b) => new Date(b.date) - new Date(a.date))
+    const allPhotos = sorted.filter(r => r.type === 'photo' && r.photo).sort((a, b) => a.date - b.date)
+    const comparePhotos = []
+    if (allPhotos.length >= 2) {
+      comparePhotos.push({ photo: allPhotos[0].photo, date: allPhotos[0].date, label: '最初' })
+      comparePhotos.push({ photo: allPhotos[allPhotos.length - 1].photo, date: allPhotos[allPhotos.length - 1].date, label: '最近' })
+    }
+    this.setData({ journal, comparePhotos })
+  },
+
+  // 加载成长日记（个人模式）
   loadJournal() {
     const records = storage.getRecordsByPlant(this.data.userPlant.id)
     
@@ -98,31 +147,39 @@ Page({
   },
 
   // 拍照记录
-  takePhoto() {
+  async takePhoto() {
     wx.chooseMedia({
-      count: 9,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: (res) => {
+      count: 9, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'],
+      success: async (res) => {
         const files = res.tempFiles
+        wx.showLoading({ title: '上传中...' })
+
+        if (this.data.isFamilyMode) {
+          for (let i = 0; i < files.length; i++) {
+            const photoUrl = await imageUtil.uploadImage(files[i].tempFilePath)
+            await family.addRecord({
+              plantId: this.data.userPlant._id,
+              type: 'photo',
+              typeName: '拍照记录',
+              note: '',
+              photo: photoUrl
+            })
+          }
+          wx.hideLoading()
+          this.loadFamilyJournal()
+          wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
+          return
+        }
+
+        // 个人模式
         const promises = files.map(async (file, index) => {
           const photoUrl = await imageUtil.uploadImage(file.tempFilePath)
-          const record = {
-            id: util.genId() + '_' + index,
-            userPlantId: this.data.userPlant.id,
-            type: 'photo',
-            typeName: '拍照记录',
-            date: Date.now() + index,
-            note: '',
-            photo: photoUrl,
-            size: file.size
-          }
+          const record = { id: util.genId() + '_' + index, userPlantId: this.data.userPlant.id, type: 'photo', typeName: '拍照记录', date: Date.now() + index, note: '', photo: photoUrl, size: file.size }
           storage.addRecord(record)
           return record
         })
-
         Promise.all(promises).then(() => {
+          wx.hideLoading()
           this.loadJournal()
           wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
         })
@@ -131,22 +188,18 @@ Page({
   },
 
   // 添加文字备注
-  addNote() {
+  async addNote() {
     wx.showModal({
-      title: '📝 记录一下',
-      editable: true,
-      placeholderText: '今天植物状态怎么样？',
-      success: (res) => {
+      title: '📝 记录一下', editable: true, placeholderText: '今天植物状态怎么样？',
+      success: async (res) => {
         if (res.confirm && res.content) {
-          storage.addRecord({
-            id: util.genId(),
-            userPlantId: this.data.userPlant.id,
-            type: 'note',
-            typeName: '备注',
-            date: Date.now(),
-            note: res.content
-          })
-          this.loadJournal()
+          if (this.data.isFamilyMode) {
+            await family.addRecord({ plantId: this.data.userPlant._id, type: 'note', typeName: '备注', note: res.content })
+            this.loadFamilyJournal()
+          } else {
+            storage.addRecord({ id: util.genId(), userPlantId: this.data.userPlant.id, type: 'note', typeName: '备注', date: Date.now(), note: res.content })
+            this.loadJournal()
+          }
           wx.showToast({ title: '已记录', icon: 'none' })
         }
       }
@@ -165,16 +218,19 @@ Page({
   },
 
   // 长按删除
-  deleteRecord(e) {
+  async deleteRecord(e) {
     const recordId = e.currentTarget.dataset.id
     wx.showModal({
-      title: '删除记录',
-      content: '确定删除这条记录吗？',
-      confirmColor: '#2E7D32',
-      success: (res) => {
+      title: '删除记录', content: '确定删除这条记录吗？', confirmColor: '#2E7D32',
+      success: async (res) => {
         if (res.confirm) {
-          storage.deleteRecord(recordId)
-          this.loadJournal()
+          if (this.data.isFamilyMode) {
+            await family.deleteRecord(recordId)
+            this.loadFamilyJournal()
+          } else {
+            storage.deleteRecord(recordId)
+            this.loadJournal()
+          }
           wx.showToast({ title: '已删除', icon: 'none' })
         }
       }

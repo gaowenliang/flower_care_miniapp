@@ -1,9 +1,10 @@
-// pages/plant-detail/plant-detail.js - 重构版
+// pages/plant-detail/plant-detail.js - 重构版（支持家庭模式）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
 const imageUtil = require('../../utils/image')
 const healthScore = require('../../utils/health-score')
+const family = require('../../utils/family')
 
 Page({
   data: {
@@ -24,6 +25,29 @@ Page({
 
   onLoad(options) {
     const id = options.id
+    const isFamilyMode = family.isInFamily()
+    this.setData({ isFamilyMode })
+
+    if (isFamilyMode) {
+      // 家庭模式：从缓存获取植物信息
+      const userPlant = family.getPlantById(id)
+      if (!userPlant) {
+        wx.showToast({ title: '植物不存在', icon: 'none' })
+        setTimeout(() => wx.navigateBack(), 1000)
+        return
+      }
+      const plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
+      // 统一 id 字段
+      userPlant.id = userPlant._id || id
+      this.setData({ userPlant, plantInfo })
+      this.loadFamilyTasks()
+      this.loadFamilyRecords()
+      this.loadSmartTips()
+      setTimeout(() => this.setData({ loading: false }), 300)
+      return
+    }
+
+    // 个人模式
     const userPlant = storage.getPlantById(id)
 
     if (!userPlant) {
@@ -41,7 +65,34 @@ Page({
     this.loadHealthScore()
   },
 
+  // ========== 家庭模式数据加载 ==========
+
+  async loadFamilyTasks() {
+    const tasks = await family.getTasks(this.data.userPlant._id)
+    const processedTasks = (tasks || []).map(task => ({
+      ...task,
+      id: task._id,
+      daysUntil: task.nextDate ? Math.ceil((task.nextDate - Date.now()) / 86400000) : 0,
+      statusText: task.nextDate && task.nextDate <= Date.now() ? '该养护了!' : `${Math.ceil((task.nextDate - Date.now()) / 86400000)}天后`,
+      isOverdue: task.nextDate && task.nextDate <= Date.now()
+    }))
+    this.setData({ tasks: processedTasks })
+  },
+
+  async loadFamilyRecords() {
+    const records = await family.getRecords(this.data.userPlant._id, 20)
+    const processedRecords = (records || []).map(r => ({
+      ...r,
+      dateText: util.formatDate(r.date),
+      timeAgo: util.timeAgo(r.date)
+    }))
+    this.setData({ records: processedRecords })
+  },
+
+  // ========== 个人模式数据加载 ==========
+
   loadTasks() {
+    if (this.data.isFamilyMode) return
     const tasks = storage.getTasksByPlant(this.data.userPlant.id)
     tasks.forEach(task => {
       task.daysUntil = util.daysUntilNext(task.nextDate)
@@ -52,6 +103,7 @@ Page({
   },
 
   loadRecords() {
+    if (this.data.isFamilyMode) return
     const records = storage.getRecordsByPlant(this.data.userPlant.id).slice(0, 20)
     records.forEach(r => {
       r.dateText = util.formatDate(r.date)
@@ -64,9 +116,23 @@ Page({
     this.setData({ activeTab: e.currentTarget.dataset.tab })
   },
 
-  completeTask(e) {
+  async completeTask(e) {
     wx.vibrateShort({ type: 'light' })
-    storage.completeTask(e.currentTarget.dataset.id)
+    const taskId = e.currentTarget.dataset.id
+
+    if (this.data.isFamilyMode) {
+      const result = await family.completeTask(taskId)
+      if (result.success) {
+        wx.showToast({ title: '完成啦~', icon: 'none' })
+        await this.loadFamilyTasks()
+        await this.loadFamilyRecords()
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+      }
+      return
+    }
+
+    storage.completeTask(taskId)
     this.loadTasks()
     this.loadRecords()
     this.loadHealthScore()
@@ -134,9 +200,22 @@ Page({
       title: '确认删除',
       content: `确定要把 ${this.data.userPlant.nickname} 从花园移除吗？`,
       confirmColor: '#2E7D32',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 备份数据用于撤销
+          if (this.data.isFamilyMode) {
+            wx.showLoading({ title: '删除中...' })
+            const result = await family.removePlant(this.data.userPlant._id)
+            wx.hideLoading()
+            if (result.success) {
+              wx.showToast({ title: '已删除', icon: 'none' })
+              setTimeout(() => wx.navigateBack(), 1000)
+            } else {
+              wx.showToast({ title: result.error || '删除失败', icon: 'none' })
+            }
+            return
+          }
+
+          // 个人模式
           const backup = {
             plant: JSON.parse(JSON.stringify(this.data.userPlant)),
             tasks: storage.getTasksByPlant(this.data.userPlant.id),
@@ -144,13 +223,11 @@ Page({
           }
           storage.removePlant(this.data.userPlant.id)
 
-          // 显示可撤销提示
           const pages = getCurrentPages()
           const prevPage = pages.length >= 2 ? pages[pages.length - 2] : null
           if (prevPage && prevPage.onShow) prevPage.onShow()
           wx.showToast({ title: '已删除', icon: 'none', duration: 3000 })
 
-          // 存储撤销数据，3秒后清除
           this._deleteBackup = backup
           setTimeout(() => { this._deleteBackup = null }, 5000)
 

@@ -1,8 +1,9 @@
-// pages/add-plant/add-plant.js - 添加植物（含拍照识别+自定义添加）
+// pages/add-plant/add-plant.js - 添加植物（含拍照识别+自定义添加+家庭模式）
 const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
 const validator = require('../../utils/validator')
+const family = require('../../utils/family')
 
 Page({
   data: {
@@ -187,6 +188,33 @@ Page({
     }
 
     const nickname = nameCheck.value
+
+    // 家庭模式
+    if (family.isInFamily()) {
+      wx.showLoading({ title: '添加中...' })
+      const result = await family.addPlant({
+        plantId: 'custom_' + Date.now(),
+        name: nickname,
+        latin: '',
+        familyName: '自定义',
+        emoji: this.data.customEmoji,
+        category: '自定义',
+        nickname,
+        location: this.data.customLocation,
+        waterDays: this.data.customWaterDays
+      })
+      wx.hideLoading()
+      if (result.success) {
+        this.setData({ showCustomModal: false })
+        wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
+        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+      } else {
+        wx.showToast({ title: result.error || '添加失败', icon: 'none' })
+      }
+      return
+    }
+
+    // 个人模式
     const userPlant = {
       id: util.genId(),
       plantId: 'custom_' + Date.now(),
@@ -278,6 +306,32 @@ Page({
     const nickname = nameCheck.value || plant.name
     const location = this.data.location || '阳台'
 
+    // 家庭模式
+    if (family.isInFamily()) {
+      wx.showLoading({ title: '添加中...' })
+      const result = await family.addPlant({
+        plantId: plant.id,
+        name: plant.name,
+        latin: plant.latin,
+        familyName: plant.family || '',
+        emoji: plant.emoji,
+        category: plant.category,
+        nickname,
+        location,
+        waterDays: this.data.waterDays
+      })
+      wx.hideLoading()
+      if (result.success) {
+        this.setData({ showModal: false })
+        wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
+        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+      } else {
+        wx.showToast({ title: result.error || '添加失败', icon: 'none' })
+      }
+      return
+    }
+
+    // 个人模式
     const userPlant = {
       id: util.genId(),
       plantId: plant.id,

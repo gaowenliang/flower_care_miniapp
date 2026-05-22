@@ -12,7 +12,13 @@ exports.main = async () => {
     'user_settings',
     'user_achievements',
     'user_custom_rooms',
-    'user_retro_cards'
+    'user_retro_cards',
+    'families',
+    'family_members',
+    'family_plants',
+    'family_records',
+    'family_tasks',
+    '_sync_meta'
   ]
 
   const results = []

@@ -1,5 +1,6 @@
-// pages/profile/profile.js - v3
+// pages/profile/profile.js - v3 + 家庭模式入口
 const storage = require('../../utils/storage')
+const familyManager = require('../../utils/family/manager')
 
 Page({
   data: {
@@ -12,18 +13,21 @@ Page({
     unlockedCount: 0,
     totalAchievements: 0,
     careStreak: 0,
-    showAchievements: false
+    showAchievements: false,
+    // 家庭模式
+    inFamily: false,
+    familyName: ''
   },
 
   onShow() {
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
+    this.loadFamilyStatus()
   },
 
   loadStats() {
     const stats = storage.getStats()
-    // 把 families 对象转成排序数组给 wxml 用
     let familyList = []
     if (stats.families) {
       familyList = Object.entries(stats.families)
@@ -35,6 +39,18 @@ Page({
         .sort((a, b) => b.count - a.count)
     }
     this.setData({ stats, familyList, settings: storage.getSettings() })
+  },
+
+  loadFamilyStatus() {
+    const familyInfo = familyManager.getFamilyInfo()
+    this.setData({
+      inFamily: familyInfo.inFamily,
+      familyName: familyInfo.family ? familyInfo.family.name : ''
+    })
+  },
+
+  goFamily() {
+    wx.navigateTo({ url: '/pages/family/family' })
   },
 
   // 云同步
@@ -95,7 +111,6 @@ Page({
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
     const monthRecords = records.filter(r => r.date >= monthStart && r.type !== 'photo' && r.type !== 'note')
 
-    // 统计各类型
     const typeCount = {}
     monthRecords.forEach(r => {
       const name = r.typeName || '其他'
@@ -112,9 +127,8 @@ Page({
       monthlyStats.push({ emoji: '📝', label: '养护记录', value: '0次' })
     }
 
-    // 最近7天柱状图
     const weekDays = ['一', '二', '三', '四', '五', '六', '日']
-    const today = now.getDay() === 0 ? 6 : now.getDay() - 1 // 周一=0
+    const today = now.getDay() === 0 ? 6 : now.getDay() - 1
     const weekBars = []
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now)
