@@ -112,12 +112,12 @@ Page({
     wx.showLoading({ title: '识别中...' })
     try {
       const aiIdentify = require('../../utils/ai-identify')
-      const result = await aiIdentify.identify(imagePath)
+      const result = await aiIdentify.identifyImage(imagePath)
       wx.hideLoading()
 
-      if (result && result.length > 0) {
+      if (result && result.plants && result.plants.length > 0) {
         // 识别成功，展示结果让用户选
-        this.setData({ identifyResults: result, showIdentifyModal: true })
+        this.setData({ identifyResults: result.plants, showIdentifyModal: true })
       } else {
         wx.showToast({ title: '未能识别，请手动选择或自定义添加', icon: 'none' })
       }
