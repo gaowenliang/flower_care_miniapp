@@ -20,7 +20,11 @@ Page({
     smartTips: [],
     tipWeather: '',
     tipDate: '',
-    loading: true
+    loading: true,
+    // 家庭模式
+    isFamilyMode: false,
+    isAdoptedByMe: false,
+    adopterNames: []
   },
 
   onLoad(options) {
@@ -29,7 +33,6 @@ Page({
     this.setData({ isFamilyMode })
 
     if (isFamilyMode) {
-      // 家庭模式：从缓存获取植物信息
       const userPlant = family.getPlantById(id)
       if (!userPlant) {
         wx.showToast({ title: '植物不存在', icon: 'none' })
@@ -37,9 +40,12 @@ Page({
         return
       }
       const plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
-      // 统一 id 字段
       userPlant.id = userPlant._id || id
-      this.setData({ userPlant, plantInfo })
+      this.setData({
+        userPlant, plantInfo,
+        isAdoptedByMe: family.isAdoptedByMe(id),
+        adopterNames: family.getAdopterNames(userPlant)
+      })
       this.loadFamilyTasks()
       this.loadFamilyRecords()
       this.loadSmartTips()
@@ -63,6 +69,24 @@ Page({
     this.loadSmartTips()
     setTimeout(() => this.setData({ loading: false }), 300)
     this.loadHealthScore()
+  },
+
+  // ========== 认养 ==========
+
+  async toggleAdopt() {
+    const result = await family.toggleAdopt(this.data.userPlant._id)
+    if (result.success) {
+      const adopted = result.adopted
+      this.setData({ isAdoptedByMe: adopted })
+      // 刷新认养者列表
+      const plant = family.getPlantById(this.data.userPlant._id)
+      if (plant) {
+        this.setData({ adopterNames: family.getAdopterNames(plant) })
+      }
+      wx.showToast({ title: adopted ? '已认养 💚' : '已取消认养', icon: 'none' })
+    } else {
+      wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+    }
   },
 
   // ========== 家庭模式数据加载 ==========

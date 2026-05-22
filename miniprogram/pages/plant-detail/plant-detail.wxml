@@ -41,6 +41,16 @@
       </view>
       <text class="health-num" style="color:{{healthLevel.color}}">{{healthScore}}分</text>
     </view>
+    <!-- 家庭模式：认养信息 -->
+    <view class="adopt-section" wx:if="{{isFamilyMode}}">
+      <view class="adopt-info" wx:if="{{adopterNames.length > 0}}">
+        <text class="adopt-label">👤 认养：</text>
+        <text class="adopt-names">{{adopterNames.join('、')}}</text>
+      </view>
+      <view class="adopt-btn {{isAdoptedByMe ? 'adopted' : ''}}" bindtap="toggleAdopt">
+        {{isAdoptedByMe ? '💚 已认养' : '🤝 认养这棵植物'}}
+      </view>
+    </view>
     <view class="header-actions">
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
       <view class="action-btn" bindtap="goJournal">📖 日记</view>
@@ -121,6 +131,7 @@
         <view class="record-dot"></view>
         <view class="record-content">
           <text class="record-type">{{item.typeName}}</text>
+          <text class="record-creator" wx:if="{{isFamilyMode && item.creatorNickname}}">by {{item.creatorNickname}}</text>
           <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
           <text class="record-time">{{item.timeAgo}} · {{item.dateText}}</text>
         </view>

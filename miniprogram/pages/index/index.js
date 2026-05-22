@@ -66,11 +66,13 @@ Page({
         }).length
         return {
           ...plant,
-          id: plant._id, // 统一用 _id 作为 id
+          id: plant._id,
           statusEmoji: dueCount > 0 ? '🥺' : '😊',
           hasOverdue: dueCount > 0,
           dueCount,
-          addedDays: plant.addedAt ? Math.floor((Date.now() - plant.addedAt) / 86400000) : 0
+          addedDays: plant.addedAt ? Math.floor((Date.now() - plant.addedAt) / 86400000) : 0,
+          adopterNames: plant.adopterNames || [],
+          adopterText: (plant.adopterNames || []).length > 0 ? (plant.adopterNames || []).join('、') : ''
         }
       })
 

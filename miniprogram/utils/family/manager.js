@@ -9,9 +9,8 @@ const CACHE_KEYS = {
 }
 
 const FamilyManager = {
-  /**
-   * 是否处于家庭模式
-   */
+  // ========== 基础状态 ==========
+
   isFamilyMode() {
     try {
       const info = wx.getStorageSync(CACHE_KEYS.FAMILY_INFO)
@@ -21,9 +20,10 @@ const FamilyManager = {
     }
   },
 
-  /**
-   * 获取缓存的家庭信息
-   */
+  isInFamily() {
+    return this.isFamilyMode()
+  },
+
   getFamilyInfo() {
     try {
       return wx.getStorageSync(CACHE_KEYS.FAMILY_INFO) || { inFamily: false }
@@ -32,18 +32,12 @@ const FamilyManager = {
     }
   },
 
-  /**
-   * 保存家庭信息到缓存
-   */
   saveFamilyInfo(info) {
     try {
       wx.setStorageSync(CACHE_KEYS.FAMILY_INFO, info)
     } catch (e) {}
   },
 
-  /**
-   * 清除家庭缓存
-   */
   clearCache() {
     try {
       wx.removeStorageSync(CACHE_KEYS.FAMILY_INFO)
@@ -53,11 +47,8 @@ const FamilyManager = {
     } catch (e) {}
   },
 
-  // ========== 查询家庭状态 ==========
+  // ========== 家庭状态刷新 ==========
 
-  /**
-   * 从云端检查并刷新家庭状态
-   */
   async refreshFamilyStatus() {
     try {
       const res = await wx.cloud.callFunction({
@@ -77,7 +68,7 @@ const FamilyManager = {
     }
   },
 
-  // ========== 家庭植物 ==========
+  // ========== 植物 ==========
 
   getFamilyPlants() {
     try {
@@ -91,6 +82,15 @@ const FamilyManager = {
     try {
       wx.setStorageSync(CACHE_KEYS.FAMILY_PLANTS, plants)
     } catch (e) {}
+  },
+
+  getCachedPlants() {
+    return this.getFamilyPlants()
+  },
+
+  getPlantById(id) {
+    const plants = this.getFamilyPlants()
+    return plants.find(p => p._id === id || p.id === id)
   },
 
   async loadFamilyPlants() {
@@ -107,7 +107,45 @@ const FamilyManager = {
     return this.getFamilyPlants()
   },
 
-  // ========== 家庭任务 ==========
+  async getPlants(forceRefresh = false) {
+    if (!forceRefresh) {
+      const cached = this.getFamilyPlants()
+      if (cached.length > 0) return cached
+    }
+    return await this.loadFamilyPlants()
+  },
+
+  async addPlant(plantData) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'familyData',
+        data: { action: 'addPlant', plant: plantData }
+      })
+      if (res.result.success) {
+        await this.loadFamilyPlants()
+      }
+      return res.result
+    } catch (e) {
+      return { success: false, error: '添加失败' }
+    }
+  },
+
+  async removePlant(plantId) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'familyData',
+        data: { action: 'deletePlant', plantId }
+      })
+      if (res.result.success) {
+        await this.loadFamilyPlants()
+      }
+      return res.result
+    } catch (e) {
+      return { success: false, error: '删除失败' }
+    }
+  },
+
+  // ========== 任务 ==========
 
   getFamilyTasks() {
     try {
@@ -123,6 +161,10 @@ const FamilyManager = {
     } catch (e) {}
   },
 
+  getCachedTasks() {
+    return this.getFamilyTasks()
+  },
+
   async loadFamilyTasks(plantId) {
     try {
       const data = { action: 'getTasks' }
@@ -136,7 +178,30 @@ const FamilyManager = {
     return this.getFamilyTasks()
   },
 
-  // ========== 家庭记录 ==========
+  async getTasks(plantId = '', forceRefresh = false) {
+    if (!forceRefresh && !plantId) {
+      const cached = this.getFamilyTasks()
+      if (cached.length > 0) return cached
+    }
+    return await this.loadFamilyTasks(plantId)
+  },
+
+  async completeTask(taskId) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'familyData',
+        data: { action: 'completeTask', taskId }
+      })
+      if (res.result.success) {
+        await this.loadFamilyTasks()
+      }
+      return res.result
+    } catch (e) {
+      return { success: false, error: '完成失败' }
+    }
+  },
+
+  // ========== 记录 ==========
 
   getFamilyRecords() {
     try {
@@ -166,7 +231,27 @@ const FamilyManager = {
     return this.getFamilyRecords()
   },
 
-  // ========== 仪表盘（首页一次加载） ==========
+  async getRecords(plantId = '', limit = 100) {
+    return await this.loadFamilyRecords(plantId, limit)
+  },
+
+  async addRecord(recordData) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'familyData',
+        data: { action: 'addRecord', record: recordData }
+      })
+      return res.result
+    } catch (e) {
+      return { success: false, error: '添加失败' }
+    }
+  },
+
+  async deleteRecord(recordId) {
+    return { success: false, error: '家庭模式下暂不支持删除记录' }
+  },
+
+  // ========== 仪表盘 ==========
 
   async loadDashboard() {
     try {

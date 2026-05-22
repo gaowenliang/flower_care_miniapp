@@ -209,3 +209,15 @@
 .health-fill { height: 100%; border-radius: 4rpx; transition: width 0.5s ease; }
 .health-num { font-size: 22rpx; font-weight: 600; min-width: 60rpx; text-align: right; }
 
+
+/* 认养 */
+.adopt-section { margin-top: 20rpx; padding-top: 20rpx; border-top: 1rpx solid #f0f0f0; }
+.adopt-info { display: flex; align-items: center; margin-bottom: 16rpx; }
+.adopt-label { font-size: 24rpx; color: #888; }
+.adopt-names { font-size: 24rpx; color: #4CAF50; font-weight: 500; }
+.adopt-btn { text-align: center; padding: 16rpx; border-radius: 24rpx; font-size: 26rpx; background: #E8F5E9; color: #4CAF50; border: 2rpx solid #C8E6C9; }
+.adopt-btn.adopted { background: #4CAF50; color: #fff; border-color: #4CAF50; }
+.adopt-btn:active { opacity: 0.8; }
+
+/* 操作者标签 */
+.record-creator { font-size: 22rpx; color: #4CAF50; background: #E8F5E9; padding: 2rpx 12rpx; border-radius: 10rpx; margin-left: 12rpx; }
