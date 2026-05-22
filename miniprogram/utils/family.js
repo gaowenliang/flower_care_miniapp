@@ -44,8 +44,10 @@ async function refreshFamilyInfo() {
   if (result.success) {
     result._cachedAt = Date.now()
     try { wx.setStorageSync(FAMILY_CACHE_KEY, result) } catch (e) {}
+    return result
   }
-  return result
+  // 云函数调用失败时，仍然返回可用的结果，让页面能正常显示
+  return { success: true, inFamily: false, _networkError: true }
 }
 
 function clearCache() {
