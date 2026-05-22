@@ -11,6 +11,18 @@ const POINT_RULES = {
   photo: 1, note: 1, retro: 2, custom: 1
 }
 
+// 分页取全（微信云函数单次上限100条）
+async function fetchAll(collection, query) {
+  const all = []; let offset = 0
+  while (true) {
+    const batch = await db.collection(collection).where(query).skip(offset).limit(100).get()
+    all.push(...batch.data)
+    if (batch.data.length < 100) break
+    offset += 100; if (offset >= 5000) break
+  }
+  return all
+}
+
 async function getFamilyId(openid) {
   const res = await db.collection('family_members').where({ openid }).limit(1).get()
   if (res.data.length === 0) return null
@@ -185,12 +197,11 @@ async function deletePlant(event, openid, familyId) {
   await db.collection('family_plants').doc(plantId).remove()
 
   // 删除关联任务
-  const tasks = await db.collection('family_tasks').where({ familyId, plantId }).limit(100).get()
-  for (const t of tasks.data) await db.collection('family_tasks').doc(t._id).remove()
+  const tasks = await fetchAll('family_tasks', { familyId, plantId })
+  for (const t of tasks) await db.collection('family_tasks').doc(t._id).remove()
 
-  // 删除关联记录
-  const records = await db.collection('family_records').where({ familyId, plantId }).limit(500).get()
-  for (const r of records.data) await db.collection('family_records').doc(r._id).remove()
+  const records = await fetchAll('family_records', { familyId, plantId })
+  for (const r of records) await db.collection('family_records').doc(r._id).remove()
 
   return { success: true }
 }
@@ -221,8 +232,8 @@ async function getTasks(event, familyId) {
   let query = { familyId }
   if (plantId) query.plantId = plantId
 
-  const result = await db.collection('family_tasks').where(query).limit(200).get()
-  return { success: true, tasks: result.data }
+  const tasks = await fetchAll('family_tasks', query)
+  return { success: true, tasks }
 }
 
 /**

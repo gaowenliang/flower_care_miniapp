@@ -1,6 +1,6 @@
 // pages/profile/profile.js - v3 + 家庭模式入口
 const storage = require('../../utils/storage')
-const familyManager = require('../../utils/family/manager')
+const family = require('../../utils/family')
 
 Page({
   data: {
@@ -41,11 +41,11 @@ Page({
     this.setData({ stats, familyList, settings: storage.getSettings() })
   },
 
-  loadFamilyStatus() {
-    const familyInfo = familyManager.getFamilyInfo()
+  async loadFamilyStatus() {
+    const info = await family.refreshFamilyInfo()
     this.setData({
-      inFamily: familyInfo.inFamily,
-      familyName: familyInfo.family ? familyInfo.family.name : ''
+      inFamily: info.success && info.inFamily,
+      familyName: info.family ? info.family.name : ''
     })
   },
 

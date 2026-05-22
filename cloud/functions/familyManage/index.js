@@ -14,6 +14,20 @@ function genInviteCode() {
 
 const POINT_RULES = { water: 2, fertilize: 3, prune: 4, repot: 5, spray: 3, photo: 1, note: 1, retro: 2, custom: 1 }
 
+// 分页取全（微信云函数单次上限100条）
+async function fetchAll(collection, query, orderBy) {
+  const all = []; let offset = 0
+  while (true) {
+    let q = db.collection(collection).where(query).skip(offset).limit(100)
+    if (orderBy) q = q.orderBy(orderBy.field, orderBy.order)
+    const batch = await q.get()
+    all.push(...batch.data)
+    if (batch.data.length < 100) break
+    offset += 100; if (offset >= 5000) break
+  }
+  return all
+}
+
 async function getMemberInfo(openid) {
   const res = await db.collection('family_members').where({ openid }).limit(1).get()
   return res.data.length > 0 ? res.data[0] : null
@@ -379,19 +393,18 @@ async function generateWeeklyReport(openid) {
   const now = Date.now()
   const since = now - 7 * 86400000
 
-  const recordsRes = await db.collection('family_records').where({ familyId, date: _.gte(since) }).limit(1000).get()
+  const records = await fetchAll('family_records', { familyId, date: _.gte(since) }, { field: 'date', order: 'desc' })
   const plantsRes = await db.collection('family_plants').where({ familyId }).limit(100).get()
   const membersRes = await db.collection('family_members').where({ familyId }).get()
   const memberMap = {}; membersRes.data.forEach(m => { memberMap[m.openid] = m })
 
-  const totalCare = recordsRes.data.length
+  const totalCare = records.length
   const memberTotals = {}
-  recordsRes.data.forEach(r => { memberTotals[r.createdBy] = (memberTotals[r.createdBy] || 0) + 1 })
+  records.forEach(r => { memberTotals[r.createdBy] = (memberTotals[r.createdBy] || 0) + 1 })
   const topMember = Object.entries(memberTotals).sort((a, b) => b[1] - a[1])[0]
   const topMemberName = topMember ? (memberMap[topMember[0]] || {}).nickname || '未知' : '暂无'
 
-  // 找无人照顾的植物
-  const caredPlantIds = new Set(recordsRes.data.map(r => r.plantId))
+  const caredPlantIds = new Set(records.map(r => r.plantId))
   const neglectedPlants = plantsRes.data.filter(p => !caredPlantIds.has(p._id)).map(p => p.nickname || p.name)
 
   return {
