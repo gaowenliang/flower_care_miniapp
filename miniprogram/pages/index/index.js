@@ -26,7 +26,10 @@ Page({
     newRoomName: '',
     _lastLoadTime: 0,
     // 家庭模式
-    isFamilyMode: false
+    isFamilyMode: false,
+    // 天气
+    weather: null,
+    weatherLoading: false
   },
 
   onShow() {
@@ -38,7 +41,9 @@ Page({
   },
 
   async initMode() {
-    const isFamilyMode = family.isInFamily()
+    // 先尝试刷新家庭信息（解决首次进入缓存为空的问题）
+    const info = await family.refreshFamilyInfo()
+    const isFamilyMode = info.success && info.inFamily
     this.setData({ isFamilyMode })
 
     if (isFamilyMode) {
@@ -48,6 +53,7 @@ Page({
       this.loadTodayTasks()
       this.loadStats()
     }
+    this.loadWeather()
     subscribe.checkAndNotify()
     setTimeout(() => this.setData({ loading: false }), 300)
   },
@@ -210,6 +216,32 @@ Page({
     })
     this.setData({ todayTasks: dueTasks })
     this.checkRainyDay()
+  },
+
+  loadWeather() {
+    try {
+      const cached = wx.getStorageSync('_weather_cache')
+      if (cached && Date.now() - cached._t < 30 * 60000) {
+        this.setData({ weather: cached.data })
+        return
+      }
+    } catch (e) {}
+    if (!wx.cloud) return
+    this.setData({ weatherLoading: true })
+    wx.cloud.callFunction({
+      name: 'getWeather', data: { city: '310000' },
+      success: (res) => {
+        if (res.result && res.result.weather) {
+          const w = res.result.weather
+          const emojiMap = { '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️', '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '🌨️', '中雪': '🌨️', '大雪': '❄️', '雾': '🌫️' }
+          const weatherEmoji = emojiMap[w.weather] || '🌤️'
+          const data = { temp: w.temp, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.wind, city: w.city || '上海' }
+          this.setData({ weather: data, weatherLoading: false })
+          try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
+        } else { this.setData({ weatherLoading: false }) }
+      },
+      fail: () => { this.setData({ weatherLoading: false }) }
+    })
   },
 
   checkRainyDay() {

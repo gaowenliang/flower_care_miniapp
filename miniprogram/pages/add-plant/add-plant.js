@@ -133,7 +133,7 @@ Page({
     const result = this.data.identifyResults[idx]
     this.setData({ showIdentifyModal: false })
 
-    const match = plantsData.plants.find(p => p.name === result.name)
+    const match = plantsData.plants.find(p => p.name === result.name || p.name.includes(result.name) || result.name.includes(p.name))
     if (match) {
       this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays })
     } else {

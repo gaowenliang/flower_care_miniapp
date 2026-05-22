@@ -59,9 +59,9 @@
     <text>➕ 自定义添加植物</text>
   </view>
 
-  <!-- 识别结果弹窗 -->
+  <!-- 识别结果弹窗（底部半屏） -->
   <view class="modal-mask" wx:if="{{showIdentifyModal}}" bindtap="closeIdentifyModal">
-    <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-content identify-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-emoji">🔍</text>
         <text class="modal-title">识别结果</text>
@@ -77,7 +77,7 @@
         </view>
       </view>
       <view class="modal-footer">
-        <view class="btn-cancel" bindtap="closeIdentifyModal">都不对，手动选</view>
+        <view class="btn-cancel" bindtap="closeIdentifyModal" style="width:100%">都不对，手动选</view>
       </view>
     </view>
   </view>

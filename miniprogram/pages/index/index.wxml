@@ -51,6 +51,14 @@
       </view>
     </view>
 
+    <!-- 天气卡片 -->
+    <view class="weather-card" wx:if="{{weather}}">
+      <text class="weather-emoji">{{weather.emoji}}</text>
+      <text class="weather-temp">{{weather.temp}}°</text>
+      <text class="weather-desc">{{weather.weather}}</text>
+      <text class="weather-detail" wx:if="{{weather.humidity}}">💧 {{weather.humidity}}%</text>
+    </view>
+
     <!-- 统计条 -->
     <view class="stats-bar" wx:if="{{hasPlants && stats}}">
       <view class="stat-chip"><text>🌱 {{stats.totalPlants}}棵</text></view>

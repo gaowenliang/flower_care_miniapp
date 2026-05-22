@@ -119,11 +119,31 @@ function matchLocal(plant) {
  */
 function imageToBase64(path) {
   return new Promise((resolve) => {
-    wx.getFileSystemManager().readFile({
-      filePath: path,
-      encoding: 'base64',
-      success: (res) => resolve(res.data),
-      fail: () => resolve(null)
+    // 先压缩图片，确保不超过百度API限制
+    wx.compressImage({
+      src: path,
+      quality: 60,
+      success: (res) => {
+        wx.getFileSystemManager().readFile({
+          filePath: res.tempFilePath,
+          encoding: 'base64',
+          success: (r) => resolve(r.data),
+          fail: () => {
+            // 压缩后读取失败，尝试原图
+            wx.getFileSystemManager().readFile({
+              filePath: path, encoding: 'base64',
+              success: (r) => resolve(r.data), fail: () => resolve(null)
+            })
+          }
+        })
+      },
+      fail: () => {
+        // 压缩失败，用原图
+        wx.getFileSystemManager().readFile({
+          filePath: path, encoding: 'base64',
+          success: (r) => resolve(r.data), fail: () => resolve(null)
+        })
+      }
     })
   })
 }
