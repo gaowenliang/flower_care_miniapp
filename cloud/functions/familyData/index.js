@@ -63,7 +63,11 @@ exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   const { action } = event
 
-  // 获取用户所在家庭的 familyId
+  // 前端 callCloud 统一发送 { action, data }，把 data 展开到 event 上供子函数读取
+  if (event.data && typeof event.data === 'object') {
+    Object.assign(event, event.data)
+  }
+
   const familyId = await getFamilyId(OPENID)
   if (!familyId) return { success: false, error: '不在家庭中' }
 
@@ -381,7 +385,7 @@ async function getRecords(event, familyId) {
   let query = { familyId }
   if (plantId) query.plantId = plantId
 
-  const l = Math.min(limit || 100, 200)
+  const l = Math.min(limit || 100, 100)
   const result = await db.collection('family_records')
     .where(query)
     .orderBy('date', 'desc')

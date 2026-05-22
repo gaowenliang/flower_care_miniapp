@@ -8,7 +8,7 @@ const FAMILY_RECORDS_KEY = '_family_records'
 const CACHE_TTL = 5 * 60 * 1000
 
 function callCloud(name, action, data) {
-  return wx.cloud.callFunction({ name, data: { action, data, ...data } })
+  return wx.cloud.callFunction({ name, data: { action, data } })
     .then(res => res.result)
     .catch(err => {
       console.error(`云函数 ${name}.${action} 失败:`, err)

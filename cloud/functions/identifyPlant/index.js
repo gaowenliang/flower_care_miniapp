@@ -3,8 +3,8 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const BAIDU_API_KEY = process.env.BAIDU_API_KEY || 'G4M1FtQWoshDHuaHP8CXydz1'
-const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || 'LD0Hb9NBxxi96krTUcSfkYepuvAxAa0U'
+const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
+const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
 
 async function getBaiduToken() {
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`

@@ -165,6 +165,14 @@ Page({
 
   changeInterval(e) {
     const { taskId, delta } = e.currentTarget.dataset
+    if (this.data.isFamilyMode) {
+      const task = this.data.tasks.find(t => t.id === taskId || t._id === taskId)
+      if (task) {
+        const newInterval = Math.max(1, (task.intervalDays || 7) + parseInt(delta))
+        family.updateTask(taskId, { intervalDays: newInterval }).then(() => this.loadFamilyTasks())
+      }
+      return
+    }
     const tasks = storage.getTasksByPlant(this.data.userPlant.id)
     const task = tasks.find(t => t.id === taskId)
     if (task) {
@@ -175,7 +183,12 @@ Page({
   },
 
   toggleTask(e) {
-    storage.toggleTask(e.currentTarget.dataset.id)
+    const taskId = e.currentTarget.dataset.id
+    if (this.data.isFamilyMode) {
+      family.toggleTask(taskId).then(() => this.loadFamilyTasks())
+      return
+    }
+    storage.toggleTask(taskId)
     this.loadTasks()
   },
 
@@ -199,9 +212,30 @@ Page({
     this.setData({ newTaskInterval: parseInt(e.detail.value) || 1 })
   },
 
-  confirmAddTask() {
+  async confirmAddTask() {
     const { newTaskType, newTaskInterval, userPlant, taskTypes } = this.data
     const taskType = taskTypes.find(t => t.id === newTaskType)
+
+    if (this.data.isFamilyMode) {
+      wx.showLoading({ title: '添加中...' })
+      const result = await family.data('addTask', {
+        task: {
+          plantId: userPlant._id,
+          type: newTaskType,
+          typeName: taskType ? taskType.name : '养护',
+          intervalDays: newTaskInterval
+        }
+      })
+      wx.hideLoading()
+      if (result.success) {
+        this.setData({ showAddTask: false })
+        await this.loadFamilyTasks()
+        wx.showToast({ title: '任务已添加', icon: 'none' })
+      } else {
+        wx.showToast({ title: result.error || '添加失败', icon: 'none' })
+      }
+      return
+    }
 
     storage.addTask({
       id: util.genId(),
@@ -267,16 +301,28 @@ Page({
       mediaType: ['image'],
       success: async (res) => {
         const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
-        storage.addRecord({
-          id: util.genId(),
-          userPlantId: this.data.userPlant.id,
-          type: 'photo',
-          typeName: '拍照记录',
-          date: Date.now(),
-          note: '',
-          photo: photoUrl
-        })
-        this.loadRecords()
+        if (this.data.isFamilyMode) {
+          await family.addRecord({
+            userPlantId: this.data.userPlant._id,
+            plantId: this.data.userPlant._id,
+            type: 'photo',
+            typeName: '拍照记录',
+            note: '',
+            photo: photoUrl
+          })
+          await this.loadFamilyRecords()
+        } else {
+          storage.addRecord({
+            id: util.genId(),
+            userPlantId: this.data.userPlant.id,
+            type: 'photo',
+            typeName: '拍照记录',
+            date: Date.now(),
+            note: '',
+            photo: photoUrl
+          })
+          this.loadRecords()
+        }
         wx.showToast({ title: '已记录 📷', icon: 'none' })
       }
     })
@@ -287,17 +333,28 @@ Page({
       title: '📝 记录一下',
       editable: true,
       placeholderText: '今天植物状态怎么样？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm && res.content) {
-          storage.addRecord({
-            id: util.genId(),
-            userPlantId: this.data.userPlant.id,
-            type: 'note',
-            typeName: '备注',
-            date: Date.now(),
-            note: res.content
-          })
-          this.loadRecords()
+          if (this.data.isFamilyMode) {
+            await family.addRecord({
+              userPlantId: this.data.userPlant._id,
+              plantId: this.data.userPlant._id,
+              type: 'note',
+              typeName: '备注',
+              note: res.content
+            })
+            await this.loadFamilyRecords()
+          } else {
+            storage.addRecord({
+              id: util.genId(),
+              userPlantId: this.data.userPlant.id,
+              type: 'note',
+              typeName: '备注',
+              date: Date.now(),
+              note: res.content
+            })
+            this.loadRecords()
+          }
         }
       }
     })
@@ -434,10 +491,14 @@ Page({
       title: '修改昵称',
       editable: true,
       placeholderText: this.data.userPlant.nickname,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm && res.content && res.content.trim()) {
           const nickname = res.content.trim()
-          storage.updatePlant(this.data.userPlant.id, { nickname })
+          if (this.data.isFamilyMode) {
+            await family.updatePlant(this.data.userPlant._id, { nickname })
+          } else {
+            storage.updatePlant(this.data.userPlant.id, { nickname })
+          }
           this.setData({ 'userPlant.nickname': nickname })
           wx.showToast({ title: '已修改', icon: 'none' })
         }
@@ -448,16 +509,19 @@ Page({
   // 编辑位置
   editLocation() {
     const rooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
-    // 加上自定义房间
     try {
       const custom = wx.getStorageSync('customRooms') || []
       custom.forEach(r => { if (!rooms.includes(r)) rooms.push(r) })
     } catch (e) {}
     wx.showActionSheet({
       itemList: rooms,
-      success: (res) => {
+      success: async (res) => {
         const room = rooms[res.tapIndex]
-        storage.updatePlant(this.data.userPlant.id, { location: room })
+        if (this.data.isFamilyMode) {
+          await family.updatePlant(this.data.userPlant._id, { location: room })
+        } else {
+          storage.updatePlant(this.data.userPlant.id, { location: room })
+        }
         this.setData({ 'userPlant.location': room })
         wx.showToast({ title: '已修改', icon: 'none' })
       }
