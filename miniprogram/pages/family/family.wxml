@@ -1,49 +1,32 @@
-<!-- pages/family/family.wxml v2 — 积分排行+认养+报表 -->
+<!-- pages/family/family.wxml v3 — 全功能 -->
 <view class="page-family">
   <!-- 加载中 -->
-  <view class="loading-box" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
-  </view>
+  <view class="loading-box" wx:if="{{loading}}"><view class="loading-spinner"></view><text class="loading-text">加载中...</text></view>
 
   <!-- 加载失败 -->
   <view class="no-family" wx:elif="{{loadError && !inFamily}}">
-    <view class="empty-icon">😔</view>
-    <view class="empty-title">加载失败</view>
-    <view class="empty-desc">网络不给力，请重试</view>
-    <view class="action-card" style="margin-top:30rpx;" bindtap="retryLoad">
-      <view class="card-title">🔄 重新加载</view>
-    </view>
+    <view class="empty-icon">😔</view><view class="empty-title">加载失败</view><view class="empty-desc">网络不给力</view>
+    <view class="action-card" style="margin-top:30rpx" bindtap="retryLoad"><view class="card-title">🔄 重新加载</view></view>
   </view>
 
-  <!-- 未加入家庭 -->
+  <!-- 未加入 -->
   <view class="no-family" wx:elif="{{!inFamily}}">
-    <view class="empty-icon">🏠</view>
-    <view class="empty-title">家庭共享</view>
-    <view class="empty-desc">和家人一起照顾植物，共享花园快乐</view>
+    <view class="empty-icon">🏠</view><view class="empty-title">家庭花园</view><view class="empty-desc">和家人一起照顾植物</view>
     <view class="action-cards">
-      <view class="action-card" bindtap="showCreateModal">
-        <view class="card-icon">✨</view>
-        <view class="card-title">创建家庭</view>
-        <view class="card-desc">创建一个家庭，邀请家人加入</view>
-      </view>
-      <view class="action-card" bindtap="showJoinModal">
-        <view class="card-icon">🤝</view>
-        <view class="card-title">加入家庭</view>
-        <view class="card-desc">输入邀请码加入已有的家庭</view>
-      </view>
+      <view class="action-card" bindtap="showCreateModal"><view class="card-icon">✨</view><view class="card-title">创建家庭</view><view class="card-desc">邀请家人加入</view></view>
+      <view class="action-card" bindtap="showJoinModal"><view class="card-icon">🤝</view><view class="card-title">加入家庭</view><view class="card-desc">输入邀请码</view></view>
     </view>
   </view>
 
-  <!-- 已加入家庭 -->
+  <!-- 已加入 -->
   <view class="family-info" wx:else>
-    <!-- 家庭头部 -->
+    <!-- 头部 -->
     <view class="family-header">
       <view class="family-name">{{familyInfo.name}}</view>
       <view class="family-meta">
-        <text class="member-count">{{members.length}}位成员</text>
-        <text class="role-tag {{myRole === 'admin' ? 'admin' : 'member'}}">{{myRole === 'admin' ? '管理员' : '成员'}}</text>
-        <text class="points-badge">⭐ {{myPoints}}分</text>
+        <text class="member-count">{{members.length}}人</text>
+        <text class="role-tag {{myRole==='admin'?'admin':'member'}}">{{myRole==='admin'?'管理员':'成员'}}</text>
+        <text class="points-badge">⭐ {{myPoints}}</text>
       </view>
     </view>
 
@@ -53,148 +36,195 @@
         <view class="invite-label">邀请码</view>
         <view class="invite-code">{{familyInfo.inviteCode}}</view>
         <view class="invite-actions">
-          <view class="invite-btn copy" bindtap="copyInviteCode">复制邀请码</view>
+          <view class="invite-btn copy" bindtap="copyInviteCode">📋 复制</view>
           <button class="invite-btn share" open-type="share">分享邀请</button>
         </view>
       </view>
     </view>
 
-    <!-- Tab 切换 -->
+    <!-- Tab -->
     <view class="tab-bar">
-      <view class="tab {{activeTab === 'members' ? 'active' : ''}}" bindtap="switchTab" data-tab="members">成员排行</view>
-      <view class="tab {{activeTab === 'report' ? 'active' : ''}}" bindtap="switchTab" data-tab="report">打理报表</view>
+      <view class="tab {{activeTab==='feed'?'active':''}}" bindtap="switchTab" data-tab="feed">动态</view>
+      <view class="tab {{activeTab==='members'?'active':''}}" bindtap="switchTab" data-tab="members">排行</view>
+      <view class="tab {{activeTab==='report'?'active':''}}" bindtap="switchTab" data-tab="report">报表</view>
+      <view class="tab {{activeTab==='more'?'active':''}}" bindtap="switchTab" data-tab="more">更多</view>
     </view>
 
-    <!-- 成员排行 Tab -->
-    <view wx:if="{{activeTab === 'members'}}">
-      <!-- 积分排行榜 -->
+    <!-- ===== 动态流 ===== -->
+    <view wx:if="{{activeTab==='feed'}}">
       <view class="section-card">
-        <view class="section-title">🏆 养护积分排行</view>
-        <view class="leaderboard">
-          <view class="lb-item {{index === 0 ? 'first' : ''}}" wx:for="{{leaderboard}}" wx:key="openid">
-            <view class="lb-rank">{{index + 1}}</view>
-            <view class="lb-avatar" style="background: {{item.color}}">
-              {{item.initial}}
+        <view class="section-title">📰 家庭动态</view>
+        <view class="activity-list">
+          <view class="activity-item" wx:for="{{activities}}" wx:key="_id">
+            <text class="activity-emoji">{{item.emoji}}</text>
+            <view class="activity-content">
+              <view class="activity-text"><text class="activity-name">{{item.nickname}}</text> {{item.content}}</view>
+              <text class="activity-time">{{item.timeAgo}}</text>
             </view>
-            <view class="lb-info">
-              <view class="lb-name">{{item.nickname || '成员'}}</view>
-              <view class="lb-detail">打理 {{item.totalCare || 0}} 次 · 认养 {{item.adoptedCount || 0}} 棵</view>
-            </view>
-            <view class="lb-points">⭐ {{item.points || 0}}</view>
           </view>
         </view>
-        <view class="empty-hint" wx:if="{{leaderboard.length === 0}}">暂无数据</view>
+        <view class="empty-hint" wx:if="{{activities.length===0}}">还没有动态，养护植物后自动记录</view>
       </view>
+    </view>
 
-      <!-- 成员列表（管理） -->
+    <!-- ===== 排行 ===== -->
+    <view wx:if="{{activeTab==='members'}}">
       <view class="section-card">
-        <view class="section-title">👨‍👩‍👧‍👦 家庭成员</view>
+        <view class="section-title">🏆 积分排行</view>
+        <view class="lb-item {{index===0?'first':''}}" wx:for="{{leaderboard}}" wx:key="openid">
+          <view class="lb-rank">{{index+1}}</view>
+          <view class="lb-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+          <view class="lb-info"><view class="lb-name">{{item.nickname||'成员'}}</view><view class="lb-detail">打理{{item.totalCare||0}}次 · 认养{{item.adoptedCount||0}}棵</view></view>
+          <view class="lb-points">⭐ {{item.points||0}}</view>
+        </view>
+      </view>
+      <view class="section-card">
+        <view class="section-title">👨‍👩‍👧‍👦 成员</view>
         <view class="member-list">
           <view class="member-item" wx:for="{{members}}" wx:key="openid">
-            <view class="member-avatar" style="background: {{item.color}}">{{item.initial}}</view>
-            <view class="member-info">
-              <view class="member-name">{{item.nickname || '成员'}}</view>
-              <view class="member-role">{{item.role === 'admin' ? '管理员' : '成员'}}</view>
-            </view>
-            <view class="member-action" wx:if="{{myRole === 'admin' && item.role !== 'admin'}}" catchtap="kickMember" data-index="{{index}}">
-              <text class="kick-btn">移除</text>
-            </view>
+            <view class="member-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+            <view class="member-info"><view class="member-name">{{item.nickname||'成员'}}</view><view class="member-role">{{item.role==='admin'?'管理员':'成员'}}</view></view>
+            <view class="member-action" wx:if="{{myRole==='admin'&&item.role!=='admin'}}" catchtap="kickMember" data-index="{{index}}"><text class="kick-btn">移除</text></view>
           </view>
         </view>
-        <view class="edit-nickname" bindtap="editNickname">修改我的昵称</view>
+        <view class="edit-nickname" bindtap="editNickname">修改昵称</view>
       </view>
     </view>
 
-    <!-- 报表 Tab -->
-    <view wx:if="{{activeTab === 'report'}}">
-      <!-- 时间段切换 -->
+    <!-- ===== 报表 ===== -->
+    <view wx:if="{{activeTab==='report'}}">
       <view class="period-bar">
-        <view class="period-btn {{reportPeriod === 'week' ? 'active' : ''}}" bindtap="switchPeriod" data-period="week">本周</view>
-        <view class="period-btn {{reportPeriod === 'month' ? 'active' : ''}}" bindtap="switchPeriod" data-period="month">本月</view>
-        <view class="period-btn {{reportPeriod === 'year' ? 'active' : ''}}" bindtap="switchPeriod" data-period="year">今年</view>
+        <view class="period-btn {{reportPeriod==='week'?'active':''}}" bindtap="switchPeriod" data-period="week">本周</view>
+        <view class="period-btn {{reportPeriod==='month'?'active':''}}" bindtap="switchPeriod" data-period="month">本月</view>
+        <view class="period-btn {{reportPeriod==='year'?'active':''}}" bindtap="switchPeriod" data-period="year">今年</view>
       </view>
-
-      <view class="loading-box" wx:if="{{reportLoading}}" style="padding-top:80rpx">
-        <view class="loading-spinner"></view>
-      </view>
-
+      <view class="loading-box" wx:if="{{reportLoading}}" style="padding-top:40rpx"><view class="loading-spinner"></view></view>
       <view wx:elif="{{reportData}}">
-        <!-- 总览 -->
         <view class="section-card">
-          <view class="stat-overview">
-            <view class="stat-item">
-              <view class="stat-num">{{reportData.totalRecords}}</view>
-              <view class="stat-label">总记录</view>
-            </view>
-            <view class="stat-item">
-              <view class="stat-num">{{reportData.memberStats.length}}</view>
-              <view class="stat-label">参与人数</view>
-            </view>
-          </view>
+          <view class="stat-overview"><view class="stat-item"><view class="stat-num">{{reportData.totalRecords}}</view><view class="stat-label">总记录</view></view><view class="stat-item"><view class="stat-num">{{reportData.memberStats.length}}</view><view class="stat-label">参与人数</view></view></view>
         </view>
-
-        <!-- 每人打理次数柱状图 -->
         <view class="section-card">
           <view class="section-title">📊 成员贡献</view>
           <view class="bar-chart">
-            <view class="bar-item" wx:for="{{reportData.memberStats}}" wx:key="openid">
-              <view class="bar-name">{{item.nickname}}</view>
-              <view class="bar-track">
-                <view class="bar-fill" style="height: {{item.barHeight}}rpx"></view>
-              </view>
-              <view class="bar-val">{{item.total}}次</view>
-            </view>
+            <view class="bar-item" wx:for="{{reportData.memberStats}}" wx:key="openid"><view class="bar-val">{{item.total}}</view><view class="bar-fill" style="height:{{item.barHeight}}rpx"></view><view class="bar-name">{{item.nickname}}</view></view>
           </view>
-          <view class="empty-hint" wx:if="{{reportData.memberStats.length === 0}}">暂无记录</view>
         </view>
-
-        <!-- 养护类型分布 -->
         <view class="section-card">
           <view class="section-title">📋 养护类型</view>
           <view class="type-list">
-            <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name">
-              <view class="type-emoji">{{item.emoji}}</view>
-              <view class="type-name">{{item.name}}</view>
-              <view class="type-count">{{item.count}}次</view>
-            </view>
+            <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name"><view class="type-emoji">{{item.emoji}}</view><view class="type-name">{{item.name}}</view><view class="type-count">{{item.count}}次</view></view>
           </view>
-          <view class="empty-hint" wx:if="{{reportData.typeStats.length === 0}}">暂无数据</view>
         </view>
       </view>
     </view>
 
-    <!-- 底部操作 -->
+    <!-- ===== 更多 ===== -->
+    <view wx:if="{{activeTab==='more'}}">
+      <!-- 周报 -->
+      <view class="section-card" wx:if="{{weeklyReport}}">
+        <view class="section-title">📰 本周周报</view>
+        <view class="weekly-report">
+          <view class="wr-item">📅 {{weeklyReport.week}}</view>
+          <view class="wr-item">🌱 共 {{weeklyReport.totalPlants}} 棵植物</view>
+          <view class="wr-item">💧 累计养护 {{weeklyReport.totalCare}} 次</view>
+          <view class="wr-item">👑 最勤快：{{weeklyReport.topMember}}（{{weeklyReport.topCount}}次）</view>
+          <view class="wr-item" wx:if="{{weeklyReport.neglectedPlants.length>0}}">😟 需要关心：{{weeklyReport.neglectedPlants.join('、')}}</view>
+        </view>
+      </view>
+
+      <!-- PK -->
+      <view class="section-card" wx:if="{{pkData && pkData.badges.length>0}}">
+        <view class="section-title">🏅 本周之星</view>
+        <view class="pk-list">
+          <view class="pk-item" wx:for="{{pkData.badges}}" wx:key="title">
+            <text class="pk-emoji">{{item.emoji}}</text>
+            <view class="pk-info"><view class="pk-title">{{item.title}}</view><view class="pk-desc">{{item.nickname}} · {{item.desc}}</view></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 健康看板 -->
+      <view class="section-card">
+        <view class="section-title">💚 植物健康看板</view>
+        <view class="health-list">
+          <view class="health-item" wx:for="{{healthPlants}}" wx:key="_id">
+            <text class="health-plant-emoji">{{item.emoji}}</text>
+            <view class="health-plant-info"><view class="health-name">{{item.name}}</view><view class="health-location">{{item.location}}</view></view>
+            <view class="health-score-wrap">
+              <text class="health-icon">{{item.emojiIcon}}</text>
+              <text class="health-score {{item.level}}">{{item.score}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="empty-hint" wx:if="{{healthPlants.length===0}}">暂无植物</view>
+      </view>
+
+      <!-- 心愿单 -->
+      <view class="section-card">
+        <view class="section-title">💝 心愿单 <text class="add-link" bindtap="showAddWishModal">+ 添加</text></view>
+        <view class="wish-list">
+          <view class="wish-item {{item.fulfilled?'fulfilled':''}}" wx:for="{{wishlists}}" wx:key="_id">
+            <view class="wish-content">
+              <text class="wish-emoji">{{item.fulfilled?'✅':'🌸'}}</text>
+              <view class="wish-info">
+                <view class="wish-name">{{item.name}}</view>
+                <view class="wish-note" wx:if="{{item.note}}">{{item.note}}</view>
+                <view class="wish-meta">{{item.nickname}} · {{item.fulfilled?'已实现':'等待实现'}}</view>
+              </view>
+            </view>
+            <view class="wish-actions">
+              <view class="wish-btn fulfill" wx:if="{{!item.fulfilled}}" bindtap="fulfillWish" data-id="{{item._id}}">实现</view>
+              <view class="wish-btn remove" bindtap="removeWish" data-id="{{item._id}}">删除</view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-hint" wx:if="{{wishlists.length===0}}">还没有心愿，添加一个吧~</view>
+      </view>
+
+      <!-- 里程碑 -->
+      <view class="section-card" wx:if="{{milestones.length>0}}">
+        <view class="section-title">🏆 里程碑</view>
+        <view class="milestone-list">
+          <view class="milestone-item" wx:for="{{milestones}}" wx:key="_id">
+            <text class="milestone-name">{{item.name}}</text>
+            <text class="milestone-plant">「{{item.plantName}}」</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部 -->
     <view class="bottom-actions">
-      <view class="action-btn leave" bindtap="leaveFamily" wx:if="{{myRole !== 'admin'}}">退出家庭</view>
-      <view class="action-btn dissolve" bindtap="dissolveFamily" wx:if="{{myRole === 'admin'}}">解散家庭</view>
+      <view class="action-btn leave" bindtap="leaveFamily" wx:if="{{myRole!=='admin'}}">退出家庭</view>
+      <view class="action-btn dissolve" bindtap="dissolveFamily" wx:if="{{myRole==='admin'}}">解散家庭</view>
     </view>
   </view>
 
-  <!-- 创建家庭弹窗 -->
+  <!-- 创建弹窗 -->
   <view class="modal-mask" wx:if="{{showCreate}}" bindtap="hideCreateModal">
     <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">创建家庭</view>
-      <view class="modal-field">
-        <input class="modal-input" placeholder="给家庭起个名字" maxlength="20" value="{{familyName}}" bindinput="onFamilyNameInput" focus="{{showCreate}}" />
-      </view>
-      <view class="modal-btns">
-        <view class="modal-btn cancel" bindtap="hideCreateModal">取消</view>
-        <view class="modal-btn confirm" bindtap="confirmCreate">创建</view>
-      </view>
+      <view class="modal-field"><input class="modal-input" placeholder="给家庭起个名字" maxlength="20" value="{{familyName}}" bindinput="onFamilyNameInput" focus="{{showCreate}}" /></view>
+      <view class="modal-btns"><view class="modal-btn cancel" bindtap="hideCreateModal">取消</view><view class="modal-btn confirm" bindtap="confirmCreate">创建</view></view>
     </view>
   </view>
 
-  <!-- 加入家庭弹窗 -->
+  <!-- 加入弹窗 -->
   <view class="modal-mask" wx:if="{{showJoin}}" bindtap="hideJoinModal">
     <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">加入家庭</view>
-      <view class="modal-field">
-        <input class="modal-input invite-input" placeholder="输入6位邀请码" maxlength="6" value="{{inviteCode}}" bindinput="onInviteCodeInput" focus="{{showJoin}}" />
-      </view>
-      <view class="modal-btns">
-        <view class="modal-btn cancel" bindtap="hideJoinModal">取消</view>
-        <view class="modal-btn confirm" bindtap="confirmJoin">加入</view>
-      </view>
+      <view class="modal-field"><input class="modal-input invite-input" placeholder="输入6位邀请码" maxlength="6" value="{{inviteCode}}" bindinput="onInviteCodeInput" focus="{{showJoin}}" /></view>
+      <view class="modal-btns"><view class="modal-btn cancel" bindtap="hideJoinModal">取消</view><view class="modal-btn confirm" bindtap="confirmJoin">加入</view></view>
+    </view>
+  </view>
+
+  <!-- 心愿弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddWish}}" bindtap="hideAddWishModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-title">💝 添加心愿</view>
+      <view class="modal-field"><input class="modal-input" placeholder="想养什么植物？" maxlength="30" value="{{wishName}}" bindinput="onWishNameInput" focus="{{showAddWish}}" /></view>
+      <view class="modal-field"><input class="modal-input" placeholder="备注（可选）" maxlength="100" value="{{wishNote}}" bindinput="onWishNoteInput" /></view>
+      <view class="modal-btns"><view class="modal-btn cancel" bindtap="hideAddWishModal">取消</view><view class="modal-btn confirm" bindtap="confirmAddWish">添加</view></view>
     </view>
   </view>
 </view>

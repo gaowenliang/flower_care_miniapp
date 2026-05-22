@@ -1,37 +1,35 @@
-// pages/family/family.js — 家庭管理页面 v2（积分排行+认养+报表）
+// pages/family/family.js — 家庭管理页面 v3（全功能）
 const family = require('../../utils/family')
 
 Page({
   data: {
-    loading: true,
-    loadError: false,
-    inFamily: false,
-    familyInfo: null,
-    myRole: '',
-    members: [],
-    // 积分排行
-    leaderboard: [],
-    myPoints: 0,
+    loading: true, loadError: false, inFamily: false,
+    familyInfo: null, myRole: '', members: [],
+    leaderboard: [], myPoints: 0,
+    // Tab
+    activeTab: 'feed', // feed | members | report | more
+    // 动态流
+    activities: [],
     // 报表
-    activeTab: 'members', // members | report
-    reportPeriod: 'week',
-    reportData: null,
-    reportLoading: false,
-    // 创建家庭
-    showCreate: false,
-    familyName: '',
-    // 加入家庭
-    showJoin: false,
-    inviteCode: '',
-    // 颜色
+    reportPeriod: 'week', reportData: null, reportLoading: false,
+    // 心愿单
+    wishlists: [], showAddWish: false, wishName: '', wishNote: '',
+    // 里程碑
+    milestones: [],
+    // PK
+    pkData: null,
+    // 健康看板
+    healthPlants: [],
+    // 周报
+    weeklyReport: null,
+    // 创建/加入
+    showCreate: false, familyName: '',
+    showJoin: false, inviteCode: '',
     colorMap: ['#4CAF50', '#FF9800', '#2196F3', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#795548']
   },
 
   async onLoad(options) {
-    // 处理分享卡片带来的邀请码
-    if (options && options.inviteCode) {
-      this.setData({ inviteCode: options.inviteCode, showJoin: true })
-    }
+    if (options && options.inviteCode) this.setData({ inviteCode: options.inviteCode, showJoin: true })
     await this.loadFamilyInfo()
     setTimeout(() => this.setData({ loading: false }), 200)
   },
@@ -44,211 +42,160 @@ Page({
     const result = await family.refreshFamilyInfo()
     if (result.success && result.inFamily) {
       const members = (result.members || []).map((m, idx) => ({
-        ...m,
-        initial: (m.nickname || '用').charAt(0),
-        color: this.data.colorMap[idx % this.data.colorMap.length]
+        ...m, initial: (m.nickname || '用').charAt(0), color: this.data.colorMap[idx % this.data.colorMap.length]
       }))
-
       this.setData({
-        inFamily: true,
-        familyInfo: result.family,
-        myRole: result.myRole,
-        myPoints: result.myPoints || 0,
-        members,
-        leaderboard: members.sort((a, b) => (b.points || 0) - (a.points || 0))
+        inFamily: true, familyInfo: result.family, myRole: result.myRole, myPoints: result.myPoints || 0,
+        members, leaderboard: members.sort((a, b) => (b.points || 0) - (a.points || 0)), loadError: false
       })
+      this.loadTabData(this.data.activeTab)
     } else {
-      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [], loadError: true })
+      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [], loadError: !result.success })
     }
   },
 
-  // 重试加载
   async retryLoad() {
     this.setData({ loadError: false, loading: true })
     await this.loadFamilyInfo()
     setTimeout(() => this.setData({ loading: false }), 200)
   },
 
-  // ========== Tab 切换 ==========
+  // ========== Tab ==========
 
-  switchTab(e) {
+  async switchTab(e) {
     const tab = e.currentTarget.dataset.tab
     this.setData({ activeTab: tab })
-    if (tab === 'report' && !this.data.reportData) {
-      this.loadReport()
+    await this.loadTabData(tab)
+  },
+
+  async loadTabData(tab) {
+    switch (tab) {
+      case 'feed': await this.loadActivities(); break
+      case 'members': break // 已有数据
+      case 'report': if (!this.data.reportData) await this.loadReport(); break
+      case 'more': await this.loadMoreData(); break
     }
   },
 
-  // ========== 报表 ==========
-
-  switchPeriod(e) {
-    const period = e.currentTarget.dataset.period
-    this.setData({ reportPeriod: period })
-    this.loadReport()
+  async loadActivities() {
+    const acts = await family.getActivities(30)
+    const timeEmoji = { care: '🌱', adopt: '🤝', join: '👋', leave: '🚪', wishlist: '💝', fulfill: '🎉', milestone: '🏆', photo: '📷', note: '📝', water: '💧' }
+    const activities = acts.map(a => ({ ...a, emoji: timeEmoji[a.type] || '📋', timeAgo: this.timeAgo(a.createdAt) }))
+    this.setData({ activities })
   },
 
+  timeAgo(ts) {
+    const diff = Date.now() - ts
+    if (diff < 60000) return '刚刚'
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
+    if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
+    const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()}`
+  },
+
+  async loadMoreData() {
+    const [wishlists, milestones, pkResult, healthResult, reportResult] = await Promise.all([
+      family.getWishlist(),
+      family.getMilestones(10),
+      family.getPK('week'),
+      family.getHealthBoard(),
+      family.getWeeklyReport()
+    ])
+    this.setData({
+      wishlists, milestones,
+      pkData: pkResult.success ? pkResult : null,
+      healthPlants: healthResult.success ? healthResult.plants : [],
+      weeklyReport: reportResult.success ? reportResult.report : null
+    })
+  },
+
+  // ========== 报表 ==========
+  switchPeriod(e) { this.setData({ reportPeriod: e.currentTarget.dataset.period }); this.loadReport() },
   async loadReport() {
     this.setData({ reportLoading: true })
     const result = await family.getReport(this.data.reportPeriod)
     if (result.success) {
-      // 按成员绘制柱状图数据
       const maxTotal = Math.max(1, ...result.memberStats.map(m => m.total))
-      const memberStats = result.memberStats.map(m => ({
-        ...m,
-        barHeight: Math.max(8, (m.total / maxTotal) * 200),
-        percentage: Math.round(m.total / Math.max(1, result.totalRecords) * 100)
-      }))
-
-      // 类型统计
+      const memberStats = result.memberStats.map(m => ({ ...m, barHeight: Math.max(8, (m.total / maxTotal) * 200) }))
       const typeEmoji = { '浇水': '💧', '施肥': '🧪', '修剪': '✂️', '换盆': '🏺', '喷药': '💉', '拍照记录': '📷', '备注': '📝' }
-      const typeStats = Object.entries(result.typeStats || {}).map(([name, count]) => ({
-        name, count, emoji: typeEmoji[name] || '📋'
-      })).sort((a, b) => b.count - a.count)
-
-      this.setData({
-        reportData: {
-          totalRecords: result.totalRecords,
-          memberStats,
-          typeStats,
-          period: result.period
-        },
-        reportLoading: false
-      })
-    } else {
-      this.setData({ reportLoading: false })
-      wx.showToast({ title: '加载报表失败', icon: 'none' })
-    }
+      const typeStats = Object.entries(result.typeStats || {}).map(([name, count]) => ({ name, count, emoji: typeEmoji[name] || '📋' })).sort((a, b) => b.count - a.count)
+      this.setData({ reportData: { totalRecords: result.totalRecords, memberStats, typeStats }, reportLoading: false })
+    } else { this.setData({ reportLoading: false }) }
   },
 
-  // ========== 创建/加入家庭 ==========
+  // ========== 心愿单 ==========
+  showAddWishModal() { this.setData({ showAddWish: true, wishName: '', wishNote: '' }) },
+  hideAddWishModal() { this.setData({ showAddWish: false }) },
+  onWishNameInput(e) { this.setData({ wishName: e.detail.value }) },
+  onWishNoteInput(e) { this.setData({ wishNote: e.detail.value }) },
+  async confirmAddWish() {
+    const name = this.data.wishName.trim()
+    if (!name) { wx.showToast({ title: '请输入植物名', icon: 'none' }); return }
+    const result = await family.addWishlist(name, this.data.wishNote)
+    if (result.success) { this.setData({ showAddWish: false }); wx.showToast({ title: '已添加 💝', icon: 'none' }); this.loadMoreData() }
+    else wx.showToast({ title: result.error, icon: 'none' })
+  },
+  async fulfillWish(e) {
+    const id = e.currentTarget.dataset.id
+    const result = await family.fulfillWishlist(id)
+    if (result.success) { wx.showToast({ title: '心愿达成! 🎉', icon: 'none' }); this.loadMoreData() }
+  },
+  async removeWish(e) {
+    const id = e.currentTarget.dataset.id
+    const result = await family.removeWishlist(id)
+    if (result.success) { wx.showToast({ title: '已删除', icon: 'none' }); this.loadMoreData() }
+  },
 
+  // ========== 创建/加入 ==========
   showCreateModal() { this.setData({ showCreate: true, familyName: '' }) },
   hideCreateModal() { this.setData({ showCreate: false }) },
   onFamilyNameInput(e) { this.setData({ familyName: e.detail.value }) },
-
   async confirmCreate() {
     const name = this.data.familyName.trim()
     if (!name) { wx.showToast({ title: '请输入家庭名称', icon: 'none' }); return }
-
     wx.showLoading({ title: '创建中...' })
     const result = await family.manage('create', { name })
     wx.hideLoading()
-
-    if (result.success) {
-      wx.showToast({ title: '创建成功! 🏠', icon: 'none' })
-      this.setData({ showCreate: false })
-      await this.loadFamilyInfo()
-    } else {
-      wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
-    }
+    if (result.success) { wx.showToast({ title: '创建成功! 🏠', icon: 'none' }); this.setData({ showCreate: false }); await this.loadFamilyInfo() }
+    else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
-
   showJoinModal() { this.setData({ showJoin: true, inviteCode: '' }) },
   hideJoinModal() { this.setData({ showJoin: false }) },
   onInviteCodeInput(e) { this.setData({ inviteCode: e.detail.value.toUpperCase() }) },
-
   async confirmJoin() {
     const code = this.data.inviteCode.trim()
     if (!code || code.length !== 6) { wx.showToast({ title: '请输入6位邀请码', icon: 'none' }); return }
-
     wx.showLoading({ title: '加入中...' })
     const result = await family.manage('join', { inviteCode: code })
     wx.hideLoading()
-
-    if (result.success) {
-      wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' })
-      this.setData({ showJoin: false })
-      await this.loadFamilyInfo()
-    } else {
-      wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
-    }
+    if (result.success) { wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' }); this.setData({ showJoin: false }); await this.loadFamilyInfo() }
+    else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
-
-  copyInviteCode() {
-    wx.setClipboardData({
-      data: this.data.familyInfo.inviteCode,
-      success: () => wx.showToast({ title: '邀请码已复制', icon: 'none' })
-    })
-  },
+  copyInviteCode() { wx.setClipboardData({ data: this.data.familyInfo.inviteCode, success: () => wx.showToast({ title: '邀请码已复制', icon: 'none' }) }) },
 
   // ========== 成员操作 ==========
-
   editNickname() {
-    wx.showModal({
-      title: '修改我的昵称', editable: true, placeholderText: '输入你在家庭中的昵称',
-      success: async (res) => {
-        if (res.confirm && res.content && res.content.trim()) {
-          const result = await family.manage('updateProfile', { nickname: res.content.trim() })
-          if (result.success) { wx.showToast({ title: '已修改', icon: 'none' }); await this.loadFamilyInfo() }
-        }
-      }
+    wx.showModal({ title: '修改我的昵称', editable: true, placeholderText: '输入你在家庭中的昵称',
+      success: async (res) => { if (res.confirm && res.content && res.content.trim()) { const r = await family.manage('updateProfile', { nickname: res.content.trim() }); if (r.success) { wx.showToast({ title: '已修改', icon: 'none' }); await this.loadFamilyInfo() } } }
     })
   },
-
   leaveFamily() {
-    wx.showModal({
-      title: '退出家庭', content: '确定退出当前家庭？退出后将无法查看家庭植物。',
-      confirmColor: '#e53935',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '退出中...' })
-          const result = await family.manage('leave')
-          wx.hideLoading()
-          if (result.success) { family.clearCache(); wx.showToast({ title: '已退出', icon: 'none' }); await this.loadFamilyInfo() }
-          else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
-        }
-      }
+    wx.showModal({ title: '退出家庭', content: '确定退出？', confirmColor: '#e53935',
+      success: async (res) => { if (res.confirm) { wx.showLoading({ title: '退出中...' }); const r = await family.manage('leave'); wx.hideLoading(); if (r.success) { family.clearCache(); wx.showToast({ title: '已退出', icon: 'none' }); await this.loadFamilyInfo() } else wx.showToast({ title: r.error, icon: 'none' }) } }
     })
   },
-
   dissolveFamily() {
-    wx.showModal({
-      title: '⚠️ 解散家庭', content: '解散后所有家庭植物和记录将被永久删除，此操作不可撤销！',
-      confirmColor: '#e53935',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showModal({
-            title: '最后确认', content: `真的要解散「${this.data.familyInfo.name}」吗？`,
-            confirmColor: '#e53935',
-            success: async (res2) => {
-              if (res2.confirm) {
-                wx.showLoading({ title: '解散中...' })
-                const result = await family.manage('dissolve')
-                wx.hideLoading()
-                if (result.success) { family.clearCache(); wx.showToast({ title: '已解散', icon: 'none' }); await this.loadFamilyInfo() }
-                else wx.showToast({ title: result.error, icon: 'none' })
-              }
-            }
-          })
-        }
-      }
+    wx.showModal({ title: '⚠️ 解散家庭', content: '所有数据将被永久删除！', confirmColor: '#e53935',
+      success: async (res) => { if (res.confirm) { wx.showModal({ title: '最后确认', content: `真的解散「${this.data.familyInfo.name}」？`, confirmColor: '#e53935',
+        success: async (r2) => { if (r2.confirm) { wx.showLoading({ title: '解散中...' }); const r = await family.manage('dissolve'); wx.hideLoading(); if (r.success) { family.clearCache(); wx.showToast({ title: '已解散', icon: 'none' }); await this.loadFamilyInfo() } } } }) } }
     })
   },
-
   kickMember(e) {
-    const idx = e.currentTarget.dataset.index
-    const member = this.data.members[idx]
-    if (!member) return
-
-    wx.showModal({
-      title: '移除成员', content: `确定要将 ${member.nickname || '该成员'} 移出家庭吗？`,
-      confirmColor: '#e53935',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '移除中...' })
-          const result = await family.manage('kick', { targetOpenid: member.openid })
-          wx.hideLoading()
-          if (result.success) { wx.showToast({ title: '已移除', icon: 'none' }); await this.loadFamilyInfo() }
-          else wx.showToast({ title: result.error, icon: 'none' })
-        }
-      }
+    const member = this.data.members[e.currentTarget.dataset.index]; if (!member) return
+    wx.showModal({ title: '移除成员', content: `确定移除 ${member.nickname || '该成员'}？`, confirmColor: '#e53935',
+      success: async (res) => { if (res.confirm) { wx.showLoading({ title: '移除中...' }); const r = await family.manage('kick', { targetOpenid: member.openid }); wx.hideLoading(); if (r.success) { wx.showToast({ title: '已移除', icon: 'none' }); await this.loadFamilyInfo() } } }
     })
   },
-
-  onShareAppMessage() {
-    const info = this.data.familyInfo
-    return { title: `邀请你加入「${info.name}」家庭花园`, path: `/pages/family/family?inviteCode=${info.inviteCode}` }
-  },
-
+  onShareAppMessage() { const info = this.data.familyInfo; return { title: `邀请你加入「${info.name}」家庭花园`, path: `/pages/family/family?inviteCode=${info.inviteCode}` } },
   preventBubble() {}
 })

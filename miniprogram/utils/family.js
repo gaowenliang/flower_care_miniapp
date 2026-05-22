@@ -225,6 +225,47 @@ async function getReport(period) {
   return await manage('report', { period: period || 'week' })
 }
 
+// ========== 新功能接口 ==========
+
+async function getActivities(limit) {
+  const result = await manage('activities', { limit: limit || 30 })
+  return result.success ? result.activities : []
+}
+
+async function getWishlist() {
+  const result = await manage('wishlist')
+  return result.success ? result.wishlists : []
+}
+
+async function addWishlist(name, note) {
+  return await manage('addWishlist', { name, note })
+}
+
+async function fulfillWishlist(wishlistId) {
+  return await manage('fulfillWishlist', { wishlistId })
+}
+
+async function removeWishlist(wishlistId) {
+  return await manage('removeWishlist', { wishlistId })
+}
+
+async function getMilestones(limit) {
+  const result = await manage('milestones', { limit: limit || 20 })
+  return result.success ? result.milestones : []
+}
+
+async function getPK(period) {
+  return await manage('pk', { period: period || 'week' })
+}
+
+async function getHealthBoard() {
+  return await manage('healthBoard')
+}
+
+async function getWeeklyReport() {
+  return await manage('weeklyReport')
+}
+
 module.exports = {
   manage, data: fdata,
   isInFamily, getCachedFamily, getMyRole, isAdmin, refreshFamilyInfo, clearCache,
@@ -232,5 +273,7 @@ module.exports = {
   toggleAdopt, isAdoptedByMe, getAdopterNames,
   getTasks, getCachedTasks, completeTask, updateTask, toggleTask,
   getRecords, getCachedRecords, addRecord, deleteRecord,
-  getReport
+  getReport,
+  getActivities, getWishlist, addWishlist, fulfillWishlist, removeWishlist,
+  getMilestones, getPK, getHealthBoard, getWeeklyReport
 }

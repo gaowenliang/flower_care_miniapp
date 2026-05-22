@@ -17,6 +17,11 @@ async function getFamilyId(openid) {
   return res.data[0].familyId
 }
 
+async function getMemberNickname(openid) {
+  const res = await db.collection('family_members').where({ openid }).limit(1).get()
+  return res.data.length > 0 ? (res.data[0].nickname || '成员') : '成员'
+}
+
 async function addPointsToMember(openid, type) {
   const points = POINT_RULES[type] || 1
   const memberRes = await db.collection('family_members').where({ openid }).limit(1).get()
@@ -24,6 +29,22 @@ async function addPointsToMember(openid, type) {
   await db.collection('family_members').doc(memberRes.data[0]._id).update({
     data: { points: _.inc(points), totalCare: _.inc(1) }
   })
+}
+
+// 写动态
+async function logActivity(familyId, openid, type, content) {
+  const nickname = await getMemberNickname(openid)
+  await db.collection('family_activities').add({
+    data: { familyId, openid, nickname, type, content, createdAt: Date.now() }
+  })
+}
+
+// 植物名工具
+async function getPlantName(plantId) {
+  try {
+    const res = await db.collection('family_plants').doc(plantId).get()
+    return res.data ? (res.data.nickname || res.data.name || '植物') : '植物'
+  } catch (e) { return '植物' }
 }
 
 exports.main = async (event) => {
@@ -267,7 +288,40 @@ async function completeTask(event, openid, familyId) {
   // 给成员加分
   await addPointsToMember(openid, task.type)
 
+  // 写动态
+  const plantName = await getPlantName(task.plantId || task.userPlantId)
+  await logActivity(familyId, openid, 'care', `${task.typeName}了「${plantName}」`)
+
+  // 里程碑检测（异步不阻塞）
+  checkMilestonesAsync(familyId, task.plantId || task.userPlantId)
+
   return { success: true, nextDate }
+}
+
+/**
+ * 异步里程碑检测（不阻塞主流程）
+ */
+async function checkMilestonesAsync(familyId, plantId) {
+  const MILESTONES = [
+    { id: 'days_7', name: '🌱 一周纪念', check: (p) => p.addedAt && (Date.now() - p.addedAt) >= 7 * 86400000 },
+    { id: 'days_30', name: '🌿 一个月', check: (p) => p.addedAt && (Date.now() - p.addedAt) >= 30 * 86400000 },
+    { id: 'days_100', name: '🌳 百日纪念', check: (p) => p.addedAt && (Date.now() - p.addedAt) >= 100 * 86400000 },
+    { id: 'days_365', name: '🏆 一周年', check: (p) => p.addedAt && (Date.now() - p.addedAt) >= 365 * 86400000 },
+  ]
+  try {
+    const plantRes = await db.collection('family_plants').doc(plantId).get()
+    const plant = plantRes.data
+    if (!plant) return
+    for (const m of MILESTONES) {
+      if (!m.check(plant)) continue
+      const existRes = await db.collection('family_milestones').where({ familyId, plantId, milestoneId: m.id }).limit(1).get()
+      if (existRes.data.length > 0) continue
+      await db.collection('family_milestones').add({
+        data: { familyId, plantId, milestoneId: m.id, name: m.name, plantName: plant.nickname || plant.name, createdAt: Date.now() }
+      })
+      await logActivity(familyId, 'system', 'milestone', `「${plant.nickname || plant.name}」达成 ${m.name}！🎉`)
+    }
+  } catch (e) { /* 不阻塞主流程 */ }
 }
 
 /**
@@ -369,6 +423,11 @@ async function addRecord(event, openid, familyId) {
 
   // 加分
   await addPointsToMember(openid, record.type || 'custom')
+
+  // 写动态
+  const plantName = await getPlantName(record.userPlantId || record.plantId)
+  const actionText = record.type === 'photo' ? `给「${plantName}」拍了照片` : record.type === 'note' ? `给「${plantName}」写了备注` : `${record.typeName || '养护'}了「${plantName}」`
+  await logActivity(familyId, openid, record.type || 'care', actionText)
 
   return { success: true }
 }

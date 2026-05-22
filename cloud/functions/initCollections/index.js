@@ -18,7 +18,11 @@ exports.main = async () => {
     'family_plants',
     'family_records',
     'family_tasks',
-    '_sync_meta'
+    '_sync_meta',
+    'family_activities',
+    'family_milestones',
+    'family_wishlists',
+    'family_duties'
   ]
 
   const results = []
