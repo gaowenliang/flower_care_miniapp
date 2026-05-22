@@ -3,15 +3,11 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-// 百度AI植物识别 — 需要在云函数环境变量配置 BAIDU_TOKEN
-// 或使用 AccessToken 自动获取
 const BAIDU_API_KEY = process.env.BAIDU_API_KEY || 'G4M1FtQWoshDHuaHP8CXydz1'
 const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || 'LD0Hb9NBxxi96krTUcSfkYepuvAxAa0U'
 
 async function getBaiduToken() {
-  if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) return null
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
-  
   return new Promise((resolve) => {
     const https = require('https')
     https.get(url, (res) => {
@@ -23,27 +19,29 @@ async function getBaiduToken() {
           resolve(json.access_token || null)
         } catch (e) { resolve(null) }
       })
-    }).on('error', () => resolve(null))
+    }).on('error', (e) => { console.error('getBaiduToken error:', e); resolve(null) })
   })
 }
 
 exports.main = async (event) => {
-  const { imageData } = event // base64图片数据
-  
+  const { imageData } = event
+
   if (!imageData) {
     return { success: false, error: '缺少图片数据' }
   }
 
   try {
+    // 1. 获取 token
     const token = await getBaiduToken()
     if (!token) {
-      return { success: false, error: 'AI服务未配置，请联系管理员' }
+      return { success: false, error: '百度AI服务获取token失败，请检查API Key' }
     }
 
-    // 百度植物识别API
-    const postData = JSON.stringify({
+    // 2. 调用植物识别 — 使用 form-urlencoded 格式
+    const querystring = require('querystring')
+    const postData = querystring.stringify({
       image: imageData,
-      baike_num: 3 // 返回3个候选结果
+      baike_num: 3
     })
 
     const result = await new Promise((resolve, reject) => {
@@ -70,13 +68,19 @@ exports.main = async (event) => {
       req.end()
     })
 
+    // 检查百度API错误
+    if (result.error_code) {
+      console.error('百度API错误:', result.error_code, result.error_msg)
+      return { success: false, error: `百度API错误: ${result.error_msg || result.error_code}` }
+    }
+
     if (result.result && result.result.length > 0) {
       const plants = result.result.map(r => ({
         name: r.name || '未知',
         score: (r.score * 100).toFixed(1),
-        baikeUrl: r.baike_info?.baike_url || '',
-        description: r.baike_info?.description || '',
-        image: r.baike_info?.image_url || ''
+        baikeUrl: (r.baike_info && r.baike_info.baike_url) || '',
+        description: (r.baike_info && r.baike_info.description) || '',
+        image: (r.baike_info && r.baike_info.image_url) || ''
       }))
       return { success: true, plants }
     }
