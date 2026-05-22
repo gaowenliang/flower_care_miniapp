@@ -50,7 +50,8 @@ Page({
       })
       this.loadTabData(this.data.activeTab)
     } else {
-      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [], loadError: !result.success })
+      // 不管是未加入家庭还是云函数未部署，都显示创建/加入入口
+      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [], loadError: false })
     }
   },
 
