@@ -118,8 +118,7 @@ async function removePlant(plantId) {
 async function toggleAdopt(plantId) {
   const result = await manage('toggleAdopt', { plantId })
   if (result.success) {
-    await getPlants(true)
-    await refreshFamilyInfo()
+    await Promise.all([getPlants(true), refreshFamilyInfo()])
   }
   return result
 }

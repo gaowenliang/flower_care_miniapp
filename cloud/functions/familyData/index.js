@@ -5,7 +5,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-// 积分规则
+// 积分规则（与 familyManage 保持一致，修改时同步）
 const POINT_RULES = {
   water: 2, fertilize: 3, prune: 4, repot: 5, spray: 3,
   photo: 1, note: 1, retro: 2, custom: 1

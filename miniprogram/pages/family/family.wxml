@@ -6,6 +6,16 @@
     <text class="loading-text">加载中...</text>
   </view>
 
+  <!-- 加载失败 -->
+  <view class="no-family" wx:elif="{{loadError && !inFamily}}">
+    <view class="empty-icon">😔</view>
+    <view class="empty-title">加载失败</view>
+    <view class="empty-desc">网络不给力，请重试</view>
+    <view class="action-card" style="margin-top:30rpx;" bindtap="retryLoad">
+      <view class="card-title">🔄 重新加载</view>
+    </view>
+  </view>
+
   <!-- 未加入家庭 -->
   <view class="no-family" wx:elif="{{!inFamily}}">
     <view class="empty-icon">🏠</view>

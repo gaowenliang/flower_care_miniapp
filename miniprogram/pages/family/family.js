@@ -4,6 +4,7 @@ const family = require('../../utils/family')
 Page({
   data: {
     loading: true,
+    loadError: false,
     inFamily: false,
     familyInfo: null,
     myRole: '',
@@ -26,7 +27,11 @@ Page({
     colorMap: ['#4CAF50', '#FF9800', '#2196F3', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#795548']
   },
 
-  async onLoad() {
+  async onLoad(options) {
+    // 处理分享卡片带来的邀请码
+    if (options && options.inviteCode) {
+      this.setData({ inviteCode: options.inviteCode, showJoin: true })
+    }
     await this.loadFamilyInfo()
     setTimeout(() => this.setData({ loading: false }), 200)
   },
@@ -53,8 +58,15 @@ Page({
         leaderboard: members.sort((a, b) => (b.points || 0) - (a.points || 0))
       })
     } else {
-      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [] })
+      this.setData({ inFamily: false, familyInfo: null, myRole: '', members: [], leaderboard: [], loadError: true })
     }
+  },
+
+  // 重试加载
+  async retryLoad() {
+    this.setData({ loadError: false, loading: true })
+    await this.loadFamilyInfo()
+    setTimeout(() => this.setData({ loading: false }), 200)
   },
 
   // ========== Tab 切换 ==========

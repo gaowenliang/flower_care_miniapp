@@ -12,7 +12,7 @@ function genInviteCode() {
   return code
 }
 
-// 积分规则
+// 积分规则（唯一来源，familyData 也使用同一规则）
 const POINT_RULES = {
   water: 2,
   fertilize: 3,
@@ -21,7 +21,8 @@ const POINT_RULES = {
   spray: 3,
   photo: 1,
   note: 1,
-  retro: 2
+  retro: 2,
+  custom: 1
 }
 
 async function getMemberInfo(openid) {
@@ -293,13 +294,21 @@ async function getReport(openid, { period }) {
   else if (period === 'month') since = now - 30 * 86400000
   else since = now - 365 * 86400000
 
-  // 获取时间段内的记录
-  const recordsRes = await db.collection('family_records').where({
-    familyId,
-    date: _.gte(since)
-  }).limit(1000).get()
-
-  const records = recordsRes.data
+  // 分页获取时间段内的全部记录（云数据库单次查询最多100条）
+  const allRecords = []
+  let offset = 0
+  const batchSize = 100
+  while (true) {
+    const batch = await db.collection('family_records').where({
+      familyId,
+      date: _.gte(since)
+    }).orderBy('date', 'desc').skip(offset).limit(batchSize).get()
+    allRecords.push(...batch.data)
+    if (batch.data.length < batchSize) break
+    offset += batchSize
+    if (offset >= 5000) break // 安全上限
+  }
+  const records = allRecords
 
   // 获取成员信息
   const membersRes = await db.collection('family_members').where({ familyId }).get()

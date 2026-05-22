@@ -318,9 +318,8 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           if (this.data.isFamilyMode) {
-            for (const t of tasks) {
-              await family.completeTask(t.id)
-            }
+            const promises = tasks.map(t => family.completeTask(t.id))
+            await Promise.all(promises)
             await this.loadFamilyData()
           } else {
             tasks.forEach(t => storage.completeTask(t.id))
