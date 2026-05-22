@@ -82,8 +82,10 @@
 .form-label { font-size: 26rpx; color: #90A4AE; margin-bottom: 12rpx; display: block; }
 .form-input {
   border: 2rpx solid #E8F5E9; border-radius: 20rpx;
-  padding: 20rpx; font-size: 28rpx; color: #2D3436;
+  padding: 20rpx 24rpx; font-size: 28rpx; color: #2D3436;
   background: #F7F9F7;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .location-options { display: flex; flex-wrap: wrap; gap: 12rpx; }
@@ -122,14 +124,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #fff;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #4CAF50;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   text-align: center;
-  font-size: 28rpx;
-  color: #4CAF50;
-  border-top: 1rpx solid #F0F2F0;
-  box-shadow: 0 -2rpx 8rpx rgba(0,0,0,0.05);
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 -4rpx 12rpx rgba(76,175,80,0.3);
 }
 
 /* 识别结果 */

@@ -85,7 +85,7 @@ function getPlantById(plantId) {
 }
 
 async function addPlant(plantData) {
-  const result = await fdata('addPlant', plantData)
+  const result = await fdata('addPlant', { plant: plantData })
   if (result.success) await getPlants(true)
   return result
 }
