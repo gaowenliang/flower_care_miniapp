@@ -5,8 +5,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 // 百度AI植物识别 — 需要在云函数环境变量配置 BAIDU_TOKEN
 // 或使用 AccessToken 自动获取
-const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
-const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
+const BAIDU_API_KEY = process.env.BAIDU_API_KEY || 'G4M1FtQWoshDHuaHP8CXydz1'
+const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || 'LD0Hb9NBxxi96krTUcSfkYepuvAxAa0U'
 
 async function getBaiduToken() {
   if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) return null
