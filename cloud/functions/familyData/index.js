@@ -93,10 +93,10 @@ exports.main = async (event) => {
  * 获取家庭所有植物（含认养者信息）
  */
 async function getPlants(familyId) {
-  const result = await db.collection('family_plants').where({ familyId }).orderBy('addedAt', 'desc').limit(100).get()
+  const plants = await fetchAll('family_plants', { familyId })
+  plants.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
 
   // 为每个植物获取认养者昵称
-  const plants = result.data
   const allOpenids = new Set()
   plants.forEach(p => (p.adopters || []).forEach(oid => allOpenids.add(oid)))
 
@@ -471,11 +471,9 @@ async function deleteRecord(event, openid, familyId) {
  * 获取首页仪表盘
  */
 async function getDashboard(familyId) {
-  const plantsRes = await db.collection('family_plants').where({ familyId }).orderBy('addedAt', 'desc').get()
-  const tasksRes = await db.collection('family_tasks').where({ familyId, enabled: true }).get()
-
-  const plants = plantsRes.data
-  const tasks = tasksRes.data
+  const plants = await fetchAll('family_plants', { familyId })
+  plants.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+  const tasks = await fetchAll('family_tasks', { familyId, enabled: true })
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)

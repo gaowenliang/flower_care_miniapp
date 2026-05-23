@@ -228,8 +228,10 @@ Page({
     } catch (e) {}
     if (!wx.cloud) return
     this.setData({ weatherLoading: true })
+    let city = '310000'
+    try { city = wx.getStorageSync('_weather_city') || '310000' } catch (e) {}
     wx.cloud.callFunction({
-      name: 'getWeather', data: { city: '310000' },
+      name: 'getWeather', data: { city },
       success: (res) => {
         if (res.result && res.result.weather) {
           const w = res.result.weather
@@ -249,8 +251,10 @@ Page({
       const weatherTip = wx.getStorageSync('weatherTip_' + util.formatDate(Date.now()))
       if (weatherTip) return
       if (!wx.cloud) return
+      let city = '310000'
+      try { city = wx.getStorageSync('_weather_city') || '310000' } catch (e) {}
       wx.cloud.callFunction({
-        name: 'getWeather', data: { city: '310000' },
+        name: 'getWeather', data: { city },
         success: (res) => {
           if (res.result && res.result.weather) {
             const w = res.result.weather
