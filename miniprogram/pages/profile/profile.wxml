@@ -2,7 +2,11 @@
 <view class="container">
   <!-- 头像和统计 -->
   <view class="card pf-header">
-    <view class="pf-avatar">{{inFamily ? '🏠' : '🌱'}}</view>
+    <view class="pf-avatar" bindtap="changeAvatar">
+      <image wx:if="{{userAvatar}}" class="pf-avatar-img" src="{{userAvatar}}" mode="aspectFill" />
+      <text wx:else>{{inFamily ? '🏠' : '🌱'}}</text>
+      <view class="pf-avatar-camera">📷</view>
+    </view>
     <text class="pf-name">{{inFamily ? familyName || '家庭花园' : '养花达人'}}</text>
     <view class="pf-stats" wx:if="{{!statsLoading}}">
       <view class="pf-stat">

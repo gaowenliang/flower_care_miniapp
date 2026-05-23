@@ -17,11 +17,14 @@ Page({
     // 家庭模式
     inFamily: false,
     familyName: '',
-    statsLoading: false
+    statsLoading: false,
+    userAvatar: ''
   },
 
   async onShow() {
     this.setData({ statsLoading: true })
+    // 读取用户头像
+    try { this.setData({ userAvatar: wx.getStorageSync('_user_avatar') || '' }) } catch (e) {}
     await this.loadFamilyStatus()
     if (this.data.inFamily) {
       // 家庭模式：直接用最新云端数据算统计，避免缓存过期跳变
@@ -242,6 +245,26 @@ Page({
       title: '🪴 养花助手',
       content: '版本：v1.2.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录\n智能贴士 · AI识花 · 病害诊断 · 成就系统',
       showCancel: false
+    })
+  },
+
+  changeAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const imageUtil = require('../../utils/image')
+        try {
+          const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
+          this.setData({ userAvatar: photoUrl })
+          try { wx.setStorageSync('_user_avatar', photoUrl) } catch (e) {}
+          wx.showToast({ title: '头像已更新', icon: 'none' })
+        } catch (e) {
+          wx.showToast({ title: '上传失败', icon: 'none' })
+        }
+      }
     })
   }
 })
