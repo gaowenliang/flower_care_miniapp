@@ -130,7 +130,7 @@ async function getFamilyInfo(openid) {
 
   return {
     success: true, inFamily: true,
-    family: { _id: family._id, name: family.name, inviteCode: family.inviteCode, createdBy: family.createdBy, memberCount: family.memberCount, createdAt: family.createdAt },
+    family: { _id: family._id, name: family.name, inviteCode: family.inviteCode, avatar: family.avatar || '', createdBy: family.createdBy, memberCount: family.memberCount, createdAt: family.createdAt },
     myRole: member.role, myPoints: member.points || 0, myAdoptedPlants: member.adoptedPlants || [],
     members: membersRes.data.map(m => ({
       openid: m.openid, nickname: m.nickname, avatar: m.avatar, role: m.role, joinedAt: m.joinedAt,
@@ -144,6 +144,14 @@ async function updateProfile(openid, { nickname, avatar }) {
   if (nickname !== undefined) d.nickname = nickname.slice(0, 20)
   if (avatar !== undefined) d.avatar = avatar
   await db.collection('family_members').where({ openid }).update({ data: d })
+  return { success: true }
+}
+
+async function updateFamilyAvatar(openid, { avatar }) {
+  if (!avatar) return { success: false, error: '缺少头像' }
+  const member = await getMemberInfo(openid)
+  if (!member) return { success: false, error: '不在家庭中' }
+  await db.collection('families').doc(member.familyId).update({ data: { avatar, updatedAt: Date.now() } })
   return { success: true }
 }
 
@@ -429,6 +437,7 @@ exports.main = async (event) => {
       case 'join': return await joinFamily(OPENID, data || {})
       case 'info': return await getFamilyInfo(OPENID)
       case 'updateProfile': return await updateProfile(OPENID, data || {})
+      case 'updateFamilyAvatar': return await updateFamilyAvatar(OPENID, data || {})
       case 'toggleAdopt': return await toggleAdopt(OPENID, data || {})
       case 'addPoints': return { success: true }
       case 'leave': return await leaveFamily(OPENID)

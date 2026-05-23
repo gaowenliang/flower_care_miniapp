@@ -60,7 +60,18 @@ Page({
         categories: {},
         families: {}
       }
-      const familyList = []
+      // 按科(family)归类
+      plants.forEach(p => {
+        const fam = p.family || '其他'
+        stats.families[fam] = (stats.families[fam] || 0) + 1
+      })
+      const familyList = Object.entries(stats.families)
+        .map(([name, count]) => ({
+          name,
+          count,
+          percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
+        }))
+        .sort((a, b) => b.count - a.count)
       this.setData({ stats, familyList, settings: storage.getSettings() })
     } else {
       const stats = storage.getStats()
@@ -80,9 +91,12 @@ Page({
 
   async loadFamilyStatus() {
     const info = await family.refreshFamilyInfo()
+    const familyAvatar = info.family ? info.family.avatar || '' : ''
+    const userAvatar = this.data.inFamily ? familyAvatar : (wx.getStorageSync('_user_avatar') || '')
     this.setData({
       inFamily: info.success && info.inFamily,
-      familyName: info.family ? info.family.name : ''
+      familyName: info.family ? info.family.name : '',
+      userAvatar
     })
   },
 
@@ -259,7 +273,15 @@ Page({
         try {
           const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
           this.setData({ userAvatar: photoUrl })
-          try { wx.setStorageSync('_user_avatar', photoUrl) } catch (e) {}
+          if (this.data.inFamily) {
+            // 家庭模式：更新家庭头像到云端
+            const info = await family.refreshFamilyInfo()
+            if (info.family) {
+              await wx.cloud.callFunction({ name: 'familyManage', data: { action: 'updateFamilyAvatar', data: { avatar: photoUrl } } })
+            }
+          } else {
+            try { wx.setStorageSync('_user_avatar', photoUrl) } catch (e) {}
+          }
           wx.showToast({ title: '头像已更新', icon: 'none' })
         } catch (e) {
           wx.showToast({ title: '上传失败', icon: 'none' })
