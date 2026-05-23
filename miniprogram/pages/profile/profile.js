@@ -104,6 +104,16 @@ Page({
     wx.navigateTo({ url: '/pages/family/family' })
   },
 
+  getFamilyRetroRemaining() {
+    try {
+      const retroData = wx.getStorageSync('_family_retro') || {}
+      const now = new Date()
+      const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`
+      const used = (retroData[monthKey] || []).length
+      return Math.max(0, 3 - used)
+    } catch (e) { return 3 }
+  },
+
   // 云同步
   async syncToCloud() {
     const cloudSync = require('../../utils/cloud-sync')
@@ -148,7 +158,7 @@ Page({
       achGroups: groups,
       achProgress: progress,
       careStreak: streak,
-      retroRemaining: storage.getRetroRemaining()
+      retroRemaining: this.data.inFamily ? this.getFamilyRetroRemaining() : storage.getRetroRemaining()
     })
   },
 
@@ -239,6 +249,14 @@ Page({
   },
 
   clearData() {
+    if (this.data.inFamily) {
+      wx.showModal({
+        title: '⚠️ 提示',
+        content: '家庭模式下的数据在云端共享，无法单独清除。如需退出家庭，请在家庭管理中操作。',
+        showCancel: false
+      })
+      return
+    }
     wx.showModal({
       title: '⚠️ 清除所有数据',
       content: '将清除你的花园和所有养护记录，无法恢复！',

@@ -371,11 +371,23 @@ Page({
   },
 
   retroCard() {
-    if (this.data.isFamilyMode) {
-      wx.showToast({ title: '家庭模式暂不支持补卡', icon: 'none' })
-      return
+    const MAX_RETRO_PER_MONTH = 3
+    const isFamilyMode = this.data.isFamilyMode
+
+    // 计算本月已用补卡次数
+    let retroUsed = 0
+    const now = new Date()
+    const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`
+    if (isFamilyMode) {
+      try {
+        const retroData = wx.getStorageSync('_family_retro') || {}
+        retroUsed = (retroData[monthKey] || []).length
+      } catch (e) {}
+    } else {
+      retroUsed = MAX_RETRO_PER_MONTH - storage.getRetroRemaining()
     }
-    const remaining = storage.getRetroRemaining()
+    const remaining = Math.max(0, MAX_RETRO_PER_MONTH - retroUsed)
+
     if (remaining <= 0) {
       wx.showToast({ title: '本月补卡次数已用完（3次/月）', icon: 'none', duration: 2500 })
       return
@@ -383,15 +395,19 @@ Page({
 
     // 计算最近7天可补的日期
     const dates = []
-    const now = new Date()
     for (let i = 1; i <= 7; i++) {
       const d = new Date(now.getTime() - i * 86400000)
       d.setHours(0, 0, 0, 0)
       const dateStr = util.formatDate(d.getTime())
       const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()]
       // 检查该天是否已有记录
-      const existing = storage.getRecordsByPlant(this.data.userPlant.id)
-        .find(r => util.formatDate(r.date) === dateStr)
+      let existingRecords
+      if (isFamilyMode) {
+        existingRecords = family.getCachedRecords(this.data.userPlant._id || this.data.userPlant.id)
+      } else {
+        existingRecords = storage.getRecordsByPlant(this.data.userPlant.id)
+      }
+      const existing = existingRecords.find(r => util.formatDate(r.date) === dateStr)
       if (!existing) {
         dates.push({
           ts: d.getTime(),
@@ -414,14 +430,36 @@ Page({
         wx.showModal({
           title: '确认补卡',
           content: `为 ${this.data.userPlant.nickname} 补 ${selected.label} 的养护记录？`,
-          success: (modalRes) => {
+          success: async (modalRes) => {
             if (modalRes.confirm) {
-              const result = storage.retroCard(selected.ts, this.data.userPlant.id)
-              if (result.success) {
-                wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
-                this.loadRecords()
+              if (isFamilyMode) {
+                // 家庭模式补卡：加记录到云端
+                try {
+                  await family.addRecord({
+                    plantId: this.data.userPlant._id || this.data.userPlant.id,
+                    type: 'retro',
+                    typeName: '补卡',
+                    note: `补 ${selected.label} 养护记录`
+                  })
+                  // 记录补卡次数
+                  let retroData = {}
+                  try { retroData = wx.getStorageSync('_family_retro') || {} } catch (e) {}
+                  if (!retroData[monthKey]) retroData[monthKey] = []
+                  retroData[monthKey].push(selected.ts)
+                  try { wx.setStorageSync('_family_retro', retroData) } catch (e) {}
+                  wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
+                  this.loadRecords()
+                } catch (e) {
+                  wx.showToast({ title: '补卡失败', icon: 'none' })
+                }
               } else {
-                wx.showToast({ title: result.reason, icon: 'none' })
+                const result = storage.retroCard(selected.ts, this.data.userPlant.id)
+                if (result.success) {
+                  wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
+                  this.loadRecords()
+                } else {
+                  wx.showToast({ title: result.reason, icon: 'none' })
+                }
               }
             }
           }
