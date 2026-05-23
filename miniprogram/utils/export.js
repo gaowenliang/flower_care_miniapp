@@ -1,16 +1,27 @@
 // utils/export.js — 养护数据导出
 
 const storage = require('./storage')
+const family = require('./family')
 
 /**
  * 生成养护报告文本（用于分享/复制）
  */
 function generateReport(plantId) {
-  const plant = storage.getPlantById(plantId)
-  if (!plant) return null
+  const isFamilyMode = family.isInFamily()
+  let plant, tasks, records
 
-  const tasks = storage.getTasksByPlant(plantId)
-  const records = storage.getRecordsByPlant(plantId)
+  if (isFamilyMode) {
+    plant = family.getPlantById(plantId)
+    if (!plant) return null
+    plant = { ...plant, id: plant._id }
+    tasks = family.getCachedTasks(plantId)
+    records = family.getCachedRecords(plantId)
+  } else {
+    plant = storage.getPlantById(plantId)
+    if (!plant) return null
+    tasks = storage.getTasksByPlant(plantId)
+    records = storage.getRecordsByPlant(plantId)
+  }
   const days = Math.floor((Date.now() - plant.addedAt) / 86400000)
 
   const lines = [
@@ -60,8 +71,13 @@ function copyReport(plantId) {
  * 生成花园总览报告
  */
 function generateGardenReport() {
-  const garden = storage.getGarden()
-  const stats = storage.getStats()
+  const isFamilyMode = family.isInFamily()
+  const garden = isFamilyMode
+    ? family.getCachedPlants().map(p => ({ ...p, id: p._id }))
+    : storage.getGarden()
+  const stats = isFamilyMode
+    ? { totalRecords: family.getCachedRecords('').length }
+    : storage.getStats()
 
   if (garden.length === 0) return null
 
@@ -75,7 +91,12 @@ function generateGardenReport() {
 
   garden.forEach(p => {
     const days = Math.floor((Date.now() - p.addedAt) / 86400000)
-    const tasks = storage.getTasksByPlant(p.id).filter(t => t.enabled)
+    let tasks
+    if (isFamilyMode) {
+      tasks = family.getCachedTasks(p.id).filter(t => t.enabled)
+    } else {
+      tasks = storage.getTasksByPlant(p.id).filter(t => t.enabled)
+    }
     const dueCount = tasks.filter(t => {
       const d = new Date(t.nextDate)
       return d.getTime() <= Date.now()

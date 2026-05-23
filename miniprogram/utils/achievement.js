@@ -1,6 +1,7 @@
 // utils/achievement.js — 成就系统 v2（5大系列 + 隐藏成就）
 
 const storage = require('./storage')
+const family = require('./family')
 
 /**
  * 成就设计思路：
@@ -270,7 +271,8 @@ const SERIES = {
  * 计算连续养护天数
  */
 function getCareStreak() {
-  const records = storage.getRecords()
+  const isFamilyMode = family.isInFamily()
+  const records = isFamilyMode ? family.getCachedRecords('') : storage.getRecords()
   if (records.length === 0) return 0
 
   const days = new Set()
@@ -297,16 +299,43 @@ function getCareStreak() {
  * 收集扩展统计
  */
 function getExtendedStats() {
-  const stats = storage.getStats()
-  const garden = storage.getGarden()
-  const records = storage.getRecords()
+  const isFamilyMode = family.isInFamily()
+  let stats, garden, records
+
+  if (isFamilyMode) {
+    const plants = family.getCachedPlants()
+    const tasks = family.getCachedTasks('')
+    const allRecords = family.getCachedRecords('')
+    stats = {
+      totalPlants: plants.length,
+      totalRecords: allRecords.length,
+      categories: {},
+    }
+    plants.forEach(p => {
+      if (p.category) stats.categories[p.category] = (stats.categories[p.category] || 0) + 1
+    })
+    garden = plants.map(p => ({ ...p, id: p._id }))
+    records = allRecords
+  } else {
+    stats = storage.getStats()
+    garden = storage.getGarden()
+    records = storage.getRecords()
+  }
 
   stats.careStreak = getCareStreak()
   stats.categoryCount = Object.keys(stats.categories || {}).length
 
   // 今日全部完成
-  const dueTasks = storage.getDueTasks()
-  stats.allDoneToday = dueTasks.length === 0 && stats.totalPlants > 0
+  if (isFamilyMode) {
+    const tasks = family.getCachedTasks('')
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const todayTs = today.getTime()
+    const dueTasks = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000)
+    stats.allDoneToday = dueTasks.length === 0 && stats.totalPlants > 0
+  } else {
+    const dueTasks = storage.getDueTasks()
+    stats.allDoneToday = dueTasks.length === 0 && stats.totalPlants > 0
+  }
 
   // 照片数
   stats.photoCount = records.filter(r => r.type === 'photo').length

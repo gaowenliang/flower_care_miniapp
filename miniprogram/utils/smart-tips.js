@@ -85,7 +85,7 @@ function fetchWeather(city) {
     if (wx.cloud) {
       wx.cloud.callFunction({
         name: 'getWeather',
-        data: { city: city || '310000' },
+        data: { city: city || wx.getStorageSync('_weather_city') || '310000' },
         success: (res) => {
           if (res.result && res.result.success && res.result.weather) {
             resolve(res.result.weather)

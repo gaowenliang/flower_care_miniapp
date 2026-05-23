@@ -1,6 +1,7 @@
 // utils/health-score.js — 植物健康评分系统
 
 const storage = require('./storage')
+const family = require('./family')
 
 /**
  * 计算单棵植物的健康评分 (0-100)
@@ -13,8 +14,16 @@ const storage = require('./storage')
 function calculateHealthScore(userPlant) {
   if (!userPlant) return 0
 
-  const tasks = storage.getTasksByPlant(userPlant.id)
-  const records = storage.getRecordsByPlant(userPlant.id)
+  const isFamilyMode = family.isInFamily()
+  let tasks, records
+  if (isFamilyMode) {
+    const plantId = userPlant._id || userPlant.id
+    tasks = family.getCachedTasks(plantId)
+    records = family.getCachedRecords(plantId)
+  } else {
+    tasks = storage.getTasksByPlant(userPlant.id)
+    records = storage.getRecordsByPlant(userPlant.id)
+  }
   const activeTasks = tasks.filter(t => t.enabled)
 
   // 1. 浇水及时率 (40分)
@@ -86,7 +95,10 @@ function getHealthLevel(score) {
  * 批量计算花园中所有植物的健康评分
  */
 function calculateAllHealthScores() {
-  const garden = storage.getGarden()
+  const isFamilyMode = family.isInFamily()
+  const garden = isFamilyMode
+    ? family.getCachedPlants().map(p => ({ ...p, id: p._id }))
+    : storage.getGarden()
   return garden.map(plant => {
     const result = calculateHealthScore(plant)
     return {

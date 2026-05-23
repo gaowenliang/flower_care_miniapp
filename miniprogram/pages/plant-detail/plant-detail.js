@@ -50,6 +50,7 @@ Page({
       this.loadFamilyRecords()
       this.loadSmartTips()
       setTimeout(() => this.setData({ loading: false }), 300)
+      this.loadHealthScore()
       return
     }
 
@@ -370,6 +371,10 @@ Page({
   },
 
   retroCard() {
+    if (this.data.isFamilyMode) {
+      wx.showToast({ title: '家庭模式暂不支持补卡', icon: 'none' })
+      return
+    }
     const remaining = storage.getRetroRemaining()
     if (remaining <= 0) {
       wx.showToast({ title: '本月补卡次数已用完（3次/月）', icon: 'none', duration: 2500 })
@@ -434,7 +439,11 @@ Page({
       sizeType: ['compressed'],
       success: async (res) => {
         const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
-        storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
+        if (this.data.isFamilyMode) {
+          await family.updatePlant(this.data.userPlant._id, { avatar: photoUrl })
+        } else {
+          storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
+        }
         this.setData({ 'userPlant.avatar': photoUrl })
         wx.showToast({ title: '头像已更新', icon: 'none' })
       }

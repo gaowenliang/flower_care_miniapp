@@ -80,9 +80,21 @@ async function sendCareReminder(openid, data) {
 async function checkAndNotify(force) {
   const storage = require('./storage')
   const util = require('./util')
-  
-  const garden = storage.getGarden()
-  const dueTasks = storage.getDueTasks()
+  const family = require('./family')
+
+  const isFamilyMode = family.isInFamily()
+  let garden, dueTasks
+
+  if (isFamilyMode) {
+    garden = family.getCachedPlants().map(p => ({ ...p, id: p._id }))
+    const tasks = family.getCachedTasks('')
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const todayTs = today.getTime()
+    dueTasks = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000)
+  } else {
+    garden = storage.getGarden()
+    dueTasks = storage.getDueTasks()
+  }
 
   if (dueTasks.length === 0) return
 
