@@ -1,11 +1,14 @@
-// utils/family.js — 家庭模式工具模块 v2
+// utils/family.js — 家庭模式工具模块 v3
 // 封装家庭相关云函数调用、本地缓存、认养、积分、报表
+// v3: 加入乐观写（先本地后云端）+ 写队列 + 失败回滚
 
 const FAMILY_CACHE_KEY = '_family_info'
 const FAMILY_PLANTS_KEY = '_family_plants'
 const FAMILY_TASKS_KEY = '_family_tasks'
 const FAMILY_RECORDS_KEY = '_family_records'
 const CACHE_TTL = 5 * 60 * 1000
+
+// ========== 云函数基础调用 ==========
 
 function callCloud(name, action, data) {
   return wx.cloud.callFunction({ name, data: { action, data } })
@@ -18,6 +21,43 @@ function callCloud(name, action, data) {
 
 function manage(action, data) { return callCloud('familyManage', action, data) }
 function fdata(action, data) { return callCloud('familyData', action, data) }
+
+// ========== 写队列（串行，避免并发冲突）==========
+
+const _writeQueue = []
+let _writing = false
+
+function enqueueWrite(fn) {
+  return new Promise((resolve) => {
+    _writeQueue.push({ fn, resolve })
+    _drainQueue()
+  })
+}
+
+async function _drainQueue() {
+  if (_writing) return
+  _writing = true
+  while (_writeQueue.length > 0) {
+    const { fn, resolve } = _writeQueue.shift()
+    try {
+      const result = await fn()
+      resolve(result)
+    } catch (e) {
+      resolve({ success: false, error: e.message || '未知错误' })
+    }
+  }
+  _writing = false
+}
+
+// ========== 缓存工具 ==========
+
+function _saveCache(key, data) {
+  try { wx.setStorageSync(key, data) } catch (e) {}
+}
+
+function _readCache(key) {
+  try { return wx.getStorageSync(key) } catch (e) { return null }
+}
 
 function isInFamily() {
   try {
@@ -43,10 +83,9 @@ async function refreshFamilyInfo() {
   const result = await manage('info')
   if (result.success) {
     result._cachedAt = Date.now()
-    try { wx.setStorageSync(FAMILY_CACHE_KEY, result) } catch (e) {}
+    _saveCache(FAMILY_CACHE_KEY, result)
     return result
   }
-  // 云函数调用失败时，仍然返回可用的结果，让页面能正常显示
   return { success: true, inFamily: false, _networkError: true }
 }
 
@@ -63,66 +102,163 @@ function clearCache() {
 
 async function getPlants(forceRefresh) {
   if (!forceRefresh) {
-    try {
-      const cached = wx.getStorageSync(FAMILY_PLANTS_KEY)
-      if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) return cached.plants
-    } catch (e) {}
+    const cached = _readCache(FAMILY_PLANTS_KEY)
+    if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) return cached.plants
   }
   const result = await fdata('getPlants')
   if (result.success) {
-    try { wx.setStorageSync(FAMILY_PLANTS_KEY, { plants: result.plants, _cachedAt: Date.now() }) } catch (e) {}
+    _saveCache(FAMILY_PLANTS_KEY, { plants: result.plants, _cachedAt: Date.now() })
     return result.plants
   }
   return []
 }
 
 function getCachedPlants() {
-  try { const c = wx.getStorageSync(FAMILY_PLANTS_KEY); return c ? c.plants || [] : [] } catch (e) { return [] }
+  const c = _readCache(FAMILY_PLANTS_KEY)
+  return c ? c.plants || [] : []
 }
 
 function getPlantById(plantId) {
   return getCachedPlants().find(p => p._id === plantId) || null
 }
 
-async function addPlant(plantData) {
-  const result = await fdata('addPlant', { plant: plantData })
-  if (result.success) await getPlants(true)
-  return result
-}
+/**
+ * 添加植物 — 乐观写
+ */
+function addPlant(plantData) {
+  const tempId = '_opt_' + Date.now()
+  const now = Date.now()
 
-async function updatePlant(plantId, updates) {
-  const result = await fdata('updatePlant', { plantId, updates })
-  if (result.success) {
-    try {
-      const cached = wx.getStorageSync(FAMILY_PLANTS_KEY)
-      if (cached && cached.plants) {
-        const idx = cached.plants.findIndex(p => p._id === plantId)
-        if (idx >= 0) { cached.plants[idx] = { ...cached.plants[idx], ...updates, updatedAt: Date.now() }; wx.setStorageSync(FAMILY_PLANTS_KEY, cached) }
+  // 乐观写入本地缓存
+  const cached = _readCache(FAMILY_PLANTS_KEY) || { plants: [], _cachedAt: now }
+  cached.plants.unshift({
+    _id: tempId,
+    ...plantData,
+    addedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    adopters: [],
+    adopterNames: []
+  })
+  _saveCache(FAMILY_PLANTS_KEY, cached)
+
+  // 后台推云端
+  enqueueWrite(async () => {
+    const result = await fdata('addPlant', { plant: plantData })
+    if (result.success && result.plantId) {
+      // 用真实 ID 替换临时 ID
+      const c = _readCache(FAMILY_PLANTS_KEY)
+      if (c && c.plants) {
+        const idx = c.plants.findIndex(p => p._id === tempId)
+        if (idx >= 0) { c.plants[idx]._id = result.plantId; _saveCache(FAMILY_PLANTS_KEY, c) }
       }
-    } catch (e) {}
-  }
-  return result
+      // 静默拉一次完整数据
+      getPlants(true).catch(() => {})
+      getTasks('', true).catch(() => {})
+    } else {
+      // 失败：移除乐观写入的植物
+      const c = _readCache(FAMILY_PLANTS_KEY)
+      if (c && c.plants) {
+        c.plants = c.plants.filter(p => p._id !== tempId)
+        _saveCache(FAMILY_PLANTS_KEY, c)
+      }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, plantId: tempId, _optimistic: true })
 }
 
-async function removePlant(plantId) {
-  const result = await fdata('deletePlant', { plantId })
-  if (result.success) {
-    try {
-      const cached = wx.getStorageSync(FAMILY_PLANTS_KEY)
-      if (cached && cached.plants) { cached.plants = cached.plants.filter(p => p._id !== plantId); wx.setStorageSync(FAMILY_PLANTS_KEY, cached) }
-    } catch (e) {}
+/**
+ * 更新植物 — 乐观写
+ */
+function updatePlant(plantId, updates) {
+  const cached = _readCache(FAMILY_PLANTS_KEY)
+  if (cached && cached.plants) {
+    const idx = cached.plants.findIndex(p => p._id === plantId)
+    if (idx >= 0) {
+      const snapshot = { ...cached.plants[idx] }
+      cached.plants[idx] = { ...cached.plants[idx], ...updates, updatedAt: Date.now() }
+      _saveCache(FAMILY_PLANTS_KEY, cached)
+
+      enqueueWrite(async () => {
+        const result = await fdata('updatePlant', { plantId, updates })
+        if (!result.success) {
+          const c = _readCache(FAMILY_PLANTS_KEY)
+          if (c && c.plants) {
+            const i = c.plants.findIndex(p => p._id === plantId)
+            if (i >= 0) { c.plants[i] = snapshot; _saveCache(FAMILY_PLANTS_KEY, c) }
+          }
+        }
+        return result
+      })
+    }
   }
-  return result
+  return Promise.resolve({ success: true, _optimistic: true })
 }
 
-// ========== 认养 ==========
-
-async function toggleAdopt(plantId) {
-  const result = await manage('toggleAdopt', { plantId })
-  if (result.success) {
-    await Promise.all([getPlants(true), refreshFamilyInfo()])
+/**
+ * 删除植物 — 乐观写
+ */
+function removePlant(plantId) {
+  const cached = _readCache(FAMILY_PLANTS_KEY)
+  let removed = null
+  if (cached && cached.plants) {
+    removed = cached.plants.find(p => p._id === plantId)
+    cached.plants = cached.plants.filter(p => p._id !== plantId)
+    _saveCache(FAMILY_PLANTS_KEY, cached)
   }
-  return result
+
+  enqueueWrite(async () => {
+    const result = await fdata('deletePlant', { plantId })
+    if (!result.success && removed) {
+      // 回滚
+      const c = _readCache(FAMILY_PLANTS_KEY)
+      if (c && c.plants) { c.plants.push(removed); _saveCache(FAMILY_PLANTS_KEY, c) }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, _optimistic: true })
+}
+
+// ========== 认养（乐观写）==========
+
+function toggleAdopt(plantId) {
+  const info = getCachedFamily()
+  const wasAdopted = info && (info.myAdoptedPlants || []).includes(plantId)
+
+  // 乐观更新认养状态
+  if (info) {
+    if (wasAdopted) {
+      info.myAdoptedPlants = (info.myAdoptedPlants || []).filter(id => id !== plantId)
+    } else {
+      info.myAdoptedPlants = [...(info.myAdoptedPlants || []), plantId]
+    }
+    _saveCache(FAMILY_CACHE_KEY, info)
+  }
+
+  enqueueWrite(async () => {
+    const result = await manage('toggleAdopt', { plantId })
+    if (result.success) {
+      // 成功后静默刷新完整数据
+      getPlants(true).catch(() => {})
+      refreshFamilyInfo().catch(() => {})
+    } else {
+      // 回滚
+      if (info) {
+        if (wasAdopted) {
+          info.myAdoptedPlants = [...(info.myAdoptedPlants || []), plantId]
+        } else {
+          info.myAdoptedPlants = (info.myAdoptedPlants || []).filter(id => id !== plantId)
+        }
+        _saveCache(FAMILY_CACHE_KEY, info)
+      }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, adopted: !wasAdopted, _optimistic: true })
 }
 
 function isAdoptedByMe(plantId) {
@@ -135,90 +271,216 @@ function getAdopterNames(plant) {
   return plant.adopterNames || []
 }
 
-// ========== 任务 ==========
+// ========== 任务（乐观写）==========
 
 async function getTasks(plantId, forceRefresh) {
   if (!forceRefresh) {
-    try {
-      const cached = wx.getStorageSync(FAMILY_TASKS_KEY)
-      if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) {
-        const tasks = cached.tasks || []
-        return plantId ? tasks.filter(t => t.plantId === plantId) : tasks
-      }
-    } catch (e) {}
+    const cached = _readCache(FAMILY_TASKS_KEY)
+    if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) {
+      const tasks = cached.tasks || []
+      return plantId ? tasks.filter(t => t.plantId === plantId) : tasks
+    }
   }
   const result = await fdata('getTasks', { plantId: plantId || '' })
   if (result.success) {
-    try { wx.setStorageSync(FAMILY_TASKS_KEY, { tasks: result.tasks, _cachedAt: Date.now() }) } catch (e) {}
+    _saveCache(FAMILY_TASKS_KEY, { tasks: result.tasks, _cachedAt: Date.now() })
     return result.tasks
   }
   return []
 }
 
 function getCachedTasks(plantId) {
-  try {
-    const cached = wx.getStorageSync(FAMILY_TASKS_KEY)
-    const tasks = cached ? cached.tasks || [] : []
-    return plantId ? tasks.filter(t => t.plantId === plantId) : tasks
-  } catch (e) { return [] }
+  const cached = _readCache(FAMILY_TASKS_KEY)
+  const tasks = cached ? cached.tasks || [] : []
+  return plantId ? tasks.filter(t => t.plantId === plantId) : tasks
 }
 
-async function completeTask(taskId) {
-  const result = await fdata('completeTask', { taskId })
-  if (result.success) { await getTasks('', true); await getRecords('', 100, true) }
-  return result
+/**
+ * 完成任务 — 乐观写
+ */
+function completeTask(taskId) {
+  const cached = _readCache(FAMILY_TASKS_KEY)
+  const tasks = cached ? cached.tasks || [] : []
+  const task = tasks.find(t => t._id === taskId)
+  if (!task) return Promise.resolve({ success: false, error: '任务不存在' })
+
+  const snapshot = { ...task }
+  const now = Date.now()
+  task.lastDoneDate = now
+  task.nextDate = now + (task.intervalDays || 7) * 86400000
+  _saveCache(FAMILY_TASKS_KEY, cached)
+
+  // 乐观插入一条记录
+  const cachedRec = _readCache(FAMILY_RECORDS_KEY)
+  if (cachedRec && cachedRec.records) {
+    cachedRec.records.unshift({
+      _id: '_opt_' + now,
+      plantId: task.plantId || task.userPlantId,
+      userPlantId: task.userPlantId,
+      type: task.type, typeName: task.typeName,
+      date: now, note: '',
+      createdBy: '', creatorNickname: '', createdAt: now
+    })
+    _saveCache(FAMILY_RECORDS_KEY, cachedRec)
+  }
+
+  enqueueWrite(async () => {
+    const result = await fdata('completeTask', { taskId })
+    if (result.success) {
+      getTasks('', true).catch(() => {})
+      getRecords('', 100, true).catch(() => {})
+    } else {
+      const c = _readCache(FAMILY_TASKS_KEY)
+      if (c && c.tasks) {
+        const idx = c.tasks.findIndex(t => t._id === taskId)
+        if (idx >= 0) c.tasks[idx] = snapshot
+        _saveCache(FAMILY_TASKS_KEY, c)
+      }
+      console.warn('completeTask 云端失败，已回滚本地')
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, nextDate: task.nextDate, _optimistic: true })
 }
 
-async function updateTask(taskId, updates) {
-  const result = await fdata('updateTask', { taskId, updates })
-  if (result.success) await getTasks('', true)
-  return result
+/**
+ * 更新任务间隔 — 乐观写
+ */
+function updateTask(taskId, updates) {
+  const cached = _readCache(FAMILY_TASKS_KEY)
+  const tasks = cached ? cached.tasks || [] : []
+  const task = tasks.find(t => t._id === taskId)
+  if (!task) return Promise.resolve({ success: false, error: '任务不存在' })
+
+  const snapshot = { ...task }
+  Object.assign(task, updates)
+  if (updates.intervalDays) {
+    task.nextDate = (task.lastDoneDate || Date.now()) + updates.intervalDays * 86400000
+    if (task.nextDate < Date.now()) task.nextDate = Date.now() + updates.intervalDays * 86400000
+  }
+  _saveCache(FAMILY_TASKS_KEY, cached)
+
+  enqueueWrite(async () => {
+    const result = await fdata('updateTask', { taskId, updates })
+    if (!result.success) {
+      const c = _readCache(FAMILY_TASKS_KEY)
+      if (c && c.tasks) {
+        const idx = c.tasks.findIndex(t => t._id === taskId)
+        if (idx >= 0) c.tasks[idx] = snapshot
+        _saveCache(FAMILY_TASKS_KEY, c)
+      }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, _optimistic: true })
 }
 
-async function toggleTask(taskId) {
-  const result = await fdata('toggleTask', { taskId })
-  if (result.success) await getTasks('', true)
-  return result
+/**
+ * 切换任务启用 — 乐观写
+ */
+function toggleTask(taskId) {
+  const cached = _readCache(FAMILY_TASKS_KEY)
+  const tasks = cached ? cached.tasks || [] : []
+  const task = tasks.find(t => t._id === taskId)
+  if (!task) return Promise.resolve({ success: false, error: '任务不存在' })
+
+  const oldEnabled = task.enabled
+  task.enabled = !task.enabled
+  _saveCache(FAMILY_TASKS_KEY, cached)
+
+  enqueueWrite(async () => {
+    const result = await fdata('toggleTask', { taskId })
+    if (!result.success) {
+      task.enabled = oldEnabled
+      _saveCache(FAMILY_TASKS_KEY, cached)
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, enabled: task.enabled, _optimistic: true })
 }
 
-// ========== 记录 ==========
+// ========== 记录（乐观写）==========
 
 async function getRecords(plantId, limit, forceRefresh) {
   if (!forceRefresh) {
-    try {
-      const cached = wx.getStorageSync(FAMILY_RECORDS_KEY)
-      if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) {
-        const records = cached.records || []
-        return plantId ? records.filter(r => r.plantId === plantId) : records
-      }
-    } catch (e) {}
+    const cached = _readCache(FAMILY_RECORDS_KEY)
+    if (cached && cached._cachedAt && Date.now() - cached._cachedAt < CACHE_TTL) {
+      const records = cached.records || []
+      return plantId ? records.filter(r => r.plantId === plantId) : records
+    }
   }
   const result = await fdata('getRecords', { plantId: plantId || '', limit: limit || 100 })
   if (result.success) {
-    try { wx.setStorageSync(FAMILY_RECORDS_KEY, { records: result.records, _cachedAt: Date.now() }) } catch (e) {}
+    _saveCache(FAMILY_RECORDS_KEY, { records: result.records, _cachedAt: Date.now() })
     return result.records
   }
   return []
 }
 
 function getCachedRecords(plantId) {
-  try {
-    const cached = wx.getStorageSync(FAMILY_RECORDS_KEY)
-    const records = cached ? cached.records || [] : []
-    return plantId ? records.filter(r => r.plantId === plantId) : records
-  } catch (e) { return [] }
+  const cached = _readCache(FAMILY_RECORDS_KEY)
+  const records = cached ? cached.records || [] : []
+  return plantId ? records.filter(r => r.plantId === plantId) : records
 }
 
-async function addRecord(recordData) {
-  const result = await fdata('addRecord', { record: recordData })
-  if (result.success) await getRecords('', 100, true)
-  return result
+/**
+ * 添加记录 — 乐观写
+ */
+function addRecord(recordData) {
+  const now = Date.now()
+  const tempId = '_opt_' + now
+
+  const cached = _readCache(FAMILY_RECORDS_KEY) || { records: [], _cachedAt: now }
+  cached.records.unshift({
+    _id: tempId,
+    ...recordData,
+    date: recordData.date || now,
+    createdAt: now
+  })
+  _saveCache(FAMILY_RECORDS_KEY, cached)
+
+  enqueueWrite(async () => {
+    const result = await fdata('addRecord', { record: recordData })
+    if (result.success) {
+      getRecords('', 100, true).catch(() => {})
+    } else {
+      const c = _readCache(FAMILY_RECORDS_KEY)
+      if (c && c.records) {
+        c.records = c.records.filter(r => r._id !== tempId)
+        _saveCache(FAMILY_RECORDS_KEY, c)
+      }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, _optimistic: true })
 }
 
-async function deleteRecord(recordId) {
-  const result = await fdata('deleteRecord', { recordId })
-  if (result.success) await getRecords('', 100, true)
-  return result
+/**
+ * 删除记录 — 乐观写
+ */
+function deleteRecord(recordId) {
+  const cached = _readCache(FAMILY_RECORDS_KEY)
+  let removed = null
+  if (cached && cached.records) {
+    removed = cached.records.find(r => r._id === recordId)
+    cached.records = cached.records.filter(r => r._id !== recordId)
+    _saveCache(FAMILY_RECORDS_KEY, cached)
+  }
+
+  enqueueWrite(async () => {
+    const result = await fdata('deleteRecord', { recordId })
+    if (!result.success && removed) {
+      const c = _readCache(FAMILY_RECORDS_KEY)
+      if (c && c.records) { c.records.push(removed); _saveCache(FAMILY_RECORDS_KEY, c) }
+    }
+    return result
+  })
+
+  return Promise.resolve({ success: true, _optimistic: true })
 }
 
 // ========== 报表 ==========
