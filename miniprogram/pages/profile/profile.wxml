@@ -4,7 +4,7 @@
   <view class="card pf-header">
     <view class="pf-avatar">🌱</view>
     <text class="pf-name">养花达人</text>
-    <view class="pf-stats">
+    <view class="pf-stats" wx:if="{{!statsLoading}}">
       <view class="pf-stat">
         <text class="pf-num">{{stats.totalPlants || 0}}</text>
         <text class="pf-label">棵植物</text>

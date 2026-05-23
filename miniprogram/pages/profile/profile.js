@@ -16,18 +16,27 @@ Page({
     showAchievements: false,
     // 家庭模式
     inFamily: false,
-    familyName: ''
+    familyName: '',
+    statsLoading: false
   },
 
   async onShow() {
+    this.setData({ statsLoading: true })
     await this.loadFamilyStatus()
     if (this.data.inFamily) {
-      // 家庭模式：先预加载云端数据到缓存
-      await Promise.all([family.getPlants(true), family.getTasks('', true), family.getRecords('', 100, true)])
+      // 家庭模式：直接用最新云端数据算统计，避免缓存过期跳变
+      try {
+        const [plantsRes, tasksRes, recordsRes] = await Promise.all([
+          family.getPlants(true),
+          family.getTasks('', true),
+          family.getRecords('', 100, true)
+        ])
+      } catch (e) { console.error('加载家庭数据失败:', e) }
     }
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
+    this.setData({ statsLoading: false })
   },
 
   async loadStats() {
