@@ -19,26 +19,51 @@ Page({
     familyName: ''
   },
 
-  onShow() {
+  async onShow() {
+    await this.loadFamilyStatus()
+    if (this.data.inFamily) {
+      // 家庭模式：先预加载云端数据到缓存
+      await Promise.all([family.getPlants(true), family.getTasks('', true), family.getRecords('', 100, true)])
+    }
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
-    this.loadFamilyStatus()
   },
 
-  loadStats() {
-    const stats = storage.getStats()
-    let familyList = []
-    if (stats.families) {
-      familyList = Object.entries(stats.families)
-        .map(([name, count]) => ({
-          name,
-          count,
-          percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
-        }))
-        .sort((a, b) => b.count - a.count)
+  async loadStats() {
+    if (this.data.inFamily) {
+      // 家庭模式：从云端数据算统计
+      const plants = family.getCachedPlants()
+      const tasks = family.getCachedTasks('')
+      const records = family.getCachedRecords('')
+      const today = new Date(); today.setHours(0, 0, 0, 0)
+      const todayTs = today.getTime()
+      const dueToday = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000).length
+      const stats = {
+        totalPlants: plants.length,
+        totalTasks: tasks.length,
+        activeTasks: tasks.filter(t => t.enabled).length,
+        dueToday,
+        totalRecords: records.length,
+        categories: {},
+        families: {}
+      }
+      const familyList = []
+      this.setData({ stats, familyList, settings: storage.getSettings() })
+    } else {
+      const stats = storage.getStats()
+      let familyList = []
+      if (stats.families) {
+        familyList = Object.entries(stats.families)
+          .map(([name, count]) => ({
+            name,
+            count,
+            percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
+          }))
+          .sort((a, b) => b.count - a.count)
+      }
+      this.setData({ stats, familyList, settings: storage.getSettings() })
     }
-    this.setData({ stats, familyList, settings: storage.getSettings() })
   },
 
   async loadFamilyStatus() {
@@ -106,7 +131,7 @@ Page({
   },
 
   loadMonthlyStats() {
-    const records = storage.getRecords()
+    const records = this.data.inFamily ? family.getCachedRecords('') : storage.getRecords()
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
     const monthRecords = records.filter(r => r.date >= monthStart && r.type !== 'photo' && r.type !== 'note')
