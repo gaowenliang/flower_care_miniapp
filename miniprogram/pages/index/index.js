@@ -64,6 +64,7 @@ Page({
     try {
       const plants = await family.getPlants(true)
       const allTasks = await family.getTasks('', true)
+      const allRecords = await family.getRecords('', 100, true)
 
       const garden = (plants || []).map(plant => {
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
@@ -113,7 +114,8 @@ Page({
           totalPlants: garden.length,
           totalTasks: allTasks.length,
           activeTasks: (allTasks || []).filter(t => t.enabled).length,
-          dueToday: todayTasks.length
+          dueToday: todayTasks.length,
+          totalRecords: allRecords.length
         }
       })
       this.applyFilter()
