@@ -1,12 +1,18 @@
 # 🪴 养花助手 — 微信小程序
 
-帮助用户管理植物花园、养护提醒、AI 识花、病害诊断，支持家庭共享。
+帮助用户管理植物花园、养护提醒、AI 识花、病害诊断，以**家庭共享**为核心。
 
 ## 项目信息
 
 - **AppID:** `wx8ba3dab6769e7bb0`
 - **框架:** 微信小程序原生 + 微信云开发
-- **GitHub:** `git@github.com:gaowenliowenliang/flower_care_miniapp.git`
+- **GitHub:** `git@github.com:gaowenliang/flower_care_miniapp.git`
+
+## 设计理念
+
+**以家庭为核心**：加入家庭后，所有数据（植物、任务、记录、统计、成就）自动切换到云端共享模式。未加入家庭则使用个人本地模式，体验完全一致。
+
+**本地优先，后台同步**：家庭模式下采用乐观写架构 — 操作瞬间生效（本地缓存），后台串行推云端，失败自动回滚。
 
 ## 功能
 
@@ -19,13 +25,16 @@
 | 成长日记 | ✅ | 拍照记录、文字备注、成长对比 |
 | AI 识花 | ✅ | 百度 AI 植物识别 |
 | 病害诊断 | ✅ | 常见病害诊断和防治建议 |
-| 成就系统 | ✅ | 养花成就、补卡机制 |
+| 成就系统 | ✅ | 养花成就、补卡机制（个人模式） |
 | 智能贴士 | ✅ | 根据天气和植物类型生成养护建议 |
-| 健康评分 | ✅ | 植物健康度评估 |
+| 健康评分 | ✅ | 植物健康度评估（个人/家庭均支持） |
 | **家庭共享** | ✅ | 多人共享花园、邀请码加入 |
 | **成员积分** | ✅ | 养护自动积分、排行榜 |
 | **植物认养** | ✅ | 成员认养植物 |
 | **打理报表** | ✅ | 成员贡献、养护类型统计 |
+| **心愿单** | ✅ | 想养的植物心愿单 |
+| **里程碑** | ✅ | 植物养护天数里程碑自动记录 |
+| **周报/PK** | ✅ | 本周之星、周报总结 |
 
 ## 项目结构
 
@@ -33,41 +42,39 @@
 flower-care-miniapp/
 ├── README.md              # 本文件
 ├── TEAM.md                # 团队分工
-├── plan.md                # 开发计划（历史）
 ├── docs/
 │   ├── design.md          # UI 设计规范
 │   └── family-ui.png      # 家庭共享 UI 预览
 ├── miniprogram/
 │   ├── pages/
-│   │   ├── index/         # 首页：我的花园
+│   │   ├── index/         # 首页：花园（家庭/个人自适应）
 │   │   ├── add-plant/     # 添加植物
-│   │   ├── plant-detail/  # 植物详情（养护/记录/贴士）
+│   │   ├── plant-detail/  # 植物详情（养护/记录/贴士/健康评分）
 │   │   ├── plant-journal/ # 成长日记
 │   │   ├── calendar/      # 养护日历
 │   │   ├── identify/      # AI 识花
 │   │   ├── diagnose/      # 病害诊断
-│   │   ├── profile/       # 个人中心
-│   │   └── family/        # 家庭管理（共享/排行/报表）
+│   │   ├── profile/       # 我的（统计/成就/设置）
+│   │   └── family/        # 家庭管理（动态/排行/报表/心愿单/里程碑）
 │   ├── utils/
-│   │   ├── storage.js     # 本地存储管理
+│   │   ├── storage.js     # 本地存储管理（个人模式数据源）
+│   │   ├── family.js      # 家庭模式工具 v3（乐观写 + 写队列）
 │   │   ├── cloud-sync.js  # 云数据同步
-│   │   ├── family.js      # 家庭模式工具
-│   │   ├── achievement.js # 成就系统
-│   │   ├── health-score.js# 健康评分
+│   │   ├── achievement.js # 成就系统（自适应家庭/个人）
+│   │   ├── health-score.js# 健康评分（自适应家庭/个人）
 │   │   ├── smart-tips.js  # 智能贴士
 │   │   ├── ai-identify.js # AI 识花
 │   │   ├── image.js       # 图片上传
 │   │   ├── disease.js     # 病害数据
-│   │   ├── export.js      # 报告导出
-│   │   ├── subscribe.js   # 订阅消息
+│   │   ├── export.js      # 报告导出（自适应家庭/个人）
+│   │   ├── subscribe.js   # 订阅消息（自适应家庭/个人）
 │   │   ├── validator.js   # 输入校验
 │   │   └── util.js        # 通用工具
 │   ├── data/
 │   │   └── plants.js      # 57 种植物数据库
 │   ├── components/        # 自定义组件
 │   ├── images/            # TabBar 图标
-│   ├── app.js / app.json / app.wxss
-│   └── sitemap.json
+│   └── app.js / app.json / app.wxss
 ├── cloud/functions/
 │   ├── initCollections/   # 初始化云数据库集合
 │   ├── sendMessage/       # 发送订阅消息
@@ -75,20 +82,65 @@ flower-care-miniapp/
 │   ├── getWeather/        # 代理高德天气 API
 │   ├── identifyPlant/     # AI 植物识别（百度）
 │   ├── familyManage/      # 家庭管理（创建/加入/退出/认养/积分/报表）
-│   └── familyData/        # 家庭数据（植物/任务/记录 CRUD）
-├── server/                # 预留
+│   └── familyData/        # 家庭数据 CRUD（植物/任务/记录）
 └── tests/
     ├── unit/              # 单元测试
-    ├── functional/        # 功能测试
-    └── QA-REVIEW-R5.md    # 最新 QA 审查报告
+    └── functional/        # 功能测试
 ```
+
+## 架构：家庭模式 v3
+
+### 数据流
+
+```
+┌─────────────────────────────────────────────────────┐
+│                      页面层                          │
+│  index / plant-detail / profile / calendar / ...    │
+└──────────────┬──────────────────┬───────────────────┘
+               │                  │
+        family.isInFamily()?      │
+               │                  │
+      ┌────────▼────────┐  ┌─────▼──────┐
+      │   family.js v3   │  │ storage.js │
+      │  (乐观写+缓存)    │  │ (本地存储)  │
+      └──┬─────┬────────┘  └────────────┘
+   读缓存 │     │ 写队列
+         │     │
+    ┌────▼──┐  ▼
+    │缓存TTL│ 串行推云端
+    │5分钟  │ 失败回滚
+    └───────┘
+```
+
+### 乐观写（Optimistic Write）
+
+所有写操作（completeTask/addPlant/updatePlant/removePlant/toggleAdopt/updateTask/toggleTask/addRecord/deleteRecord）遵循：
+
+1. **立即写本地缓存** → 返回 `{ success: true, _optimistic: true }`
+2. **页面从缓存刷新 UI** → 用户感知零延迟
+3. **写队列串行推云端** → 避免并发冲突
+4. **云端成功** → 静默拉真数据覆盖缓存
+5. **云端失败** → 回滚本地缓存到操作前状态
+
+### 全模块家庭适配
+
+以下工具模块在家庭模式下自动从云端缓存读取数据：
+
+| 模块 | 适配内容 |
+|------|----------|
+| health-score.js | 从 family.getCachedTasks/Records 算健康评分 |
+| achievement.js | 从云端数据算成就（连续天数、月度记录等） |
+| export.js | 导出报告支持云端数据源 |
+| subscribe.js | 养护提醒支持家庭模式 |
+| smart-tips.js | 天气城市码可配置 |
+| profile.js | 统计、月度图表从云端算，加载态防闪烁 |
 
 ## 家庭共享功能
 
 ### 工作流程
 1. 「我的」→「家庭管理」→ 创建家庭 → 获得 6 位邀请码
 2. 分享邀请码给家人 → 输入加入
-3. 加入后所有页面自动切换到家庭模式（数据走云端）
+3. 加入后**所有页面自动切换到家庭模式**
 4. 未加入家庭的用户不受影响，继续个人模式
 
 ### 权限
@@ -115,11 +167,9 @@ flower-care-miniapp/
 | `family_plants` | 家庭植物（含认养者列表） |
 | `family_records` | 养护记录（含操作者昵称） |
 | `family_tasks` | 养护任务 |
-| `user_plants` | 个人植物（非家庭模式） |
-| `care_tasks` | 个人任务 |
-| `care_records` | 个人记录 |
-| `user_settings` | 用户设置 |
-| `user_achievements` | 成就数据 |
+| `family_activities` | 动态流 |
+| `family_milestones` | 里程碑 |
+| `family_wishlists` | 心愿单 |
 
 ## 部署步骤
 
@@ -127,9 +177,17 @@ flower-care-miniapp/
 2. 上传所有云函数（`cloud/functions/` 下的 7 个）
 3. 运行 `initCollections` 云函数创建集合
 4. 集合权限设为「所有用户可读写」或按需配置
+5. 云函数 `identifyPlant` 环境变量配置：
+   - `BAIDU_API_KEY` = 百度AI平台的API Key
+   - `BAIDU_SECRET_KEY` = 百度AI平台的Secret Key
+6. 云函数 `getWeather` 环境变量配置：
+   - `AMAP_KEY` = 高德地图API Key
 
 ## 开发说明
 
 - 小程序不支持 `div`，只能用 `view`
 - 图片使用 `image` 组件
 - 群内不使用翻白眼表情
+- 家庭模式下数据全在云端，通过 family.js 缓存层访问
+- 个人模式下数据全在本地 storage
+- 所有模块通过 `family.isInFamily()` 自动切换数据源

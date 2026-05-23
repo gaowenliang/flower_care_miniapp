@@ -27,6 +27,16 @@
 
   <!-- 真实内容 -->
   <view class="content-fade {{loading ? 'hidden' : ''}}" wx:if="{{!loading}}">
+    <!-- 家庭模式头部 -->
+    <view class="family-header-bar" wx:if="{{isFamilyMode}}">
+      <view class="family-header-left">
+        <text class="family-header-icon">🏠</text>
+        <view class="family-header-info">
+          <text class="family-header-title">家庭花园</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 今日任务 -->
     <view class="section" wx:if="{{todayTasks.length > 0}}">
       <view class="section-title">
@@ -70,7 +80,7 @@
     <view class="section">
       <view class="section-title">
         <text class="section-icon">🪴</text>
-        <text>我的花园</text>
+        <text>{{isFamilyMode ? '家庭花园' : '我的花园'}}</text>
       </view>
 
       <!-- 房间标签栏 -->
