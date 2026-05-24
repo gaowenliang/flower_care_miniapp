@@ -51,5 +51,10 @@
   },
   "sitemapLocation": "sitemap.json",
   "cloud": true,
-  "style": "v2"
+  "style": "v2",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于获取当地天气信息，提醒你雨天不用浇水"
+    }
+  }
 }

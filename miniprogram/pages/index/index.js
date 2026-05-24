@@ -270,7 +270,29 @@ Page({
     this.setData({ weatherLoading: true })
     let city = ''
     try { city = wx.getStorageSync('_weather_city') || '' } catch (e) {}
-    if (!city) { this.setData({ weatherLoading: false }); return } // 首次无城市则跳过天气
+    if (!city) {
+      // 没有缓存城市，尝试定位
+      wx.getLocation({
+        type: 'gcj02',
+        success: (loc) => {
+          city = `${loc.longitude},${loc.latitude}`
+          try { wx.setStorageSync('_weather_city', city) } catch (e) {}
+          this._fetchWeather(city)
+        },
+        fail: () => {
+          city = '上海'
+          try { wx.setStorageSync('_weather_city', city) } catch (e) {}
+          this._fetchWeather(city)
+        }
+      })
+      return
+    }
+    this._fetchWeather(city)
+  },
+
+  _fetchWeather(city) {
+    if (!wx.cloud) { this.setData({ weatherLoading: false }); return }
+    this.setData({ weatherLoading: true })
     wx.cloud.callFunction({
       name: 'getWeather', data: { city },
       success: (res) => {
