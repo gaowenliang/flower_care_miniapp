@@ -122,26 +122,31 @@ exports.main = async (event) => {
 }
 
 /**
- * 从百度返回结果中提取"科"
- * 百度植物识别的 baike_info.description 通常包含"xxx科xxx属"
+ * 从百度返回结果中提取科属信息
  */
+const STOP_CHARS = '是为有的在和与或也又没又名'
+
+function _extractKZ(text, suffix) {
+  const re = new RegExp('[\\u4e00-\\u9fa5]{1,6}' + suffix)
+  const m = text.match(re)
+  if (!m) return ''
+  let raw = m[0].replace(suffix, '')
+  while (raw.length > 0 && STOP_CHARS.includes(raw[0])) raw = raw.slice(1)
+  return raw ? raw + suffix : ''
+}
+
 function extractFamily(result) {
   const desc = (result.baike_info && result.baike_info.description) || ''
   const title = (result.baike_info && result.baike_info.title) || ''
   const text = desc + ' ' + title + ' ' + (result.name || '')
-  const match = text.match(/([\u4e00-\u9fa5]{1,6}科)/)
-  if (match) return match[1]
-  return ''
+  return _extractKZ(text, '\u79d1')
 }
 
-/**
- * 提取"属"
- */
 function extractGenus(result) {
   const desc = (result.baike_info && result.baike_info.description) || ''
   const title = (result.baike_info && result.baike_info.title) || ''
   const text = desc + ' ' + title + ' ' + (result.name || '')
-  const match = text.match(/([\u4e00-\u9fa5]{1,6}属)/)
-  if (match) return match[1]
-  return ''
+  const keMatch = text.match(/[\u4e00-\u9fa5]{1,6}\u79d1/)
+  const after = keMatch ? text.slice(keMatch.index + keMatch[0].length) : text
+  return _extractKZ(after, '\u5c5e')
 }
