@@ -127,8 +127,9 @@ exports.main = async (event) => {
  */
 function extractFamily(result) {
   const desc = (result.baike_info && result.baike_info.description) || ''
-  // 匹配"XX科"
-  const match = desc.match(/([\u4e00-\u9fa5]{1,4}科)/)
+  const title = (result.baike_info && result.baike_info.title) || ''
+  const text = desc + ' ' + title + ' ' + (result.name || '')
+  const match = text.match(/([\u4e00-\u9fa5]{1,6}科)/)
   if (match) return match[1]
   return ''
 }
@@ -138,7 +139,9 @@ function extractFamily(result) {
  */
 function extractGenus(result) {
   const desc = (result.baike_info && result.baike_info.description) || ''
-  const match = desc.match(/([\u4e00-\u9fa5]{1,4}属)/)
+  const title = (result.baike_info && result.baike_info.title) || ''
+  const text = desc + ' ' + title + ' ' + (result.name || '')
+  const match = text.match(/([\u4e00-\u9fa5]{1,6}属)/)
   if (match) return match[1]
   return ''
 }
