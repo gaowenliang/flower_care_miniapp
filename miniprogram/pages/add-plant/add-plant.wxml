@@ -92,7 +92,7 @@
       <view class="modal-body">
         <view class="form-item">
           <text class="form-label">给它取个名字</text>
-          <input class="form-input" placeholder="{{selectedPlant.name}}" bindinput="onNickNameInput" />
+          <input class="form-input" placeholder="{{selectedPlant.name}}" value="{{nickName}}" bindinput="onNickNameInput" />
         </view>
         <view class="form-item">
           <text class="form-label">放在哪里</text>
