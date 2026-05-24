@@ -83,7 +83,7 @@
 .form-input {
   border: 2rpx solid #E8F5E9; border-radius: 20rpx;
   padding: 28rpx 24rpx; font-size: 28rpx; color: #2D3436;
-  background: #F7F9F7;
+  background: #F7F9F7; line-height: 1.4;
   width: 100%; min-height: 48rpx;
   box-sizing: border-box;
 }
