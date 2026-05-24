@@ -50,7 +50,7 @@ function uploadImage(tempFilePath) {
  * 上传方形头像（自动居中裁切 + 压缩上传）
  */
 async function uploadSquareAvatar(tempFilePath) {
-  const squarePath = await resizeToSquare(tempFilePath, 300)
+  const squarePath = await resizeToSquare(tempFilePath, 150)
   return uploadImage(squarePath)
 }
 
@@ -74,7 +74,7 @@ function resizeToSquare(tempFilePath, maxSize) {
           img.onload = () => {
             ctx.drawImage(img, sx, sy, s, s, 0, 0, maxSize, maxSize)
             try {
-              const temp = canvas.toDataURL('image/jpeg', 0.7)
+              const temp = canvas.toDataURL('image/jpeg', 0.5)
               // toDataURL 返回 base64，写入临时文件
               const fs = wx.getFileSystemManager()
               const tmpPath = `${wx.env.USER_DATA_PATH}/avatar_${Date.now()}.jpg`
