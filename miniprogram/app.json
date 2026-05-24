@@ -30,16 +30,16 @@
         "selectedIconPath": "images/tab-garden-active.png"
       },
       {
-        "pagePath": "pages/add-plant/add-plant",
-        "text": "添加",
-        "iconPath": "images/tab-add.png",
-        "selectedIconPath": "images/tab-add-active.png"
-      },
-      {
         "pagePath": "pages/calendar/calendar",
         "text": "日历",
         "iconPath": "images/tab-calendar.png",
         "selectedIconPath": "images/tab-calendar-active.png"
+      },
+      {
+        "pagePath": "pages/add-plant/add-plant",
+        "text": "添加",
+        "iconPath": "images/tab-add.png",
+        "selectedIconPath": "images/tab-add-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
