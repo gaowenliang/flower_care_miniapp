@@ -36,11 +36,15 @@ Page({
     })
   },
 
-  addToGarden(e) {
-    const plantId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/add-plant/add-plant?identifyId=${plantId}`
-    })
+  selectPlant(e) {
+    const index = e.currentTarget.dataset.index
+    const plant = this.data.plants[index]
+    if (!plant) return
+    if (plant.matched) {
+      wx.navigateTo({ url: `/pages/add-plant/add-plant?identifyId=${plant.localId}` })
+    } else {
+      wx.navigateTo({ url: `/pages/add-plant/add-plant?customName=${encodeURIComponent(plant.name)}` })
+    }
   },
 
   retry() {

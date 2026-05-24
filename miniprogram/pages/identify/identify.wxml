@@ -1,33 +1,38 @@
 <!-- pages/identify/identify.wxml -->
 <view class="container">
+  <!-- 顶部拍照区 -->
   <view class="photo-preview" wx:if="{{photoPath}}">
     <image class="preview-img" src="{{photoPath}}" mode="aspectFit" />
   </view>
 
+  <!-- 拍照按钮 -->
+  <view class="camera-bar" wx:if="{{!photoPath && !loading}}">
+    <view class="btn-camera" bindtap="takePhoto">📸 拍照识别</view>
+    <view class="btn-camera btn-album" bindtap="fromAlbum">📷 从相册选</view>
+  </view>
+
   <!-- 识别结果 -->
   <view class="section" wx:if="{{plants.length > 0}}">
-    <view class="section-title">🔍 识别结果</view>
-    <view class="card result-card" wx:for="{{plants}}" wx:key="name">
-      <view class="result-header">
-        <text class="result-name">{{item.name}}</text>
-        <text class="result-score">{{item.score ? item.score + '%' : '参考'}}</text>
-      </view>
-      <view class="result-desc" wx:if="{{item.description}}">
-        <text>{{item.description}}</text>
-      </view>
-      <view class="result-match" wx:if="{{item.matched}}">
-        <text class="match-tag">✅ 数据库匹配</text>
-        <view class="match-care" wx:if="{{item.care}}">
-          <text>💧 每{{item.care.waterDays}}天浇水 · {{item.care.light}}</text>
+    <view class="section-title">🔍 识别结果 <text class="result-hint">（点击选择）</text></view>
+    <view class="result-list">
+      <view class="result-row {{item.matched ? 'matched' : ''}}" wx:for="{{plants}}" wx:key="name" bindtap="selectPlant" data-index="{{index}}">
+        <!-- 左：缩略图 -->
+        <image class="result-thumb" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+        <view class="result-thumb result-thumb-placeholder" wx:else>🌿</view>
+        <!-- 中：名字+描述 -->
+        <view class="result-info">
+          <view class="result-top">
+            <text class="result-name">{{item.name}}</text>
+            <text class="result-score">{{item.score ? item.score + '%' : '参考'}}</text>
+          </view>
+          <text class="result-desc" wx:if="{{item.description}}">{{item.description}}</text>
+          <view class="result-match" wx:if="{{item.matched}}">
+            <text class="match-tag">✅ 已收录 · 💧每{{item.care.waterDays}}天</text>
+          </view>
+          <text class="no-match" wx:elif="{{!item.matched}}">暂未收录，可自定义添加</text>
         </view>
-      </view>
-      <view class="result-actions">
-        <view class="btn-add" wx:if="{{item.matched}}" bindtap="addToGarden" data-id="{{item.localId}}">
-          加入花园
-        </view>
-        <view class="btn-add disabled" wx:else>
-          暂未收录
-        </view>
+        <!-- 右：箭头 -->
+        <text class="result-arrow">›</text>
       </view>
     </view>
   </view>
@@ -36,8 +41,10 @@
   <view class="section" wx:if="{{error}}">
     <view class="card error-card">
       <text class="error-text">{{error}}</text>
-      <view class="btn-retry" bindtap="retry">重新拍照</view>
-      <view class="btn-manual" bindtap="goManual">手动选择植物</view>
+      <view class="error-btns">
+        <view class="btn-retry" bindtap="retry">重新拍照</view>
+        <view class="btn-manual" bindtap="goManual">手动选择</view>
+      </view>
     </view>
   </view>
 
