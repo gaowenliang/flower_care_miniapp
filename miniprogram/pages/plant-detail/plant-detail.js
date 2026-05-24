@@ -779,7 +779,7 @@ Page({
     try {
       const aiIdentify = require('../../utils/ai-identify')
       const result = await aiIdentify.identifyFromUrl(this.data.userPlant.avatar)
-      if (result.success && result.plants.length > 0) {
+      if (result.plants && result.plants.length > 0) {
         this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
       } else {
         wx.showToast({ title: result.error || '识别失败', icon: 'none' })
@@ -800,8 +800,8 @@ Page({
         wx.showLoading({ title: 'AI识别中...' })
         try {
           const aiIdentify = require('../../utils/ai-identify')
-          const result = await aiIdentify.identify(tempPath)
-          if (result.success && result.plants.length > 0) {
+          const result = await aiIdentify.identifyImage(tempPath)
+          if (result.plants && result.plants.length > 0) {
             this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
           } else {
             wx.showToast({ title: result.error || '识别失败', icon: 'none' })

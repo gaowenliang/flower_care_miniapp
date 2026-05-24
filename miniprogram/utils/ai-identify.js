@@ -147,18 +147,22 @@ function readAndCheck(filePath, resolve) {
 }
 
 async function identifyFromUrl(imageUrl) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     wx.downloadFile({
       url: imageUrl,
       success: async (res) => {
         if (res.statusCode === 200) {
-          const result = await identifyImage(res.tempFilePath)
-          resolve(result)
+          try {
+            const result = await identifyImage(res.tempFilePath)
+            resolve(result)
+          } catch (e) {
+            resolve({ error: '识别失败: ' + (e.message || '') })
+          }
         } else {
           resolve({ error: '下载图片失败' })
         }
       },
-      fail: () => resolve({ error: '下载图片失败' })
+      fail: (err) => resolve({ error: '下载失败: ' + (err.errMsg || '') })
     })
   })
 }
