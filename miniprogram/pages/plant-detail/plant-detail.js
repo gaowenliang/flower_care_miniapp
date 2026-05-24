@@ -76,8 +76,12 @@ Page({
         const fresh = plants.find(p => p._id === id)
         if (fresh) {
           fresh.id = fresh._id || id
+          // 同步更新 plantInfo
+          let pi = { ...this.data.plantInfo }
+          pi = { ...pi, family: fresh.family || pi.family || '', genus: fresh.genus || pi.genus || '', latin: fresh.latin || pi.latin || '', category: fresh.family || pi.category || '' }
           this.setData({
             userPlant: fresh,
+            plantInfo: pi,
             adopterNames: family.getAdopterNames(fresh)
           })
           this.loadHealthScore()
@@ -95,7 +99,12 @@ Page({
       return
     }
 
-    const plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
+    let plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
+    if (!plantInfo) {
+      plantInfo = { name: userPlant.name || '', latin: userPlant.latin || '', category: userPlant.family || userPlant.category || '', family: userPlant.family || '', genus: userPlant.genus || '' }
+    } else {
+      plantInfo = { ...plantInfo, family: userPlant.family || plantInfo.family || '', genus: userPlant.genus || plantInfo.genus || '', latin: userPlant.latin || plantInfo.latin || '' }
+    }
     this.setData({ userPlant, plantInfo })
     this.loadTasks()
     this.loadRecords()
