@@ -726,6 +726,9 @@ Page({
     this.setData({ 'userPlant.avatar': '' })
   },
 
+  // 阻止冒泡
+  preventBubble() {},
+
   // ========== 分类识别功能 ==========
 
   showClassifyMenu() {
@@ -817,21 +820,24 @@ Page({
 
   // 从AI识别结果中选取信息更新
   selectClassifyItem(e) {
-    this.setData({ classifySelectedIdx: e.currentTarget.dataset.idx })
+    const idx = parseInt(e.currentTarget.dataset.idx)
+    this.setData({ classifySelectedIdx: idx })
   },
 
   applyClassifyResult() {
     const idx = this.data.classifySelectedIdx
-    if (idx < 0 || !this.data.classifyResults[idx]) {
+    if (idx < 0 || idx === undefined || idx === null) {
       wx.showToast({ title: '请先选择一个结果', icon: 'none' }); return
     }
     const r = this.data.classifyResults[idx]
+    if (!r) { wx.showToast({ title: '请先选择一个结果', icon: 'none' }); return }
     const updates = {}
     if (r.family) updates.family = r.family
     if (r.genus) updates.genus = r.genus
     if (r.name) updates.latin = r.name
+    // 先关弹窗再保存，避免重复点击
+    this.setData({ showClassifyResult: false, classifySelectedIdx: -1 })
     this._updatePlantClassify(updates)
-    this.setData({ showClassifyResult: false })
   },
   hideClassifyResult() {
     this.setData({ showClassifyResult: false })

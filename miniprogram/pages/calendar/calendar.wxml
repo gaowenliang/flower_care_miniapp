@@ -23,11 +23,7 @@
         </view>
       </picker>
       <view class="nav-btn" bindtap="nextMonth">▶</view>
-    </view>
-    <view class="month-actions">
-      <view class="import-btn" bindtap="startImport">
-        <text>{{importing ? '识别中...' : '📥 导入记录'}}</text>
-      </view>
+      <view class="import-btn" bindtap="startImport">{{importing ? '...' : '📥'}}</view>
     </view>
 
     <!-- 日历 -->
