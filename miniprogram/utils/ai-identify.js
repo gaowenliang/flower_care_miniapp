@@ -93,9 +93,16 @@ function matchLocal(plant) {
     plant.care = match.care
     plant.emoji = match.emoji
     plant.category = match.category
-    // 如果本地数据库有更准确的科属信息，用本地的
     if (match.family) plant.family = match.family
     if (match.genus) plant.genus = match.genus
+  } else {
+    // 没精确匹配，尝试按科属词模糊匹配
+    if (!plant.family) {
+      const fuzzy = plantsData.plants.find(local =>
+        (local.name && plant.name && (local.name.includes(plant.name) || plant.name.includes(local.name)))
+      )
+      if (fuzzy && fuzzy.family) plant.family = fuzzy.family
+    }
   }
 }
 

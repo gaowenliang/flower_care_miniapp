@@ -19,7 +19,8 @@ Page({
     inFamily: false,
     familyName: '',
     statsLoading: false,
-    userAvatar: ''
+    userAvatar: '',
+    expandedFamily: ''
   },
 
   async onShow() {
@@ -56,30 +57,38 @@ Page({
         families: {}
       }
       // 按科(family)归类
+      const familyPlants = {}
       plants.forEach(p => {
         const fam = p.family || '其他'
-        stats.families[fam] = (stats.families[fam] || 0) + 1
+        if (!familyPlants[fam]) familyPlants[fam] = []
+        familyPlants[fam].push(p)
       })
-      const familyList = Object.entries(stats.families)
-        .map(([name, count]) => ({
+      const familyList = Object.entries(familyPlants)
+        .map(([name, items]) => ({
           name,
-          count,
-          percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
+          count: items.length,
+          percent: plants.length > 0 ? Math.round(items.length / plants.length * 100) : 0,
+          plants: items.map(p => ({ id: p._id || p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
         }))
         .sort((a, b) => b.count - a.count)
       this.setData({ stats, familyList, settings: storage.getSettings() })
     } else {
       const stats = storage.getStats()
-      let familyList = []
-      if (stats.families) {
-        familyList = Object.entries(stats.families)
-          .map(([name, count]) => ({
-            name,
-            count,
-            percent: stats.totalPlants > 0 ? Math.round(count / stats.totalPlants * 100) : 0
-          }))
-          .sort((a, b) => b.count - a.count)
-      }
+      const garden = storage.getGarden()
+      const familyPlants = {}
+      garden.forEach(p => {
+        const fam = p.family || '其他'
+        if (!familyPlants[fam]) familyPlants[fam] = []
+        familyPlants[fam].push(p)
+      })
+      let familyList = Object.entries(familyPlants)
+        .map(([name, items]) => ({
+          name,
+          count: items.length,
+          percent: garden.length > 0 ? Math.round(items.length / garden.length * 100) : 0,
+          plants: items.map(p => ({ id: p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
+        }))
+        .sort((a, b) => b.count - a.count)
       this.setData({ stats, familyList, settings: storage.getSettings() })
     }
   },
@@ -159,6 +168,16 @@ Page({
 
   toggleAchievements() {
     this.setData({ showAchievements: !this.data.showAchievements })
+  },
+
+  toggleFamily(e) {
+    const name = e.currentTarget.dataset.name
+    this.setData({ expandedFamily: this.data.expandedFamily === name ? '' : name })
+  },
+
+  goPlantDetail(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${id}` })
   },
 
   loadMonthlyStats() {

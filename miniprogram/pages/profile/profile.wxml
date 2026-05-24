@@ -74,14 +74,26 @@
     </view>
   </view>
 
-  <!-- 花园分布 -->
+  <!-- 花园分布（按科） -->
   <view class="card">
-    <view class="cat-bar-row" wx:for="{{familyList}}" wx:key="name">
-      <text class="cat-bar-name">{{item.name}}</text>
-      <view class="cat-bar-wrap">
-        <view class="cat-bar-fill" style="width: {{item.percent}}%"></view>
+    <view class="section-title">🌳 按科分布</view>
+    <view class="family-group" wx:for="{{familyList}}" wx:key="name">
+      <view class="family-header-row" bindtap="toggleFamily" data-name="{{item.name}}">
+        <text class="family-bar-name">{{item.name}}</text>
+        <view class="family-bar-wrap">
+          <view class="family-bar-fill" style="width: {{item.percent}}%"></view>
+        </view>
+        <text class="family-bar-count">{{item.count}}棵</text>
+        <text class="family-arrow {{expandedFamily===item.name?'expanded':''}}">›</text>
       </view>
-      <text class="cat-bar-count">{{item.count}}棵</text>
+      <!-- 展开的植物列表 -->
+      <view class="family-plants" wx:if="{{expandedFamily===item.name}}">
+        <view class="family-plant-item" wx:for="{{item.plants}}" wx:for-item="plant" wx:key="id" bindtap="goPlantDetail" data-id="{{plant.id}}">
+          <text class="family-plant-emoji">{{plant.emoji}}</text>
+          <text class="family-plant-name">{{plant.name}}</text>
+          <text class="family-plant-loc" wx:if="{{plant.location}}">{{plant.location}}</text>
+        </view>
+      </view>
     </view>
     <view class="empty-hint" wx:if="{{!familyList || familyList.length === 0}}">
       <text>还没有植物哦~</text>
