@@ -146,55 +146,61 @@ Page({
     const taskId = e.currentTarget.dataset.id
     const task = this.data.tasks.find(t => (t.id || t._id) === taskId)
 
-    // 询问维护费用（可选）
+    // 先完成，再问费用（不阻塞完成操作）
+    const doComplete = async (cost) => {
+      cost = Math.round((cost || 0) * 100) / 100
+
+      if (this.data.isFamilyMode) {
+        const result = await family.completeTask(taskId)
+        if (!result.success) {
+          wx.showToast({ title: result.error || '操作失败', icon: 'none' }); return
+        }
+        if (cost > 0) {
+          await family.addRecord({
+            plantId: this.data.userPlant._id,
+            type: 'cost',
+            typeName: '维护花费',
+            note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
+            cost
+          })
+        }
+        wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
+        await this.loadFamilyTasks()
+        await this.loadFamilyRecords()
+        return
+      }
+
+      // 个人模式
+      storage.completeTask(taskId)
+      if (cost > 0) {
+        storage.addRecord({
+          id: util.genId(),
+          userPlantId: this.data.userPlant.id,
+          type: 'cost',
+          typeName: '维护花费',
+          date: Date.now(),
+          note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
+          cost
+        })
+      }
+      this.loadTasks()
+      this.loadRecords()
+      this.loadHealthScore()
+      wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
+    }
+
     wx.showModal({
       title: `完成「${task ? task.typeName : '养护'}」`,
       editable: true,
       placeholderText: '花费金额（元），不填则跳过',
       content: '',
       success: async (res) => {
-        if (!res.confirm) return
-        const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
-
-        if (this.data.isFamilyMode) {
-          const result = await family.completeTask(taskId)
-          if (result.success) {
-            // 如果有费用，追加一条花费记录
-            if (cost > 0) {
-              await family.addRecord({
-                plantId: this.data.userPlant._id,
-                type: 'cost',
-                typeName: '维护花费',
-                note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
-                cost
-              })
-            }
-            wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
-            await this.loadFamilyTasks()
-            await this.loadFamilyRecords()
-          } else {
-            wx.showToast({ title: result.error || '操作失败', icon: 'none' })
-          }
-          return
+        if (res.confirm) {
+          await doComplete(parseFloat(res.content) || 0)
+        } else {
+          // 取消 = 不记费用，但仍然完成
+          await doComplete(0)
         }
-
-        // 个人模式
-        storage.completeTask(taskId)
-        if (cost > 0) {
-          storage.addRecord({
-            id: util.genId(),
-            userPlantId: this.data.userPlant.id,
-            type: 'cost',
-            typeName: '维护花费',
-            date: Date.now(),
-            note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
-            cost
-          })
-        }
-        this.loadTasks()
-        this.loadRecords()
-        this.loadHealthScore()
-        wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
       }
     })
   },

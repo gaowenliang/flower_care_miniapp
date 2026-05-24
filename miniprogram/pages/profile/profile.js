@@ -1,6 +1,7 @@
 // pages/profile/profile.js - v3 + 家庭模式入口
 const storage = require('../../utils/storage')
 const family = require('../../utils/family')
+const util = require('../../utils/util')
 
 Page({
   data: {
@@ -260,7 +261,6 @@ Page({
 
     // 最近花费记录
     const recentCosts = costRecords.sort((a, b) => b.date - a.date).slice(0, 10)
-    const util = require('../../utils/util')
     recentCosts.forEach(r => {
       r.dateStr = util.formatDate(r.date)
       const plant = garden.find(p => p.id === (r.userPlantId || r.plantId))

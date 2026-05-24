@@ -222,13 +222,15 @@ async function updatePlant(event, openid, familyId) {
   const { plantId, updates } = event
   if (!plantId || !updates) return { success: false, error: '缺少参数' }
 
-  delete updates._id
-  delete updates.familyId
-  delete updates.addedBy
-  delete updates.adopters // 不能直接改认养关系
+  // 白名单：只允许更新这些字段
+  const allowed = ['nickname', 'location', 'emoji', 'avatar', 'photo', 'purchasePrice', 'purchaseDate', 'purchaseSource']
+  const safe = {}
+  for (const key of allowed) {
+    if (updates[key] !== undefined) safe[key] = updates[key]
+  }
 
   await db.collection('family_plants').doc(plantId).update({
-    data: { ...updates, updatedAt: Date.now() }
+    data: { ...safe, updatedAt: Date.now() }
   })
   return { success: true }
 }
@@ -354,15 +356,19 @@ async function updateTask(event, openid, familyId) {
   const taskRes = await db.collection('family_tasks').doc(taskId).get()
   if (!taskRes.data || taskRes.data.familyId !== familyId) return { success: false, error: '任务不存在' }
 
-  const updateData = { ...updates }
-  if (updateData.intervalDays) {
-    updateData.nextDate = (taskRes.data.lastDoneDate || Date.now()) + updateData.intervalDays * 86400000
-    if (updateData.nextDate < Date.now()) {
-      updateData.nextDate = Date.now() + updateData.intervalDays * 86400000
+  const allowed = ['intervalDays', 'enabled', 'typeName']
+  const safe = {}
+  for (const key of allowed) {
+    if (updates[key] !== undefined) safe[key] = updates[key]
+  }
+  if (safe.intervalDays) {
+    safe.nextDate = (taskRes.data.lastDoneDate || Date.now()) + safe.intervalDays * 86400000
+    if (safe.nextDate < Date.now()) {
+      safe.nextDate = Date.now() + safe.intervalDays * 86400000
     }
   }
 
-  await db.collection('family_tasks').doc(taskId).update({ data: updateData })
+  await db.collection('family_tasks').doc(taskId).update({ data: safe })
   return { success: true }
 }
 

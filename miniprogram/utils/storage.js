@@ -41,6 +41,9 @@ const StorageManager = {
 
   addPlant(userPlant) {
     const garden = this.getGarden()
+    // 防重复（同 plantId + 同 nickname 不重复添加）
+    const dup = garden.find(p => p.plantId === userPlant.plantId && p.nickname === userPlant.nickname)
+    if (dup) return garden
     garden.push(userPlant)
     this.saveGarden(garden)
     return garden
