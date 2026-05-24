@@ -71,6 +71,11 @@
     <view class="weather-card loading" wx:elif="{{weatherLoading}}">
       <text class="weather-desc">正在获取天气...</text>
     </view>
+    <view class="weather-card error" wx:elif="{{weatherError}}" bindtap="loadWeather">
+      <text class="weather-emoji">⚠️</text>
+      <text class="weather-desc">天气获取异常</text>
+      <text class="weather-error">{{weatherError}}（点击重试）</text>
+    </view>
 
     <!-- 统计条 -->
     <view class="stats-bar" wx:if="{{hasPlants && stats}}">

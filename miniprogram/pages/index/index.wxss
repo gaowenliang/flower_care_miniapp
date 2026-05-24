@@ -67,10 +67,12 @@
 /* 统计条 */
 /* 天气卡片 */
 .weather-card { display: flex; align-items: center; gap: 12rpx; background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-radius: 14rpx; padding: 16rpx 20rpx; margin: 0 8rpx 12rpx; }
+.weather-card.error { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
 .weather-emoji { font-size: 32rpx; }
 .weather-temp { font-size: 28rpx; font-weight: 700; color: #1565C0; }
 .weather-desc { font-size: 24rpx; color: #1976D2; }
 .weather-detail { font-size: 22rpx; color: #64B5F6; margin-left: auto; }
+.weather-error { font-size: 20rpx; color: #E65100; flex: 1; text-align: right; }
 
 .stats-bar { display: flex; gap: 12rpx; padding: 0 8rpx; margin-bottom: 16rpx; }
 .stat-chip {

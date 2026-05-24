@@ -29,7 +29,8 @@ Page({
     isFamilyMode: false,
     // 天气
     weather: null,
-    weatherLoading: false
+    weatherLoading: false,
+    weatherError: ''
   },
 
   onShow() {
@@ -259,13 +260,16 @@ Page({
     try {
       const cached = wx.getStorageSync('_weather_cache')
       if (cached && Date.now() - cached._t < 30 * 60000) {
-        this.setData({ weather: cached.data })
+        this.setData({ weather: cached.data, weatherError: '' })
         this._checkRainyDayFromCache(cached.data)
         return
       }
     } catch (e) {}
-    if (!wx.cloud) return
-    this.setData({ weatherLoading: true })
+    if (!wx.cloud) {
+      this.setData({ weatherError: '云开发未启用' })
+      return
+    }
+    this.setData({ weatherLoading: true, weatherError: '' })
     let city = ''
     try { city = wx.getStorageSync('_weather_city') || '' } catch (e) {}
     if (!city) {
@@ -289,7 +293,7 @@ Page({
   },
 
   _fetchWeather(city) {
-    if (!wx.cloud) { this.setData({ weatherLoading: false }); return }
+    if (!wx.cloud) { this.setData({ weatherLoading: false, weatherError: '云开发未启用' }); return }
     this.setData({ weatherLoading: true })
     wx.cloud.callFunction({
       name: 'getWeather', data: { city },
@@ -302,9 +306,9 @@ Page({
           this.setData({ weather: data, weatherLoading: false })
           try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
           this._checkRainyDayFromCache(data)
-        } else { this.setData({ weatherLoading: false }) }
+        } else { this.setData({ weatherLoading: false, weatherError: res.result ? (res.result.error || '天气数据为空') : '云函数返回异常' }) }
       },
-      fail: () => { this.setData({ weatherLoading: false }) }
+      fail: (err) => { this.setData({ weatherLoading: false, weatherError: '云函数调用失败：' + (err.errMsg || '未知错误') }) }
     })
   },
 
