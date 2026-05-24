@@ -1,0 +1,7 @@
+{
+  "name": "importScreenshot",
+  "version": "1.0.0",
+  "description": "从APP截图导入植物养护记录",
+  "main": "index.js",
+  "dependencies": {}
+}

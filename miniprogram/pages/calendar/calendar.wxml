@@ -18,6 +18,9 @@
       <view class="nav-btn" bindtap="prevMonth">◀</view>
       <text class="month-text">{{year}}年{{month}}月</text>
       <view class="nav-btn" bindtap="nextMonth">▶</view>
+      <view class="import-btn" bindtap="startImport">
+        <text>{{importing ? '识别中...' : '📥导入'}}</text>
+      </view>
     </view>
 
     <!-- 日历 -->
@@ -74,6 +77,27 @@
     </view>
     <view class="card empty-hint" wx:else>
       <text>还没有成长照片，去给植物拍几张吧~</text>
+    </view>
+  </view>
+
+  <!-- 导入确认弹窗 -->
+  <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="hideImportModal">
+    <view class="modal-content import-modal" catchtap="">
+      <view class="modal-title">📥 导入养护记录</view>
+      <text class="import-hint">已从截图中识别到以下记录，请确认导入：</text>
+      <view class="import-list">
+        <view class="import-item {{importChecked[index] ? 'checked' : ''}}" wx:for="{{importRecords}}" wx:key="index" bindtap="toggleImportItem" data-idx="{{index}}">
+          <text class="import-check">{{importChecked[index] ? '✅' : '⬜'}}</text>
+          <view class="import-info">
+            <text class="import-plant">{{item.plantName}}</text>
+            <text class="import-action">{{item.action}} {{item.date}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideImportModal">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmImport">导入</view>
+      </view>
     </view>
   </view>
 </view>
