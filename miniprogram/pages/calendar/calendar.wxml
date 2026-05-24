@@ -24,9 +24,9 @@
       </picker>
       <view class="nav-btn" bindtap="nextMonth">▶</view>
     </view>
-    <view class="nav-bar-right">
+    <view class="month-actions">
       <view class="import-btn" bindtap="startImport">
-        <text>{{importing ? '...' : '📥'}}</text>
+        <text>{{importing ? '识别中...' : '📥 导入记录'}}</text>
       </view>
     </view>
 

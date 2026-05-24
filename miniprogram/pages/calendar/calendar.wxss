@@ -2,9 +2,8 @@
 .month-nav {
   display: flex; justify-content: center; align-items: center;
   padding: 16rpx 28rpx; background: #FFFFFF;
-  border-radius: 24rpx; margin-bottom: 16rpx;
+  border-radius: 24rpx 24rpx 0 0;
   box-shadow: 0 2rpx 12rpx rgba(76,175,80,0.05);
-  position: relative;
 }
 .nav-btn {
   font-size: 28rpx; color: #4CAF50;
@@ -14,8 +13,8 @@
 .month-picker { display: flex; align-items: center; gap: 8rpx; padding: 8rpx 24rpx; }
 .month-text { font-size: 32rpx; font-weight: 600; color: #2D3436; }
 .month-arrow { font-size: 24rpx; color: #999; }
-.nav-bar-right { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); }
-.import-btn { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; background: #4CAF50; color: #fff; border-radius: 50%; font-size: 28rpx; }
+.month-actions { display: flex; justify-content: flex-end; padding: 8rpx 28rpx 16rpx; background: #fff; border-radius: 0 0 24rpx 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(76,175,80,0.05); }
+.import-btn { padding: 10rpx 24rpx; background: #4CAF50; color: #fff; border-radius: 20rpx; font-size: 24rpx; }
 .import-btn:active { background: #388E3C; }
 
 /* 日历网格 */
