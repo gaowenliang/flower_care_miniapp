@@ -216,7 +216,7 @@ async function generateSmartTips(plantInfo, location, city) {
   cleanOldCache(dateStr)
 
   // 检查缓存
-  const cacheKey = `smartTips_${plantInfo.id}_${dateStr}`
+  const cacheKey = `smartTips_${(plantInfo && plantInfo.id) || 'custom'}_${dateStr}`
   try {
     const cached = wx.getStorageSync(cacheKey)
     if (cached && cached.length > 0) return cached
@@ -244,7 +244,8 @@ async function generateSmartTips(plantInfo, location, city) {
   }
 
   // 3. 位置贴士（1条）
-  const locRules = LOCATION_TIPS[location] || LOCATION_TIPS['室内']
+  const locKey = location || '室内'
+  const locRules = LOCATION_TIPS[locKey] || LOCATION_TIPS['室内']
   if (locRules) {
     const seasonLoc = locRules[season] || locRules['default']
     if (seasonLoc) {
@@ -256,7 +257,7 @@ async function generateSmartTips(plantInfo, location, city) {
   }
 
   // 4. 原始贴士补充（如果不够5条）
-  if (tips.length < 3 && plantInfo.tips) {
+  if (tips.length < 3 && plantInfo && plantInfo.tips) {
     const remaining = plantInfo.tips.filter(t => !tips.includes(t))
     tips.push(...remaining.slice(0, 3 - tips.length))
   }

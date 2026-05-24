@@ -26,16 +26,6 @@ Page({
     // 读取用户头像
     try { this.setData({ userAvatar: wx.getStorageSync('_user_avatar') || '' }) } catch (e) {}
     await this.loadFamilyStatus()
-    if (this.data.inFamily) {
-      // 家庭模式：直接用最新云端数据算统计，避免缓存过期跳变
-      try {
-        const [plantsRes, tasksRes, recordsRes] = await Promise.all([
-          family.getPlants(true),
-          family.getTasks('', true),
-          family.getRecords('', 100, true)
-        ])
-      } catch (e) { console.error('加载家庭数据失败:', e) }
-    }
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
@@ -44,7 +34,10 @@ Page({
 
   async loadStats() {
     if (this.data.inFamily) {
-      // 家庭模式：从云端数据算统计
+      // 家庭模式：刷新缓存后算统计
+      await family.getPlants(true).catch(() => {})
+      await family.getTasks('', true).catch(() => {})
+      await family.getRecords('', 100, true).catch(() => {})
       const plants = family.getCachedPlants()
       const tasks = family.getCachedTasks('')
       const records = family.getCachedRecords('')

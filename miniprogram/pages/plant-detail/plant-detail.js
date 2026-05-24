@@ -437,6 +437,7 @@ Page({
                 try {
                   await family.addRecord({
                     plantId: this.data.userPlant._id || this.data.userPlant.id,
+                    date: selected.ts + 12 * 3600000,
                     type: 'retro',
                     typeName: '补卡',
                     note: `补 ${selected.label} 养护记录`
@@ -448,7 +449,7 @@ Page({
                   retroData[monthKey].push(selected.ts)
                   try { wx.setStorageSync('_family_retro', retroData) } catch (e) {}
                   wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
-                  this.loadRecords()
+                  this.loadFamilyRecords()
                 } catch (e) {
                   wx.showToast({ title: '补卡失败', icon: 'none' })
                 }

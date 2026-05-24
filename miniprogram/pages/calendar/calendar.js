@@ -151,7 +151,11 @@ Page({
 
   onPullDownRefresh() {
     this.buildCalendar()
-    this.loadPhotoTimeline()
+    if (this.data.isFamilyMode) {
+      this.loadFamilyPhotoTimeline()
+    } else {
+      this.loadPhotoTimeline()
+    }
     wx.stopPullDownRefresh()
   }
 })
