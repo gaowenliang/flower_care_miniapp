@@ -139,6 +139,7 @@ async function addPlant(event, openid, familyId) {
       avatar: plant.avatar || null,
       purchasePrice: plant.price || plant.purchasePrice || 0,
       purchaseDate: plant.purchaseDate || null,
+      purchaseSource: plant.purchaseSource || '',
       addedBy: openid,
       addedAt: now,
       createdAt: now,

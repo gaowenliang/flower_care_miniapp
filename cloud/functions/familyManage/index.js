@@ -390,8 +390,29 @@ async function getReport(openid, { period }) {
 
   const typeStats = {}; records.forEach(r => { typeStats[r.typeName || r.type] = (typeStats[r.typeName || r.type] || 0) + 1 })
 
+  // 花费统计
+  const costRecords = records.filter(r => r.type === 'cost' && r.cost > 0)
+  const totalMaintenanceCost = costRecords.reduce((s, r) => s + r.cost, 0)
+  const memberCosts = {}
+  costRecords.forEach(r => {
+    if (!memberCosts[r.createdBy]) memberCosts[r.createdBy] = 0
+    memberCosts[r.createdBy] += r.cost
+  })
+
+  // 购入花费
+  const plantsRes = await db.collection('family_plants').where({ familyId }).get()
+  const totalPurchaseCost = plantsRes.data.reduce((s, p) => s + (p.purchasePrice || 0), 0)
+
   return {
     success: true, period, totalRecords: records.length, typeStats,
+    costStats: {
+      totalPurchase: Math.round(totalPurchaseCost * 100) / 100,
+      totalMaintenance: Math.round(totalMaintenanceCost * 100) / 100,
+      totalAll: Math.round((totalPurchaseCost + totalMaintenanceCost) * 100) / 100,
+      memberCosts: Object.entries(memberCosts).map(([openid, cost]) => ({
+        openid, nickname: (memberMap[openid] || {}).nickname || '未知', cost: Math.round(cost * 100) / 100
+      })).sort((a, b) => b.cost - a.cost)
+    },
     memberStats: Object.values(memberStats).sort((a, b) => b.total - a.total).map(s => ({ ...s, nickname: (memberMap[s.openid] || {}).nickname || '未知' }))
   }
 }

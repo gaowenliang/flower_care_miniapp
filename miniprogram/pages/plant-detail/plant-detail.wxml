@@ -35,6 +35,7 @@
           <text class="price-label">💰 购入</text>
           <text class="price-value">¥{{userPlant.purchasePrice}}</text>
           <text class="price-date" wx:if="{{userPlant.purchaseDate}}"> · {{userPlant.purchaseDateStr || ''}}</text>
+          <text class="price-source" wx:if="{{userPlant.purchaseSource}}"> · {{userPlant.purchaseSource}}</text>
           <text class="edit-icon-sm" bindtap="editPrice">✏️</text>
         </view>
         <view class="header-price-row" wx:else>

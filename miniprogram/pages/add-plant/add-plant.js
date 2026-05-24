@@ -19,6 +19,8 @@ Page({
     waterDays: 7,
     price: '',
     purchaseDate: '',
+    purchaseSource: '',
+    sourceOptions: ['花店', '网购', '花市', '亲友赠', '其他'],
     allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园'],
     // 自定义添加
     showCustomModal: false,
@@ -28,6 +30,7 @@ Page({
     customWaterDays: 7,
     customPrice: '',
     customPurchaseDate: '',
+    customPurchaseSource: '',
     emojiOptions: ['🌱', '🌿', '🪴', '🌸', '🌺', '🌻', '🌹', '🌵', '🍀', '🪻', '🪷', '🌾', '🍃', '🌳', '🌴', '🫐', '🍅', '🌶️', '🧄', '💐']
   },
 
@@ -187,6 +190,10 @@ Page({
     this.setData({ customPurchaseDate: e.detail.value })
   },
 
+  selectCustomSource(e) {
+    this.setData({ customPurchaseSource: e.currentTarget.dataset.value })
+  },
+
   async confirmCustomAdd() {
     const nameCheck = validator.validateNickname(this.data.customName)
     if (!nameCheck.valid) {
@@ -202,6 +209,7 @@ Page({
     const nickname = nameCheck.value
     const price = parseFloat(this.data.customPrice) || 0
     const purchaseDate = this.data.customPurchaseDate || ''
+    const purchaseSource = this.data.customPurchaseSource || ''
 
     // 家庭模式
     if (family.isInFamily()) {
@@ -217,7 +225,8 @@ Page({
         location: this.data.customLocation,
         waterDays: this.data.customWaterDays,
         price,
-        purchaseDate
+        purchaseDate,
+        purchaseSource
       })
       wx.hideLoading()
       if (result.success) {
@@ -244,7 +253,8 @@ Page({
       addedAt: Date.now(),
       photo: null,
       purchasePrice: price,
-      purchaseDate: purchaseDate || Date.now()
+      purchaseDate: purchaseDate || Date.now(),
+      purchaseSource: purchaseSource
     }
 
     storage.addPlant(userPlant)
@@ -314,6 +324,10 @@ Page({
     this.setData({ purchaseDate: e.detail.value })
   },
 
+  selectSource(e) {
+    this.setData({ purchaseSource: e.currentTarget.dataset.value })
+  },
+
   async confirmAdd() {
     const plant = this.data.selectedPlant
     if (!plant) return
@@ -333,6 +347,7 @@ Page({
     const location = this.data.location || '阳台'
     const price = parseFloat(this.data.price) || 0
     const purchaseDate = this.data.purchaseDate || ''
+    const purchaseSource = this.data.purchaseSource || ''
 
     // 家庭模式
     if (family.isInFamily()) {
@@ -348,7 +363,8 @@ Page({
         location,
         waterDays: this.data.waterDays,
         price,
-        purchaseDate
+        purchaseDate,
+        purchaseSource
       })
       wx.hideLoading()
       if (result.success) {
@@ -375,7 +391,8 @@ Page({
       addedAt: Date.now(),
       photo: null,
       purchasePrice: price,
-      purchaseDate: purchaseDate || Date.now()
+      purchaseDate: purchaseDate || Date.now(),
+      purchaseSource: purchaseSource
     }
 
     storage.addPlant(userPlant)

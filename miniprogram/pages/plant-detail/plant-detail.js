@@ -617,25 +617,46 @@ Page({
 
   editPrice() {
     const current = this.data.userPlant.purchasePrice || ''
+    const currentSource = this.data.userPlant.purchaseSource || ''
     wx.showModal({
-      title: '💰 购入价格',
+      title: '💰 购入信息',
       editable: true,
       placeholderText: '输入价格，如 29.9',
       content: current ? String(current) : '',
       success: async (res) => {
-        if (res.confirm) {
-          const price = Math.round((parseFloat(res.content) || 0) * 100) / 100
-          if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
-          if (this.data.isFamilyMode) {
-            await family.updatePlant(this.data.userPlant._id, { purchasePrice: price })
-          } else {
-            storage.updatePlant(this.data.userPlant.id, { purchasePrice: price })
-          }
-          this.setData({ 'userPlant.purchasePrice': price })
-          wx.showToast({ title: price > 0 ? '已设置' : '已清除', icon: 'none' })
+        if (!res.confirm) return
+        const price = Math.round((parseFloat(res.content) || 0) * 100) / 100
+        if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
+        // 价格设好后，问渠道
+        if (price > 0 && !currentSource) {
+          wx.showActionSheet({
+            itemList: ['花店', '网购', '花市', '亲友赠', '其他'],
+            success: async (sheetRes) => {
+              const sources = ['花店', '网购', '花市', '亲友赠', '其他']
+              const source = sources[sheetRes.tapIndex]
+              await this._savePrice(price, source)
+            },
+            fail: async () => {
+              await this._savePrice(price, '')
+            }
+          })
+        } else {
+          await this._savePrice(price, currentSource)
         }
       }
     })
+  },
+
+  async _savePrice(price, source) {
+    const updates = { purchasePrice: price }
+    if (source) updates.purchaseSource = source
+    if (this.data.isFamilyMode) {
+      await family.updatePlant(this.data.userPlant._id, updates)
+    } else {
+      storage.updatePlant(this.data.userPlant.id, updates)
+    }
+    this.setData({ 'userPlant.purchasePrice': price, 'userPlant.purchaseSource': source })
+    wx.showToast({ title: price > 0 ? '已设置' : '已清除', icon: 'none' })
   },
 
   onShareAppMessage() {

@@ -111,6 +111,12 @@
           </picker>
         </view>
         <view class="form-item">
+          <text class="form-label">🏪 购入渠道</text>
+          <view class="location-options">
+            <view class="loc-opt {{purchaseSource === item ? 'active' : ''}}" wx:for="{{sourceOptions}}" wx:key="*this" bindtap="selectSource" data-value="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        <view class="form-item">
           <text class="form-label">💧 浇水周期</text>
           <view class="interval-control">
             <view class="interval-btn" bindtap="adjustWaterDays" data-delta="-1">−</view>
@@ -161,6 +167,12 @@
           <picker mode="date" value="{{customPurchaseDate}}" bindchange="onCustomPurchaseDateChange">
             <view class="form-input picker-value">{{customPurchaseDate || '选填，点击选择'}} ›</view>
           </picker>
+        </view>
+        <view class="form-item">
+          <text class="form-label">🏪 购入渠道</text>
+          <view class="location-options">
+            <view class="loc-opt {{customPurchaseSource === item ? 'active' : ''}}" wx:for="{{sourceOptions}}" wx:key="*this" bindtap="selectCustomSource" data-value="{{item}}">{{item}}</view>
+          </view>
         </view>
         <view class="form-item">
           <text class="form-label">💧 浇水周期</text>

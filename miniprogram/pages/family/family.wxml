@@ -114,6 +114,21 @@
           <view class="type-list">
             <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name"><view class="type-emoji">{{item.emoji}}</view><view class="type-name">{{item.name}}</view><view class="type-count">{{item.count}}次</view></view>
           </view>
+
+          <!-- 花费统计 -->
+          <view class="section-title" wx:if="{{reportData.costStats}}">💰 花费统计</view>
+          <view class="stat-overview" wx:if="{{reportData.costStats}}">
+            <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalAll}}</view><view class="stat-label">总花费</view></view>
+            <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalPurchase}}</view><view class="stat-label">购入</view></view>
+            <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalMaintenance}}</view><view class="stat-label">维护</view></view>
+          </view>
+          <view class="type-list" wx:if="{{reportData.costStats && reportData.costStats.memberCosts.length > 0}}">
+            <view class="type-item" wx:for="{{reportData.costStats.memberCosts}}" wx:key="openid">
+              <view class="type-emoji">💸</view>
+              <view class="type-name">{{item.nickname}}</view>
+              <view class="type-count">¥{{item.cost}}</view>
+            </view>
+          </view>
         </view>
       </view>
     </view>
