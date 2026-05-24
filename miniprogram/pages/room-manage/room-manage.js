@@ -2,16 +2,27 @@
 const storage = require('../../utils/storage')
 
 const PRESET_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+const ENV_OPTIONS = {
+  ventilation: ['极差', '差', '一般', '良好', '极佳'],
+  lighting: ['阴暗', '弱光', '散射光', '明亮', '强光'],
+  humidity: ['极干', '干燥', '适中', '潮湿', '极潮'],
+  temperature: ['寒冷', '偏凉', '常温', '温暖', '炎热']
+}
+const ENV_DEFAULT = { ventilation: 2, lighting: 2, humidity: 2, temperature: 2 }
 
 Page({
   data: {
     rooms: [],
     showAddModal: false,
     newRoomName: '',
-    // 编辑环境参数
     editingRoom: null,
     showEnvModal: false,
-    envForm: { ventilation: '一般', lighting: '散射光', humidity: '适中', temperature: '常温' }
+    envForm: { ...ENV_DEFAULT },
+    // 选项数据
+    ventilationOptions: ENV_OPTIONS.ventilation,
+    lightingOptions: ENV_OPTIONS.lighting,
+    humidityOptions: ENV_OPTIONS.humidity,
+    temperatureOptions: ENV_OPTIONS.temperature
   },
 
   onShow() {
@@ -23,11 +34,16 @@ Page({
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
 
-    const rooms = [...PRESET_ROOMS, ...customRooms.filter(r => !PRESET_ROOMS.includes(r))].map(name => ({
-      name,
-      isPreset: PRESET_ROOMS.includes(name),
-      env: roomEnvs[name] || null
-    }))
+    const rooms = [...PRESET_ROOMS, ...customRooms.filter(r => !PRESET_ROOMS.includes(r))].map(name => {
+      const envRaw = roomEnvs[name]
+      const env = envRaw ? {
+        ventilation: ENV_OPTIONS.ventilation[envRaw.ventilation] || '',
+        lighting: ENV_OPTIONS.lighting[envRaw.lighting] || '',
+        humidity: ENV_OPTIONS.humidity[envRaw.humidity] || '',
+        temperature: ENV_OPTIONS.temperature[envRaw.temperature] || ''
+      } : null
+      return { name, isPreset: PRESET_ROOMS.includes(name), env }
+    })
     this.setData({ rooms })
   },
 
@@ -77,18 +93,18 @@ Page({
   editEnv(e) {
     const name = e.currentTarget.dataset.name
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
-    const env = roomEnvs[name] || { ventilation: '一般', lighting: '散射光', humidity: '适中', temperature: '常温' }
+    const saved = roomEnvs[name] || null
     this.setData({
       showEnvModal: true,
       editingRoom: name,
-      envForm: { ...env }
+      envForm: saved ? { ...saved } : { ...ENV_DEFAULT }
     })
   },
 
-  onVentilationChange(e) { this.setData({ 'envForm.ventilation': e.detail.value }) },
-  onLightingChange(e) { this.setData({ 'envForm.lighting': e.detail.value }) },
-  onHumidityChange(e) { this.setData({ 'envForm.humidity': e.detail.value }) },
-  onTemperatureChange(e) { this.setData({ 'envForm.temperature': e.detail.value }) },
+  onVentilationChange(e) { this.setData({ 'envForm.ventilation': Number(e.detail.value) }) },
+  onLightingChange(e) { this.setData({ 'envForm.lighting': Number(e.detail.value) }) },
+  onHumidityChange(e) { this.setData({ 'envForm.humidity': Number(e.detail.value) }) },
+  onTemperatureChange(e) { this.setData({ 'envForm.temperature': Number(e.detail.value) }) },
 
   saveEnv() {
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
