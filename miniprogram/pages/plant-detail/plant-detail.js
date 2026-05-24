@@ -809,14 +809,26 @@ Page({
 
   // 内部：更新植物分类信息
   async _updatePlantClassify(updates) {
+    // 更新本地显示
     const up = { ...this.data.userPlant, ...updates }
-    this.setData({ userPlant: up })
-    if (this.data.isFamilyMode) {
+    const pi = { ...this.data.plantInfo }
+    if (updates.family) pi.category = updates.family
+    if (updates.genus) pi.genus = updates.genus
+    if (updates.latin) pi.latin = updates.latin
+    this.setData({ userPlant: up, plantInfo: pi })
+
+    // 保存到数据库
+    const plantId = this.data.userPlant._id || this.data.userPlant.id
+    if (this.data.isFamilyMode && plantId) {
       try {
-        await family.updatePlant(this.data.userPlant.id, updates)
+        await family.updatePlant(plantId, updates)
+        // 刷新缓存
+        await family.getPlants(true)
       } catch (e) {
-        wx.showToast({ title: '保存失败', icon: 'none' })
+        wx.showToast({ title: '保存失败', icon: 'none' }); return
       }
+    } else if (!this.data.isFamilyMode) {
+      storage.updatePlant(this.data.userPlant.id, updates)
     }
     wx.showToast({ title: '已更新', icon: 'none' })
   }
