@@ -31,7 +31,8 @@ Page({
     classifySearchKey: '',
     classifySearchResults: [],
     showClassifyResult: false,
-    classifyResult: null
+    classifyResults: [],
+    classifySelectedIdx: -1
   },
 
   onLoad(options) {
@@ -780,7 +781,7 @@ Page({
       const aiIdentify = require('../../utils/ai-identify')
       const result = await aiIdentify.identifyFromUrl(this.data.userPlant.avatar)
       if (result.plants && result.plants.length > 0) {
-        this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
+        this.setData({ showClassifyResult: true, classifyResults: result.plants.slice(0, 5), classifySelectedIdx: -1 })
       } else {
         wx.showToast({ title: result.error || '识别失败', icon: 'none' })
       }
@@ -802,7 +803,7 @@ Page({
           const aiIdentify = require('../../utils/ai-identify')
           const result = await aiIdentify.identifyImage(tempPath)
           if (result.plants && result.plants.length > 0) {
-            this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
+            this.setData({ showClassifyResult: true, classifyResults: result.plants.slice(0, 5), classifySelectedIdx: -1 })
           } else {
             wx.showToast({ title: result.error || '识别失败', icon: 'none' })
           }
@@ -815,9 +816,16 @@ Page({
   },
 
   // 从AI识别结果中选取信息更新
+  selectClassifyItem(e) {
+    this.setData({ classifySelectedIdx: e.currentTarget.dataset.idx })
+  },
+
   applyClassifyResult() {
-    const r = this.data.classifyResult
-    if (!r) return
+    const idx = this.data.classifySelectedIdx
+    if (idx < 0 || !this.data.classifyResults[idx]) {
+      wx.showToast({ title: '请先选择一个结果', icon: 'none' }); return
+    }
+    const r = this.data.classifyResults[idx]
     const updates = {}
     if (r.family) updates.family = r.family
     if (r.genus) updates.genus = r.genus

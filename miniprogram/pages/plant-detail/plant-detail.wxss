@@ -242,15 +242,27 @@
 .action-item.cancel { color: #999; border-bottom: none; margin-top: 8rpx; }
 
 /* 分类弹窗 */
-.classify-modal { max-height: 85vh; overflow-y: auto; }
+.classify-modal { max-height: 85vh; display: flex; flex-direction: column; }
 .search-results { max-height: 300rpx; overflow-y: auto; margin: 16rpx 0; }
 .search-item { padding: 20rpx 24rpx; border-bottom: 1rpx solid #f5f5f5; font-size: 28rpx; color: #333; }
 .search-item:active { background: #f5f5f5; }
 
-/* 识别结果 */
-.classify-result { padding: 16rpx 0; }
-.result-name { display: block; font-size: 32rpx; font-weight: bold; color: #2D3436; }
-.result-score { display: block; font-size: 24rpx; color: #4CAF50; margin-top: 4rpx; }
-.result-tags { display: flex; gap: 12rpx; margin-top: 12rpx; }
-.result-tag { font-size: 24rpx; background: #E8F5E9; color: #2E7D32; padding: 4rpx 16rpx; border-radius: 8rpx; }
-.result-desc { display: block; font-size: 24rpx; color: #757575; margin-top: 12rpx; line-height: 1.5; max-height: 120rpx; overflow: hidden; }
+/* 识别结果列表 */
+.classify-list { flex: 1; overflow-y: auto; max-height: 55vh; }
+.classify-item { padding: 16rpx 12rpx; border-bottom: 1rpx solid #f0f0f0; border-radius: 12rpx; margin-bottom: 8rpx; }
+.classify-item.selected { background: #E8F5E9; border: 2rpx solid #4CAF50; }
+.classify-item-header { display: flex; align-items: center; gap: 12rpx; }
+.classify-check { font-size: 32rpx; }
+.classify-name { font-size: 30rpx; font-weight: bold; color: #2D3436; flex: 1; }
+.classify-score { font-size: 24rpx; color: #4CAF50; font-weight: 600; }
+.classify-tags { display: flex; gap: 8rpx; margin-top: 8rpx; padding-left: 44rpx; }
+.classify-tag { font-size: 22rpx; background: #E8F5E9; color: #2E7D32; padding: 4rpx 14rpx; border-radius: 8rpx; }
+.classify-desc { display: block; font-size: 22rpx; color: #999; margin-top: 6rpx; padding-left: 44rpx; line-height: 1.4; max-height: 80rpx; overflow: hidden; }
+
+/* 大按钮 */
+.modal-btns-lg { display: flex; gap: 20rpx; margin-top: 24rpx; padding-top: 16rpx; border-top: 1rpx solid #f0f0f0; }
+.btn-lg { flex: 1; text-align: center; padding: 24rpx; border-radius: 16rpx; font-size: 32rpx; font-weight: 600; }
+.btn-lg.cancel { background: #f5f5f5; color: #666; }
+.btn-lg.cancel:active { background: #e8e8e8; }
+.btn-lg.confirm { background: #4CAF50; color: #fff; }
+.btn-lg.confirm:active { background: #388E3C; }

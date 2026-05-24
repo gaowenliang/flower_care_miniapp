@@ -224,9 +224,9 @@
           {{item}}
         </view>
       </view>
-      <view class="modal-btns">
-        <view class="modal-btn cancel" bindtap="hideClassifySearch">取消</view>
-        <view class="modal-btn confirm" bindtap="confirmClassifyInput">确认</view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="hideClassifySearch">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmClassifyInput">确认</view>
       </view>
     </view>
   </view>
@@ -235,18 +235,25 @@
   <view class="modal-mask" wx:if="{{showClassifyResult}}" bindtap="hideClassifyResult">
     <view class="modal-content classify-modal" catchtap="">
       <view class="modal-title">🤖 识别结果</view>
-      <view class="classify-result" wx:if="{{classifyResult}}">
-        <text class="result-name">{{classifyResult.name}}</text>
-        <text class="result-score">置信度 {{classifyResult.score}}%</text>
-        <view class="result-tags" wx:if="{{classifyResult.family || classifyResult.genus}}">
-          <text class="result-tag" wx:if="{{classifyResult.family}}">{{classifyResult.family}}</text>
-          <text class="result-tag" wx:if="{{classifyResult.genus}}">{{classifyResult.genus}}</text>
+      <view class="classify-list">
+        <view class="classify-item {{classifySelectedIdx === index ? 'selected' : ''}}" 
+              wx:for="{{classifyResults}}" wx:key="index"
+              bindtap="selectClassifyItem" data-idx="{{index}}">
+          <view class="classify-item-header">
+            <text class="classify-check">{{classifySelectedIdx === index ? '✅' : '⬜'}}</text>
+            <text class="classify-name">{{item.name}}</text>
+            <text class="classify-score">{{item.score}}%</text>
+          </view>
+          <view class="classify-tags" wx:if="{{item.family || item.genus}}">
+            <text class="classify-tag" wx:if="{{item.family}}">{{item.family}}</text>
+            <text class="classify-tag" wx:if="{{item.genus}}">{{item.genus}}</text>
+          </view>
+          <text class="classify-desc" wx:if="{{item.description}}">{{item.description}}</text>
         </view>
-        <text class="result-desc" wx:if="{{classifyResult.description}}">{{classifyResult.description}}</text>
       </view>
-      <view class="modal-btns">
-        <view class="modal-btn cancel" bindtap="hideClassifyResult">取消</view>
-        <view class="modal-btn confirm" bindtap="applyClassifyResult">应用</view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="hideClassifyResult">取消</view>
+        <view class="btn-lg confirm" bindtap="applyClassifyResult">确认应用</view>
       </view>
     </view>
   </view>
