@@ -103,6 +103,64 @@
     </view>
   </view>
 
+  <!-- 花费统计 -->
+  <view class="section-title">💰 花费统计</view>
+  <view class="card" wx:if="{{costStats}}">
+    <view class="cost-overview">
+      <view class="cost-item">
+        <text class="cost-num">¥{{costStats.totalAll || '0'}}</text>
+        <text class="cost-label">总花费</text>
+      </view>
+      <view class="cost-item">
+        <text class="cost-num">¥{{costStats.totalPurchase || '0'}}</text>
+        <text class="cost-label">购入({{costStats.plantCount}}棵)</text>
+      </view>
+      <view class="cost-item">
+        <text class="cost-num">¥{{costStats.totalMaintenance || '0'}}</text>
+        <text class="cost-label">维护</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 品类花费 -->
+  <view class="card" wx:if="{{categoryCostList.length > 0}}">
+    <view class="section-title" style="padding:4px 0"><text>📊 品类花费</text></view>
+    <view class="cat-bar-row" wx:for="{{categoryCostList}}" wx:key="name">
+      <text class="cat-bar-name">{{item.name}}</text>
+      <view class="cat-bar-wrap">
+        <view class="cat-bar-fill" style="width: {{item.percent}}%;background:#FF9800"></view>
+      </view>
+      <text class="cat-bar-count">¥{{item.total}} ({{item.count}}棵 均¥{{item.avg}})</text>
+    </view>
+  </view>
+
+  <!-- 月度花费趋势 -->
+  <view class="card" wx:if="{{monthlyCost.length > 0}}">
+    <view class="section-title" style="padding:4px 0"><text>📈 维护花费趋势</text></view>
+    <view style="display:flex;align-items:flex-end;height:100rpx;gap:8rpx;margin-top:12rpx">
+      <view wx:for="{{monthlyCost}}" wx:key="month" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4rpx">
+        <text style="font-size:18rpx;color:#FF9800" wx:if="{{item.cost > 0}}">¥{{item.cost}}</text>
+        <view style="width:100%;height:{{item.height}};background:#FFF3E0;border-radius:6rpx 6rpx 0 0;min-height:8rpx"></view>
+        <text style="font-size:18rpx;color:#B0BEC5">{{item.month}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近花费记录 -->
+  <view class="card" wx:if="{{recentCosts.length > 0}}">
+    <view class="section-title" style="padding:4px 0"><text>🧾 最近花费</text></view>
+    <view class="cost-record" wx:for="{{recentCosts}}" wx:key="id">
+      <view class="cost-record-left">
+        <text class="cost-record-name">{{item.plantName}}</text>
+        <text class="cost-record-note">{{item.note || item.typeName}}</text>
+      </view>
+      <view class="cost-record-right">
+        <text class="cost-record-amount">¥{{item.cost}}</text>
+        <text class="cost-record-date">{{item.dateStr}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 功能 -->
   <view class="section-title">⚙️ 设置</view>
   <view class="card">

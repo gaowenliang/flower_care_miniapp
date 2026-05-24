@@ -221,3 +221,9 @@
 
 /* 操作者标签 */
 .record-creator { font-size: 22rpx; color: #4CAF50; background: #E8F5E9; padding: 2rpx 12rpx; border-radius: 10rpx; margin-left: 12rpx; }
+/* 价格信息 */
+.header-price-row { display: flex; align-items: center; margin-top: 8rpx; font-size: 24rpx; }
+.price-label { color: #90A4AE; }
+.price-value { color: #FF9800; font-weight: 700; font-size: 28rpx; margin: 0 6rpx; }
+.price-date { color: #B0BEC5; font-size: 22rpx; }
+.price-add { color: #4CAF50; font-size: 24rpx; }

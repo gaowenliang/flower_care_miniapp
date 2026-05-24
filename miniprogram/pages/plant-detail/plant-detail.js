@@ -144,24 +144,59 @@ Page({
   async completeTask(e) {
     wx.vibrateShort({ type: 'light' })
     const taskId = e.currentTarget.dataset.id
+    const task = this.data.tasks.find(t => (t.id || t._id) === taskId)
 
-    if (this.data.isFamilyMode) {
-      const result = await family.completeTask(taskId)
-      if (result.success) {
-        wx.showToast({ title: '完成啦~', icon: 'none' })
-        await this.loadFamilyTasks()
-        await this.loadFamilyRecords()
-      } else {
-        wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+    // 询问维护费用（可选）
+    wx.showModal({
+      title: `完成「${task ? task.typeName : '养护'}」`,
+      editable: true,
+      placeholderText: '本次花费（元），不填则跳过',
+      content: '',
+      success: async (res) => {
+        if (!res.confirm) return
+        const cost = parseFloat(res.content) || 0
+
+        if (this.data.isFamilyMode) {
+          const result = await family.completeTask(taskId)
+          if (result.success) {
+            // 如果有费用，追加一条花费记录
+            if (cost > 0) {
+              await family.addRecord({
+                plantId: this.data.userPlant._id,
+                type: 'cost',
+                typeName: '维护花费',
+                note: `${task ? task.typeName : '养护'} · ¥${cost}`,
+                cost
+              })
+            }
+            wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost}` : '完成啦~', icon: 'none' })
+            await this.loadFamilyTasks()
+            await this.loadFamilyRecords()
+          } else {
+            wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+          }
+          return
+        }
+
+        // 个人模式
+        storage.completeTask(taskId)
+        if (cost > 0) {
+          storage.addRecord({
+            id: util.genId(),
+            userPlantId: this.data.userPlant.id,
+            type: 'cost',
+            typeName: '维护花费',
+            date: Date.now(),
+            note: `${task ? task.typeName : '养护'} · ¥${cost}`,
+            cost
+          })
+        }
+        this.loadTasks()
+        this.loadRecords()
+        this.loadHealthScore()
+        wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost}` : '完成啦~', icon: 'none' })
       }
-      return
-    }
-
-    storage.completeTask(taskId)
-    this.loadTasks()
-    this.loadRecords()
-    this.loadHealthScore()
-    wx.showToast({ title: '完成啦~', icon: 'none' })
+    })
   },
 
   changeInterval(e) {
@@ -576,6 +611,29 @@ Page({
         }
         this.setData({ 'userPlant.location': room })
         wx.showToast({ title: '已修改', icon: 'none' })
+      }
+    })
+  },
+
+  editPrice() {
+    const current = this.data.userPlant.purchasePrice || ''
+    wx.showModal({
+      title: '💰 购入价格',
+      editable: true,
+      placeholderText: '输入价格，如 29.9',
+      content: current ? String(current) : '',
+      success: async (res) => {
+        if (res.confirm) {
+          const price = parseFloat(res.content) || 0
+          if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
+          if (this.data.isFamilyMode) {
+            await family.updatePlant(this.data.userPlant._id, { purchasePrice: price })
+          } else {
+            storage.updatePlant(this.data.userPlant.id, { purchasePrice: price })
+          }
+          this.setData({ 'userPlant.purchasePrice': price })
+          wx.showToast({ title: price > 0 ? '已设置' : '已清除', icon: 'none' })
+        }
       }
     })
   },

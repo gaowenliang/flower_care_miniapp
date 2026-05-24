@@ -137,6 +137,8 @@ async function addPlant(event, openid, familyId) {
       location: plant.location || '阳台',
       photo: plant.photo || null,
       avatar: plant.avatar || null,
+      purchasePrice: plant.price || plant.purchasePrice || 0,
+      purchaseDate: plant.purchaseDate || null,
       addedBy: openid,
       addedAt: now,
       createdAt: now,
@@ -445,6 +447,7 @@ async function addRecord(event, openid, familyId) {
       date: record.date || now,
       note: record.note || '',
       photo: record.photo || null,
+      cost: record.cost || 0,
       createdBy: openid,
       creatorNickname: nickname,
       createdAt: now

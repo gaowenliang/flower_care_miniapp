@@ -30,6 +30,16 @@
           <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
           <text class="edit-icon-sm">›</text>
         </view>
+        <!-- 价格信息 -->
+        <view class="header-price-row" wx:if="{{userPlant.purchasePrice > 0}}">
+          <text class="price-label">💰 购入</text>
+          <text class="price-value">¥{{userPlant.purchasePrice}}</text>
+          <text class="price-date" wx:if="{{userPlant.purchaseDate}}"> · {{userPlant.purchaseDateStr || ''}}</text>
+          <text class="edit-icon-sm" bindtap="editPrice">✏️</text>
+        </view>
+        <view class="header-price-row" wx:else>
+          <text class="price-add" bindtap="editPrice">+ 添加购入价格</text>
+        </view>
       </view>
     </view>
     <!-- 健康评分 -->

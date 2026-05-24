@@ -29,6 +29,7 @@ Page({
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
+    this.loadCostStats()
     this.setData({ statsLoading: false })
   },
 
@@ -204,6 +205,79 @@ Page({
     }
 
     this.setData({ monthlyStats, weekBars })
+  },
+
+  loadCostStats() {
+    const garden = this.data.inFamily
+      ? family.getCachedPlants().map(p => ({ ...p, id: p._id }))
+      : storage.getGarden()
+    const records = this.data.inFamily
+      ? family.getCachedRecords('')
+      : storage.getRecords()
+
+    // 购入总价（按品类分组）
+    const categoryCost = {}
+    let totalPurchase = 0
+    garden.forEach(p => {
+      const cat = p.category || '其他'
+      const price = p.purchasePrice || 0
+      if (price > 0) {
+        categoryCost[cat] = (categoryCost[cat] || 0) + price
+        totalPurchase += price
+      }
+    })
+
+    // 维护花费
+    const costRecords = records.filter(r => r.type === 'cost' && r.cost > 0)
+    const totalMaintenance = costRecords.reduce((sum, r) => sum + (r.cost || 0), 0)
+
+    // 按月维护花费（最近6个月）
+    const monthlyCost = []
+    const now = new Date()
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1).getTime()
+      const monthStart = d.getTime()
+      const monthTotal = costRecords.filter(r => r.date >= monthStart && r.date < monthEnd).reduce((s, r) => s + (r.cost || 0), 0)
+      monthlyCost.push({
+        month: `${d.getMonth() + 1}月`,
+        cost: monthTotal,
+        height: '0rpx'
+      })
+    }
+    const maxMonthCost = Math.max(1, ...monthlyCost.map(m => m.cost))
+    monthlyCost.forEach(m => { m.height = (m.cost / maxMonthCost * 80) + 'rpx' })
+
+    // 品类花费列表
+    const categoryCostList = Object.entries(categoryCost)
+      .map(([name, total]) => {
+        const count = garden.filter(p => (p.category || '其他') === name).length
+        return { name, total, count, avg: (total / count).toFixed(1) }
+      })
+      .sort((a, b) => b.total - a.total)
+    const maxCatCost = Math.max(1, ...categoryCostList.map(c => c.total))
+    categoryCostList.forEach(c => { c.percent = (c.total / maxCatCost * 100).toFixed(0) })
+
+    // 最近花费记录
+    const recentCosts = costRecords.sort((a, b) => b.date - a.date).slice(0, 10)
+    const util = require('../../utils/util')
+    recentCosts.forEach(r => {
+      r.dateStr = util.formatDate(r.date)
+      const plant = garden.find(p => p.id === (r.userPlantId || r.plantId))
+      r.plantName = plant ? plant.nickname : '未知'
+    })
+
+    this.setData({
+      costStats: {
+        totalPurchase,
+        totalMaintenance,
+        totalAll: totalPurchase + totalMaintenance,
+        plantCount: garden.filter(p => p.purchasePrice > 0).length
+      },
+      categoryCostList,
+      monthlyCost,
+      recentCosts
+    })
   },
 
   goDiagnose() {

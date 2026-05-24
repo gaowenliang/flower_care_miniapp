@@ -81,4 +81,16 @@
 .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10rpx 0; border-bottom: 1rpx solid #F0F2F0; }
 .stat-row:last-of-type { border-bottom: none; }
 .stat-label { font-size: 28rpx; color: #2D3436; }
-.stat-value { font-size: 28rpx; }
+.stat-value { font-size: 28rpx; }/* 花费统计 */
+.cost-overview { display: flex; justify-content: space-around; padding: 12rpx 0; }
+.cost-item { text-align: center; }
+.cost-num { font-size: 32rpx; font-weight: 700; color: #FF9800; display: block; }
+.cost-label { font-size: 22rpx; color: #B0BEC5; }
+.cost-record { display: flex; justify-content: space-between; align-items: center; padding: 12rpx 0; border-bottom: 1rpx solid #F0F2F0; }
+.cost-record:last-child { border-bottom: none; }
+.cost-record-left { flex: 1; }
+.cost-record-name { font-size: 26rpx; font-weight: 500; display: block; }
+.cost-record-note { font-size: 22rpx; color: #90A4AE; display: block; margin-top: 2rpx; }
+.cost-record-right { text-align: right; }
+.cost-record-amount { font-size: 28rpx; font-weight: 700; color: #FF9800; display: block; }
+.cost-record-date { font-size: 20rpx; color: #B0BEC5; display: block; }

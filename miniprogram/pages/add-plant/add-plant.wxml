@@ -101,6 +101,16 @@
           </view>
         </view>
         <view class="form-item">
+          <text class="form-label">💰 购入价格（元）</text>
+          <input class="form-input" type="digit" placeholder="选填，如：29.9" value="{{price}}" bindinput="onPriceInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">📅 购入日期</text>
+          <picker mode="date" value="{{purchaseDate}}" bindchange="onPurchaseDateChange">
+            <view class="form-input picker-value">{{purchaseDate || '选填，点击选择'}} ›</view>
+          </picker>
+        </view>
+        <view class="form-item">
           <text class="form-label">💧 浇水周期</text>
           <view class="interval-control">
             <view class="interval-btn" bindtap="adjustWaterDays" data-delta="-1">−</view>
@@ -141,6 +151,16 @@
           <view class="location-options">
             <view class="loc-opt {{customLocation === item ? 'active' : ''}}" wx:for="{{allRooms}}" wx:key="*this" bindtap="selectCustomLocation" data-value="{{item}}">{{item}}</view>
           </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">💰 购入价格（元）</text>
+          <input class="form-input" type="digit" placeholder="选填，如：29.9" value="{{customPrice}}" bindinput="onCustomPriceInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">📅 购入日期</text>
+          <picker mode="date" value="{{customPurchaseDate}}" bindchange="onCustomPurchaseDateChange">
+            <view class="form-input picker-value">{{customPurchaseDate || '选填，点击选择'}} ›</view>
+          </picker>
         </view>
         <view class="form-item">
           <text class="form-label">💧 浇水周期</text>

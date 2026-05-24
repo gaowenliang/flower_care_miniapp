@@ -169,3 +169,4 @@
   border-color: #4CAF50;
   background: #E8F5E9;
 }
+.picker-value { color: #2D3436; display: flex; justify-content: space-between; align-items: center; }
