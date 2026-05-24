@@ -16,10 +16,17 @@
     <!-- 月份导航 -->
     <view class="month-nav">
       <view class="nav-btn" bindtap="prevMonth">◀</view>
-      <text class="month-text">{{year}}年{{month}}月</text>
+      <picker mode="date" fields="month" value="{{year}}-{{monthPad}}" bindchange="onMonthPickerChange">
+        <view class="month-picker">
+          <text class="month-text">{{year}}年{{month}}月</text>
+          <text class="month-arrow">▾</text>
+        </view>
+      </picker>
       <view class="nav-btn" bindtap="nextMonth">▶</view>
+    </view>
+    <view class="nav-bar-right">
       <view class="import-btn" bindtap="startImport">
-        <text>{{importing ? '识别中...' : '📥导入'}}</text>
+        <text>{{importing ? '...' : '📥'}}</text>
       </view>
     </view>
 

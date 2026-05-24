@@ -19,12 +19,13 @@ Page({
     showImportModal: false,
     importing: false,
     importRecords: [],
-    importChecked: {} 
+    importChecked: {},
+    monthPad: '01' 
   },
 
   onLoad() {
     const now = new Date()
-    this.setData({ year: now.getFullYear(), month: now.getMonth() + 1, today: util.formatDate(now), isFamilyMode: family.isInFamily() })
+    this.setData({ year: now.getFullYear(), month: now.getMonth() + 1, monthPad: String(now.getMonth() + 1).padStart(2, '0'), today: util.formatDate(now), isFamilyMode: family.isInFamily() })
     this.buildCalendar()
   },
 
@@ -98,7 +99,7 @@ Page({
     let { year, month } = this.data
     month--
     if (month < 1) { month = 12; year-- }
-    this.setData({ year, month, selectedDate: null })
+    this.setData({ year, month, monthPad: String(month).padStart(2, '0'), selectedDate: null })
     this.buildCalendar()
   },
 
@@ -106,7 +107,14 @@ Page({
     let { year, month } = this.data
     month++
     if (month > 12) { month = 1; year++ }
-    this.setData({ year, month, selectedDate: null })
+    this.setData({ year, month, monthPad: String(month).padStart(2, '0'), selectedDate: null })
+    this.buildCalendar()
+  },
+
+  onMonthPickerChange(e) {
+    const val = e.detail.value // "2026-05"
+    const [y, m] = val.split('-').map(Number)
+    this.setData({ year: y, month: m, monthPad: String(m).padStart(2, '0'), selectedDate: null })
     this.buildCalendar()
   },
 
