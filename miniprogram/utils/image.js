@@ -47,12 +47,57 @@ function uploadImage(tempFilePath) {
 }
 
 /**
- * 上传方形头像（调用微信裁剪 + 压缩上传）
+ * 上传方形头像（自动居中裁切 + 压缩上传）
  */
 async function uploadSquareAvatar(tempFilePath) {
-  // 先压缩
-  const compressed = await compressImage(tempFilePath, 50)
-  return uploadImage(compressed)
+  const squarePath = await resizeToSquare(tempFilePath, 300)
+  return uploadImage(squarePath)
+}
+
+/**
+ * 居中裁切为正方形并缩放到指定尺寸
+ */
+function resizeToSquare(tempFilePath, maxSize) {
+  return new Promise((resolve) => {
+    wx.getImageInfo({
+      src: tempFilePath,
+      success: (info) => {
+        const { width, height } = info
+        const s = Math.min(width, height)
+        const sx = (width - s) / 2
+        const sy = (height - s) / 2
+
+        try {
+          const canvas = wx.createOffscreenCanvas({ type: '2d', width: maxSize, height: maxSize })
+          const ctx = canvas.getContext('2d')
+          const img = canvas.createImage()
+          img.onload = () => {
+            ctx.drawImage(img, sx, sy, s, s, 0, 0, maxSize, maxSize)
+            try {
+              const temp = canvas.toDataURL('image/jpeg', 0.7)
+              // toDataURL 返回 base64，写入临时文件
+              const fs = wx.getFileSystemManager()
+              const tmpPath = `${wx.env.USER_DATA_PATH}/avatar_${Date.now()}.jpg`
+              const base64 = temp.replace(/^data:image\/\w+;base64,/, '')
+              fs.writeFileSync(tmpPath, base64, 'base64')
+              resolve(tmpPath)
+            } catch (e) {
+              console.warn('canvas toDataURL failed, fallback to compressImage', e)
+              wx.compressImage({ src: tempFilePath, quality: 50, success: r => resolve(r.tempFilePath), fail: () => resolve(tempFilePath) })
+            }
+          }
+          img.onerror = () => {
+            wx.compressImage({ src: tempFilePath, quality: 50, success: r => resolve(r.tempFilePath), fail: () => resolve(tempFilePath) })
+          }
+          img.src = tempFilePath
+        } catch (e) {
+          // createOffscreenCanvas 不支持，走压缩
+          wx.compressImage({ src: tempFilePath, quality: 50, success: r => resolve(r.tempFilePath), fail: () => resolve(tempFilePath) })
+        }
+      },
+      fail: () => resolve(tempFilePath)
+    })
+  })
 }
 
 /**

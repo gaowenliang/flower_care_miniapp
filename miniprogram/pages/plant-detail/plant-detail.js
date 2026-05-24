@@ -534,32 +534,19 @@ Page({
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: async (res) => {
-        const src = res.tempFiles[0].tempFilePath
-        // 裁剪成正方形
-        wx.cropImage({
-          src,
-          cropScale: '1:1',
-          success: async (cropRes) => {
-            const photoUrl = await imageUtil.uploadSquareAvatar(cropRes.tempFilePath)
-            if (!photoUrl) {
-              wx.showToast({ title: '图片上传失败', icon: 'none' })
-              return
-            }
-            if (this.data.isFamilyMode) {
-              await family.updatePlant(this.data.userPlant._id, { avatar: photoUrl })
-              // 强制刷新缓存，让其他成员看到
-              family.getPlants(true).catch(() => {})
-            } else {
-              storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
-            }
-            this.setData({ 'userPlant.avatar': photoUrl })
-            wx.showToast({ title: '头像已更新', icon: 'none' })
-          },
-          fail: () => {
-            // 用户取消裁剪，用原图上传
-            wx.showToast({ title: '已取消', icon: 'none' })
-          }
-        })
+        const photoUrl = await imageUtil.uploadSquareAvatar(res.tempFiles[0].tempFilePath)
+        if (!photoUrl) {
+          wx.showToast({ title: '图片上传失败', icon: 'none' })
+          return
+        }
+        if (this.data.isFamilyMode) {
+          await family.updatePlant(this.data.userPlant._id, { avatar: photoUrl })
+          family.getPlants(true).catch(() => {})
+        } else {
+          storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
+        }
+        this.setData({ 'userPlant.avatar': photoUrl })
+        wx.showToast({ title: '头像已更新', icon: 'none' })
       }
     })
   },
