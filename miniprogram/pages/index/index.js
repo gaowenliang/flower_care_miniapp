@@ -41,14 +41,29 @@ Page({
   },
 
   async initMode() {
-    // 先尝试刷新家庭信息（解决首次进入缓存为空的问题）
-    const info = await family.refreshFamilyInfo()
-    const isFamilyMode = info.success && info.inFamily
+    // 优先用缓存判断模式，避免每次 onShow 都调云函数
+    const cachedInfo = family.getCachedFamily()
+    const isFamilyMode = !!cachedInfo && cachedInfo.inFamily
     this.setData({ isFamilyMode })
 
     if (isFamilyMode) {
-      await this.loadFamilyData()
+      // 先用缓存渲染，后台静默刷新
+      this.loadFamilyDataFromCache()
+      family.refreshFamilyInfo().then(info => {
+        if (info.success && info.inFamily !== isFamilyMode) {
+          // 模式变化（退出家庭等），重新初始化
+          this.setData({ isFamilyMode: info.inFamily })
+          if (info.inFamily) {
+            this.loadFamilyData()
+          } else {
+            this.loadGarden()
+            this.loadTodayTasks()
+            this.loadStats()
+          }
+        }
+      })
     } else {
+      // 个人模式不走云端
       this.loadGarden()
       this.loadTodayTasks()
       this.loadStats()
@@ -60,13 +75,33 @@ Page({
 
   // ========== 家庭模式数据加载 ==========
 
+  // 从缓存渲染家庭数据（不调云函数）
+  loadFamilyDataFromCache() {
+    const plants = family.getCachedPlants()
+    const allTasks = family.getCachedTasks('')
+    const allRecords = family.getCachedRecords('')
+    if (plants.length === 0) {
+      // 缓存为空，走完整加载
+      this.loadFamilyData()
+      return
+    }
+    this._buildFamilyUI(plants, allTasks, allRecords)
+  },
+
   async loadFamilyData() {
     try {
       const plants = await family.getPlants(true)
       const allTasks = await family.getTasks('', true)
       const allRecords = await family.getRecords('', 100, true)
+      this._buildFamilyUI(plants || [], allTasks || [], allRecords || [])
+    } catch (e) {
+      console.error('加载家庭数据失败:', e)
+      this.setData({ garden: [], hasPlants: false })
+    }
+  },
 
-      const garden = (plants || []).map(plant => {
+  _buildFamilyUI(plants, allTasks, allRecords) {
+    const garden = (plants || []).map(plant => {
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
         const dueCount = plantTasks.filter(t => {
           return t.nextDate && t.nextDate <= (Date.now() + 86400000)
@@ -119,10 +154,6 @@ Page({
         }
       })
       this.applyFilter()
-    } catch (e) {
-      console.error('加载家庭数据失败:', e)
-      this.setData({ garden: [], hasPlants: false })
-    }
   },
 
   // ========== 房间管理 ==========
@@ -356,8 +387,11 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           if (this.data.isFamilyMode) {
-            const promises = tasks.map(t => family.completeTask(t.id))
-            await Promise.all(promises)
+            const results = await Promise.allSettled(tasks.map(t => family.completeTask(t.id)))
+            const failures = results.filter(r => r.status === 'rejected' || (r.value && !r.value.success))
+            if (failures.length > 0) {
+              wx.showToast({ title: `${failures.length}项完成失败`, icon: 'none' })
+            }
             await this.loadFamilyData()
           } else {
             tasks.forEach(t => storage.completeTask(t.id))

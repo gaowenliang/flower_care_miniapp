@@ -330,11 +330,13 @@ function getExtendedStats() {
     const tasks = family.getCachedTasks('')
     const today = new Date(); today.setHours(0, 0, 0, 0)
     const todayTs = today.getTime()
-    const dueTasks = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000)
-    stats.allDoneToday = dueTasks.length === 0 && stats.totalPlants > 0
+    const activeTasks = tasks.filter(t => t.enabled)
+    const dueTasks = activeTasks.filter(t => t.nextDate && t.nextDate <= todayTs + 86400000)
+    stats.allDoneToday = dueTasks.length === 0 && activeTasks.length > 0
   } else {
     const dueTasks = storage.getDueTasks()
-    stats.allDoneToday = dueTasks.length === 0 && stats.totalPlants > 0
+    const activeTasks = storage.getActiveTasks()
+    stats.allDoneToday = dueTasks.length === 0 && activeTasks.length > 0
   }
 
   // 照片数

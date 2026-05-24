@@ -177,7 +177,7 @@ function updatePlant(plantId, updates) {
   if (cached && cached.plants) {
     const idx = cached.plants.findIndex(p => p._id === plantId)
     if (idx >= 0) {
-      const snapshot = { ...cached.plants[idx] }
+      const snapshot = JSON.parse(JSON.stringify(cached.plants[idx]))
       cached.plants[idx] = { ...cached.plants[idx], ...updates, updatedAt: Date.now() }
       _saveCache(FAMILY_PLANTS_KEY, cached)
 
@@ -304,7 +304,7 @@ function completeTask(taskId) {
   const task = tasks.find(t => t._id === taskId)
   if (!task) return Promise.resolve({ success: false, error: '任务不存在' })
 
-  const snapshot = { ...task }
+  const snapshot = JSON.parse(JSON.stringify(task))
   const now = Date.now()
   task.lastDoneDate = now
   task.nextDate = now + (task.intervalDays || 7) * 86400000
@@ -313,13 +313,16 @@ function completeTask(taskId) {
   // 乐观插入一条记录
   const cachedRec = _readCache(FAMILY_RECORDS_KEY)
   if (cachedRec && cachedRec.records) {
+    // 从最近一条云端记录推断当前用户昵称
+    const existingRecord = (cachedRec.records || []).find(r => r.creatorNickname && !r._id.startsWith('_opt_'))
+    const myNickname = existingRecord ? existingRecord.creatorNickname : '我'
     cachedRec.records.unshift({
       _id: '_opt_' + now,
       plantId: task.plantId || task.userPlantId,
       userPlantId: task.userPlantId,
       type: task.type, typeName: task.typeName,
       date: now, note: '',
-      createdBy: '', creatorNickname: '', createdAt: now
+      createdBy: '', creatorNickname: myNickname, createdAt: now
     })
     _saveCache(FAMILY_RECORDS_KEY, cachedRec)
   }
@@ -353,7 +356,7 @@ function updateTask(taskId, updates) {
   const task = tasks.find(t => t._id === taskId)
   if (!task) return Promise.resolve({ success: false, error: '任务不存在' })
 
-  const snapshot = { ...task }
+  const snapshot = JSON.parse(JSON.stringify(task))
   Object.assign(task, updates)
   if (updates.intervalDays) {
     task.nextDate = (task.lastDoneDate || Date.now()) + updates.intervalDays * 86400000

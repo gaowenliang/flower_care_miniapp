@@ -415,6 +415,19 @@ async function addRecord(event, openid, familyId) {
   const { record } = event
   if (!record) return { success: false, error: '缺少记录数据' }
 
+  // 校验 plantId 归属该家庭
+  const targetPlantId = record.userPlantId || record.plantId
+  if (targetPlantId) {
+    try {
+      const plantRes = await db.collection('family_plants').doc(targetPlantId).get()
+      if (!plantRes.data || plantRes.data.familyId !== familyId) {
+        return { success: false, error: '植物不存在或无权限' }
+      }
+    } catch (e) {
+      return { success: false, error: '植物不存在' }
+    }
+  }
+
   // 获取昵称
   const memberRes = await db.collection('family_members').where({ openid, familyId }).limit(1).get()
   const nickname = memberRes.data.length > 0 ? memberRes.data[0].nickname : ''
