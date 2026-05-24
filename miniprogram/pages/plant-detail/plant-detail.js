@@ -150,11 +150,11 @@ Page({
     wx.showModal({
       title: `完成「${task ? task.typeName : '养护'}」`,
       editable: true,
-      placeholderText: '本次花费（元），不填则跳过',
+      placeholderText: '花费金额（元），不填则跳过',
       content: '',
       success: async (res) => {
         if (!res.confirm) return
-        const cost = parseFloat(res.content) || 0
+        const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
 
         if (this.data.isFamilyMode) {
           const result = await family.completeTask(taskId)
@@ -165,11 +165,11 @@ Page({
                 plantId: this.data.userPlant._id,
                 type: 'cost',
                 typeName: '维护花费',
-                note: `${task ? task.typeName : '养护'} · ¥${cost}`,
+                note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
                 cost
               })
             }
-            wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost}` : '完成啦~', icon: 'none' })
+            wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
             await this.loadFamilyTasks()
             await this.loadFamilyRecords()
           } else {
@@ -187,14 +187,14 @@ Page({
             type: 'cost',
             typeName: '维护花费',
             date: Date.now(),
-            note: `${task ? task.typeName : '养护'} · ¥${cost}`,
+            note: `${task ? task.typeName : '养护'} · ¥${cost.toFixed(2)}`,
             cost
           })
         }
         this.loadTasks()
         this.loadRecords()
         this.loadHealthScore()
-        wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost}` : '完成啦~', icon: 'none' })
+        wx.showToast({ title: cost > 0 ? `完成，花费 ¥${cost.toFixed(2)}` : '完成啦~', icon: 'none' })
       }
     })
   },
@@ -624,7 +624,7 @@ Page({
       content: current ? String(current) : '',
       success: async (res) => {
         if (res.confirm) {
-          const price = parseFloat(res.content) || 0
+          const price = Math.round((parseFloat(res.content) || 0) * 100) / 100
           if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
           if (this.data.isFamilyMode) {
             await family.updatePlant(this.data.userPlant._id, { purchasePrice: price })

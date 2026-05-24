@@ -73,6 +73,7 @@
     <view class="stats-bar" wx:if="{{hasPlants && stats}}">
       <view class="stat-chip"><text>🌱 {{stats.totalPlants}}棵</text></view>
       <view class="stat-chip" wx:if="{{stats.dueToday > 0}}"><text>🔔 {{stats.dueToday}}项待办</text></view>
+      <view class="stat-chip" wx:if="{{stats.totalCost > 0}}"><text>💰 ¥{{stats.totalCost}}</text></view>
       <view class="stat-chip"><text>📝 {{stats.totalRecords}}条记录</text></view>
     </view>
 

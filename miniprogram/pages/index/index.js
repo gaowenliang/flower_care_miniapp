@@ -150,7 +150,12 @@ Page({
           totalTasks: allTasks.length,
           activeTasks: (allTasks || []).filter(t => t.enabled).length,
           dueToday: todayTasks.length,
-          totalRecords: allRecords.length
+          totalRecords: allRecords.length,
+          totalCost: (() => {
+            const purchaseTotal = garden.reduce((s, p) => s + (p.purchasePrice || 0), 0)
+            const costTotal = (allRecords || []).filter(r => r.type === 'cost').reduce((s, r) => s + (r.cost || 0), 0)
+            return (purchaseTotal + costTotal).toFixed(2)
+          })()
         }
       })
       this.applyFilter()
@@ -295,7 +300,14 @@ Page({
 
   loadStats() {
     if (this.data.isFamilyMode) return
-    this.setData({ stats: storage.getStats() })
+    const stats = storage.getStats()
+    // 个人模式加花费
+    const garden = storage.getGarden()
+    const records = storage.getRecords()
+    const purchaseTotal = garden.reduce((s, p) => s + (p.purchasePrice || 0), 0)
+    const costTotal = records.filter(r => r.type === 'cost').reduce((s, r) => s + (r.cost || 0), 0)
+    stats.totalCost = (purchaseTotal + costTotal).toFixed(2)
+    this.setData({ stats })
   },
 
   // ========== 搜索/筛选 ==========
