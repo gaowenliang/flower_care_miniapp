@@ -266,3 +266,19 @@
 .btn-lg.cancel:active { background: #e8e8e8; }
 .btn-lg.confirm { background: #4CAF50; color: #fff; }
 .btn-lg.confirm:active { background: #388E3C; }
+
+/* 填写分类底部弹出 */
+.classify-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: flex-end; }
+.classify-sheet { width: 100%; background: #fff; border-radius: 32rpx 32rpx 0 0; padding: 32rpx; padding-bottom: calc(32rpx + env(safe-area-inset-bottom)); max-height: 75vh; display: flex; flex-direction: column; }
+.classify-sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
+.classify-sheet-title { font-size: 34rpx; font-weight: bold; color: #2D3436; }
+.classify-sheet-close { font-size: 32rpx; color: #999; padding: 8rpx 16rpx; }
+.classify-input-wrap { background: #F5F5F5; border-radius: 16rpx; padding: 4rpx; }
+.classify-input { width: 100%; padding: 20rpx 24rpx; font-size: 30rpx; box-sizing: border-box; }
+.classify-results { max-height: 40vh; overflow-y: auto; margin-top: 12rpx; }
+.classify-result-item { display: flex; align-items: center; gap: 16rpx; padding: 24rpx 16rpx; border-bottom: 1rpx solid #f5f5f5; }
+.classify-result-item:active { background: #F1F8E9; }
+.classify-result-icon { font-size: 32rpx; }
+.classify-result-text { font-size: 30rpx; color: #2D3436; }
+.classify-no-result { text-align: center; padding: 40rpx; font-size: 26rpx; color: #999; }
+.classify-sheet-footer { display: flex; gap: 20rpx; margin-top: 20rpx; padding-top: 16rpx; border-top: 1rpx solid #f0f0f0; }

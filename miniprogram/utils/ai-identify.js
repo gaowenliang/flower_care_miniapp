@@ -147,24 +147,40 @@ function readAndCheck(filePath, resolve) {
 }
 
 async function identifyFromUrl(imageUrl) {
-  return new Promise((resolve) => {
-    wx.downloadFile({
-      url: imageUrl,
-      success: async (res) => {
-        if (res.statusCode === 200) {
-          try {
-            const result = await identifyImage(res.tempFilePath)
-            resolve(result)
-          } catch (e) {
-            resolve({ error: '识别失败: ' + (e.message || '') })
+  try {
+    let url = imageUrl
+    // cloud:// 需要先转临时链接
+    if (url && url.startsWith('cloud://')) {
+      const tmpRes = await new Promise((resolve) => {
+        wx.cloud.getTempFileURL({ fileList: [url], success: resolve, fail: () => resolve(null) })
+      })
+      if (tmpRes && tmpRes.fileList && tmpRes.fileList[0] && tmpRes.fileList[0].tempFileURL) {
+        url = tmpRes.fileList[0].tempFileURL
+      } else {
+        return { error: '无法获取图片临时链接' }
+      }
+    }
+    return await new Promise((resolve) => {
+      wx.downloadFile({
+        url,
+        success: async (res) => {
+          if (res.statusCode === 200) {
+            try {
+              const result = await identifyImage(res.tempFilePath)
+              resolve(result)
+            } catch (e) {
+              resolve({ error: '识别失败: ' + (e.message || '') })
+            }
+          } else {
+            resolve({ error: '下载图片失败: ' + res.statusCode })
           }
-        } else {
-          resolve({ error: '下载图片失败' })
-        }
-      },
-      fail: (err) => resolve({ error: '下载失败: ' + (err.errMsg || '') })
+        },
+        fail: (err) => resolve({ error: '下载失败: ' + (err.errMsg || '') })
+      })
     })
-  })
+  } catch (e) {
+    return { error: '识别失败: ' + (e.message || '') }
+  }
 }
 
 module.exports = {

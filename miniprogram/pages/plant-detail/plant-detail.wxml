@@ -215,16 +215,25 @@
   </view>
 
   <!-- 填写分类搜索 -->
-  <view class="modal-mask" wx:if="{{showClassifySearch}}" bindtap="hideClassifySearch">
-    <view class="modal-content classify-modal" catchtap="">
-      <view class="modal-title">📝 填写分类</view>
-      <input class="modal-input" placeholder="搜索或输入科名，如：百合科" value="{{classifySearchKey}}" bindinput="onClassifySearchInput" focus="{{showClassifySearch}}" />
-      <view class="search-results" wx:if="{{classifySearchResults.length > 0}}">
-        <view class="search-item" wx:for="{{classifySearchResults}}" wx:key="*this" bindtap="selectFamily" data-family="{{item}}">
-          {{item}}
+  <view class="classify-mask" wx:if="{{showClassifySearch}}" bindtap="hideClassifySearch">
+    <view class="classify-sheet" catchtap="">
+      <view class="classify-sheet-header">
+        <text class="classify-sheet-title">📝 填写分类</text>
+        <view class="classify-sheet-close" bindtap="hideClassifySearch">✕</view>
+      </view>
+      <view class="classify-input-wrap">
+        <input class="classify-input" placeholder="搜索或输入科名，如：百合科" value="{{classifySearchKey}}" bindinput="onClassifySearchInput" focus="{{showClassifySearch}}" />
+      </view>
+      <view class="classify-results" wx:if="{{classifySearchResults.length > 0}}">
+        <view class="classify-result-item" wx:for="{{classifySearchResults}}" wx:key="*this" bindtap="selectFamily" data-family="{{item}}">
+          <text class="classify-result-icon">🌿</text>
+          <text class="classify-result-text">{{item}}</text>
         </view>
       </view>
-      <view class="modal-btns-lg">
+      <view class="classify-no-result" wx:elif="{{classifySearchKey.length > 0}}">
+        <text>未找到匹配，直接点确认使用「{{classifySearchKey}}」</text>
+      </view>
+      <view class="classify-sheet-footer">
         <view class="btn-lg cancel" bindtap="hideClassifySearch">取消</view>
         <view class="btn-lg confirm" bindtap="confirmClassifyInput">确认</view>
       </view>
