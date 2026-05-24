@@ -228,3 +228,28 @@
 .price-value { color: #FF9800; font-weight: 700; font-size: 28rpx; margin: 0 6rpx; }
 .price-date { color: #B0BEC5; font-size: 22rpx; }
 .price-add { color: #4CAF50; font-size: 24rpx; }
+
+/* 学名行 + 放大镜 */
+.species-row { display: flex; align-items: center; gap: 12rpx; }
+.search-icon { font-size: 28rpx; opacity: 0.6; padding: 4rpx 8rpx; }
+.search-icon:active { opacity: 1; }
+
+/* 操作菜单 */
+.action-sheet { position: fixed; left: 24rpx; right: 24rpx; bottom: env(safe-area-inset-bottom); background: #fff; border-radius: 20rpx; overflow: hidden; z-index: 1000; }
+.action-item { padding: 30rpx; text-align: center; font-size: 30rpx; border-bottom: 1rpx solid #f0f0f0; }
+.action-item:active { background: #f5f5f5; }
+.action-item.cancel { color: #999; border-bottom: none; margin-top: 8rpx; }
+
+/* 分类弹窗 */
+.classify-modal { max-height: 85vh; overflow-y: auto; }
+.search-results { max-height: 300rpx; overflow-y: auto; margin: 16rpx 0; }
+.search-item { padding: 20rpx 24rpx; border-bottom: 1rpx solid #f5f5f5; font-size: 28rpx; color: #333; }
+.search-item:active { background: #f5f5f5; }
+
+/* 识别结果 */
+.classify-result { padding: 16rpx 0; }
+.result-name { display: block; font-size: 32rpx; font-weight: bold; color: #2D3436; }
+.result-score { display: block; font-size: 24rpx; color: #4CAF50; margin-top: 4rpx; }
+.result-tags { display: flex; gap: 12rpx; margin-top: 12rpx; }
+.result-tag { font-size: 24rpx; background: #E8F5E9; color: #2E7D32; padding: 4rpx 16rpx; border-radius: 8rpx; }
+.result-desc { display: block; font-size: 24rpx; color: #757575; margin-top: 12rpx; line-height: 1.5; max-height: 120rpx; overflow: hidden; }

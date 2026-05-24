@@ -24,7 +24,14 @@ Page({
     // 家庭模式
     isFamilyMode: false,
     isAdoptedByMe: false,
-    adopterNames: []
+    adopterNames: [],
+    // 分类相关
+    showClassifyAction: false,
+    showClassifySearch: false,
+    classifySearchKey: '',
+    classifySearchResults: [],
+    showClassifyResult: false,
+    classifyResult: null
   },
 
   onLoad(options) {
@@ -694,5 +701,123 @@ Page({
   // 图片加载失败兜底
   onAvatarError() {
     this.setData({ 'userPlant.avatar': '' })
+  },
+
+  // ========== 分类识别功能 ==========
+
+  showClassifyMenu() {
+    this.setData({ showClassifyAction: true })
+  },
+  hideClassifyMenu() {
+    this.setData({ showClassifyAction: false })
+  },
+
+  // 1. 填写分类 - 搜索科
+  openClassifySearch() {
+    this.setData({ showClassifyAction: false, showClassifySearch: true, classifySearchKey: '', classifySearchResults: [] })
+  },
+  hideClassifySearch() {
+    this.setData({ showClassifySearch: false })
+  },
+  onClassifySearchInput(e) {
+    const key = e.detail.value.trim()
+    this.setData({ classifySearchKey: key })
+    if (!key) { this.setData({ classifySearchResults: [] }); return }
+    // 搜索植物数据库中的科
+    const allPlants = require('../../data/plants').plants
+    const families = new Set()
+    allPlants.forEach(p => {
+      if (p.family && (p.family.includes(key) || p.name.includes(key) || (p.latin || '').toLowerCase().includes(key.toLowerCase()))) {
+        families.add(p.family)
+      }
+    })
+    // 也直接匹配输入
+    if (key.endsWith('科')) families.add(key)
+    this.setData({ classifySearchResults: [...families].slice(0, 10) })
+  },
+  selectFamily(e) {
+    const f = e.currentTarget.dataset.family
+    this._updatePlantClassify({ family: f })
+    this.setData({ showClassifySearch: false })
+  },
+  confirmClassifyInput() {
+    const key = this.data.classifySearchKey
+    if (!key) return
+    this._updatePlantClassify({ family: key })
+    this.setData({ showClassifySearch: false })
+  },
+
+  // 2. AI识别 - 头像
+  async identifyAvatar() {
+    this.setData({ showClassifyAction: false })
+    if (!this.data.userPlant.avatar) {
+      wx.showToast({ title: '暂无头像', icon: 'none' }); return
+    }
+    wx.showLoading({ title: 'AI识别中...' })
+    try {
+      const aiIdentify = require('../../utils/ai-identify')
+      const result = await aiIdentify.identifyFromUrl(this.data.userPlant.avatar)
+      if (result.success && result.plants.length > 0) {
+        this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
+      } else {
+        wx.showToast({ title: result.error || '识别失败', icon: 'none' })
+      }
+    } catch (e) {
+      wx.showToast({ title: '识别失败', icon: 'none' })
+    }
+    wx.hideLoading()
+  },
+
+  // 3. AI识别 - 拍照/相册
+  async identifyPhoto() {
+    this.setData({ showClassifyAction: false })
+    wx.chooseMedia({
+      count: 1, mediaType: ['image'], sizeType: ['compressed'],
+      success: async (res) => {
+        const tempPath = res.tempFiles[0].tempFilePath
+        wx.showLoading({ title: 'AI识别中...' })
+        try {
+          const aiIdentify = require('../../utils/ai-identify')
+          const result = await aiIdentify.identify(tempPath)
+          if (result.success && result.plants.length > 0) {
+            this.setData({ showClassifyResult: true, classifyResult: result.plants[0] })
+          } else {
+            wx.showToast({ title: result.error || '识别失败', icon: 'none' })
+          }
+        } catch (e) {
+          wx.showToast({ title: '识别失败', icon: 'none' })
+        }
+        wx.hideLoading()
+      }
+    })
+  },
+
+  // 从AI识别结果中选取信息更新
+  applyClassifyResult() {
+    const r = this.data.classifyResult
+    if (!r) return
+    const updates = {}
+    if (r.family) updates.family = r.family
+    if (r.genus) updates.genus = r.genus
+    if (r.name) updates.latin = r.name
+    this._updatePlantClassify(updates)
+    this.setData({ showClassifyResult: false })
+  },
+  hideClassifyResult() {
+    this.setData({ showClassifyResult: false })
+  },
+
+  // 内部：更新植物分类信息
+  async _updatePlantClassify(updates) {
+    const up = { ...this.data.userPlant, ...updates }
+    this.setData({ userPlant: up })
+    if (this.data.isFamilyMode) {
+      try {
+        await family.updatePlant(this.data.userPlant.id, updates)
+      } catch (e) {
+        wx.showToast({ title: '保存失败', icon: 'none' })
+      }
+    }
+    wx.showToast({ title: '已更新', icon: 'none' })
   }
 })

@@ -146,7 +146,25 @@ function readAndCheck(filePath, resolve) {
   })
 }
 
+async function identifyFromUrl(imageUrl) {
+  return new Promise((resolve, reject) => {
+    wx.downloadFile({
+      url: imageUrl,
+      success: async (res) => {
+        if (res.statusCode === 200) {
+          const result = await identifyImage(res.tempFilePath)
+          resolve(result)
+        } else {
+          resolve({ error: '下载图片失败' })
+        }
+      },
+      fail: () => resolve({ error: '下载图片失败' })
+    })
+  })
+}
+
 module.exports = {
   identifyFromCamera,
-  identifyImage
+  identifyImage,
+  identifyFromUrl
 }

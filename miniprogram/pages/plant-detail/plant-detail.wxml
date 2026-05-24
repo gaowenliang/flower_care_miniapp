@@ -25,7 +25,10 @@
           <text class="header-name">{{userPlant.nickname}}</text>
           <text class="edit-icon" bindtap="editNickname">✏️</text>
         </view>
-        <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>
+        <view class="species-row">
+          <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>
+          <text class="search-icon" bindtap="showClassifyMenu">🔍</text>
+        </view>
         <view class="header-location-row" bindtap="editLocation">
           <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
           <text class="edit-icon-sm">›</text>
@@ -195,6 +198,53 @@
       <view class="modal-footer">
         <view class="btn-cancel" bindtap="hideAddTaskModal">取消</view>
         <view class="btn-primary" bindtap="confirmAddTask">确认添加</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分类操作菜单 -->
+  <view class="modal-mask" wx:if="{{showClassifyAction}}" bindtap="hideClassifyMenu">
+    <view class="action-sheet" catchtap="">
+      <view class="action-item" bindtap="openClassifySearch">📝 填写分类</view>
+      <view class="action-item" bindtap="identifyAvatar">🤖 AI识别 - 头像</view>
+      <view class="action-item" bindtap="identifyPhoto">📷 AI识别 - 照片</view>
+      <view class="action-item cancel" bindtap="hideClassifyMenu">取消</view>
+    </view>
+  </view>
+
+  <!-- 填写分类搜索 -->
+  <view class="modal-mask" wx:if="{{showClassifySearch}}" bindtap="hideClassifySearch">
+    <view class="modal-content classify-modal" catchtap="">
+      <view class="modal-title">📝 填写分类</view>
+      <input class="modal-input" placeholder="搜索或输入科名，如：百合科" value="{{classifySearchKey}}" bindinput="onClassifySearchInput" focus="{{showClassifySearch}}" />
+      <view class="search-results" wx:if="{{classifySearchResults.length > 0}}">
+        <view class="search-item" wx:for="{{classifySearchResults}}" wx:key="*this" bindtap="selectFamily" data-family="{{item}}">
+          {{item}}
+        </view>
+      </view>
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideClassifySearch">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmClassifyInput">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- AI识别结果 -->
+  <view class="modal-mask" wx:if="{{showClassifyResult}}" bindtap="hideClassifyResult">
+    <view class="modal-content classify-modal" catchtap="">
+      <view class="modal-title">🤖 识别结果</view>
+      <view class="classify-result" wx:if="{{classifyResult}}">
+        <text class="result-name">{{classifyResult.name}}</text>
+        <text class="result-score">置信度 {{classifyResult.score}}%</text>
+        <view class="result-tags" wx:if="{{classifyResult.family || classifyResult.genus}}">
+          <text class="result-tag" wx:if="{{classifyResult.family}}">{{classifyResult.family}}</text>
+          <text class="result-tag" wx:if="{{classifyResult.genus}}">{{classifyResult.genus}}</text>
+        </view>
+        <text class="result-desc" wx:if="{{classifyResult.description}}">{{classifyResult.description}}</text>
+      </view>
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideClassifyResult">取消</view>
+        <view class="modal-btn confirm" bindtap="applyClassifyResult">应用</view>
       </view>
     </view>
   </view>
