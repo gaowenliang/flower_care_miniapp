@@ -45,13 +45,16 @@ Page({
       wx.removeStorageSync('identifiedPlant')
       const match = plantsData.plants.find(p => p.name === identified.name)
       if (match) {
-        this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays })
+        this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
       } else {
         // 识花结果不在数据库，走自定义
         this.setData({
           showCustomModal: true,
           customName: identified.name,
-          customEmoji: '🌱'
+          customEmoji: '🌱',
+          customPrice: '',
+          customPurchaseDate: '',
+          customPurchaseSource: ''
         })
       }
     }
@@ -142,12 +145,15 @@ Page({
 
     const match = plantsData.plants.find(p => p.name === result.name || p.name.includes(result.name) || result.name.includes(p.name))
     if (match) {
-      this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays })
+      this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
     } else {
       this.setData({
         showCustomModal: true,
         customName: result.name,
-        customEmoji: result.emoji || '🌱'
+        customEmoji: result.emoji || '🌱',
+        customPrice: '',
+        customPurchaseDate: '',
+        customPurchaseSource: ''
       })
     }
   },
@@ -158,7 +164,7 @@ Page({
 
   // 打开自定义添加
   openCustomAdd() {
-    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7 })
+    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '' })
   },
 
   selectCustomEmoji(e) {
@@ -294,7 +300,7 @@ Page({
     const plantId = e.currentTarget.dataset.id
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
-    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays })
+    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
   },
 
   onNickNameInput(e) {

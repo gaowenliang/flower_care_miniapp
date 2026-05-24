@@ -44,13 +44,14 @@ function calculateHealthScore(userPlant) {
   const sevenDaysAgo = Date.now() - 7 * 86400000
   const recentRecords = records.filter(r => r.date > sevenDaysAgo)
   if (activeTasks.length > 0) {
-    const expectedRecords = Math.min(7, Math.ceil(7 / Math.min(...activeTasks.map(t => t.intervalDays || 7))))
+    const minInterval = Math.min(...activeTasks.map(t => t.intervalDays || 7))
+    const expectedRecords = Math.max(1, Math.min(7, Math.ceil(7 / minInterval)))
     freqScore = Math.round(30 * Math.min(1, recentRecords.length / Math.max(1, expectedRecords)))
   }
   freqScore = Math.max(0, Math.min(30, freqScore))
 
   // 3. 养护天数 (15分) — 越久越高分
-  const daysCared = Math.floor((Date.now() - userPlant.addedAt) / 86400000)
+  const daysCared = userPlant.addedAt ? Math.floor((Date.now() - userPlant.addedAt) / 86400000) : 0
   let daysScore = Math.min(15, Math.round(daysCared / 7)) // 每周1分，最多15分
   daysScore = Math.max(0, Math.min(15, daysScore))
 

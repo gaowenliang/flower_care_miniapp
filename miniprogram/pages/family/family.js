@@ -127,7 +127,7 @@ Page({
       const memberStats = result.memberStats.map(m => ({ ...m, barHeight: Math.max(8, (m.total / maxTotal) * 200) }))
       const typeEmoji = { '浇水': '💧', '施肥': '🧪', '修剪': '✂️', '换盆': '🏺', '喷药': '💉', '拍照记录': '📷', '备注': '📝' }
       const typeStats = Object.entries(result.typeStats || {}).map(([name, count]) => ({ name, count, emoji: typeEmoji[name] || '📋' })).sort((a, b) => b.count - a.count)
-      this.setData({ reportData: { totalRecords: result.totalRecords, memberStats, typeStats }, reportLoading: false })
+      this.setData({ reportData: { totalRecords: result.totalRecords, memberStats, typeStats, costStats: result.costStats || null }, reportLoading: false })
     } else { this.setData({ reportLoading: false }) }
   },
 
