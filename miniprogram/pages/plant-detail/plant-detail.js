@@ -51,6 +51,18 @@ Page({
       this.loadSmartTips()
       setTimeout(() => this.setData({ loading: false }), 300)
       this.loadHealthScore()
+      // 后台刷新最新数据（看别人改的头像等）
+      family.getPlants(true).then(plants => {
+        const fresh = plants.find(p => p._id === id)
+        if (fresh) {
+          fresh.id = fresh._id || id
+          this.setData({
+            userPlant: fresh,
+            adopterNames: family.getAdopterNames(fresh)
+          })
+          this.loadHealthScore()
+        }
+      }).catch(() => {})
       return
     }
 
@@ -522,18 +534,32 @@ Page({
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: async (res) => {
-        const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
-        if (!photoUrl) {
-          wx.showToast({ title: '图片上传失败', icon: 'none' })
-          return
-        }
-        if (this.data.isFamilyMode) {
-          await family.updatePlant(this.data.userPlant._id, { avatar: photoUrl })
-        } else {
-          storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
-        }
-        this.setData({ 'userPlant.avatar': photoUrl })
-        wx.showToast({ title: '头像已更新', icon: 'none' })
+        const src = res.tempFiles[0].tempFilePath
+        // 裁剪成正方形
+        wx.cropImage({
+          src,
+          cropScale: '1:1',
+          success: async (cropRes) => {
+            const photoUrl = await imageUtil.uploadSquareAvatar(cropRes.tempFilePath)
+            if (!photoUrl) {
+              wx.showToast({ title: '图片上传失败', icon: 'none' })
+              return
+            }
+            if (this.data.isFamilyMode) {
+              await family.updatePlant(this.data.userPlant._id, { avatar: photoUrl })
+              // 强制刷新缓存，让其他成员看到
+              family.getPlants(true).catch(() => {})
+            } else {
+              storage.updatePlant(this.data.userPlant.id, { avatar: photoUrl })
+            }
+            this.setData({ 'userPlant.avatar': photoUrl })
+            wx.showToast({ title: '头像已更新', icon: 'none' })
+          },
+          fail: () => {
+            // 用户取消裁剪，用原图上传
+            wx.showToast({ title: '已取消', icon: 'none' })
+          }
+        })
       }
     })
   },

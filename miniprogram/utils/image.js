@@ -47,6 +47,15 @@ function uploadImage(tempFilePath) {
 }
 
 /**
+ * 上传方形头像（调用微信裁剪 + 压缩上传）
+ */
+async function uploadSquareAvatar(tempFilePath) {
+  // 先压缩
+  const compressed = await compressImage(tempFilePath, 50)
+  return uploadImage(compressed)
+}
+
+/**
  * 批量上传图片
  */
 async function uploadImages(tempFilePaths) {
@@ -65,5 +74,6 @@ module.exports = {
   compressImage,
   uploadImage,
   uploadImages,
+  uploadSquareAvatar,
   getImageUrl
 }
