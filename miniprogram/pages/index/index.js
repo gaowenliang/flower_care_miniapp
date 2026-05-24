@@ -41,32 +41,26 @@ Page({
   },
 
   async initMode() {
-    // 优先用缓存判断模式
+    // 必须加入家庭才能使用
     const cachedInfo = family.getCachedFamily()
     if (cachedInfo && cachedInfo.inFamily) {
-      // 缓存命中，先用缓存渲染，后台静默刷新
       this.setData({ isFamilyMode: true })
       this.loadFamilyDataFromCache()
       family.refreshFamilyInfo().then(info => {
         if (info.success && !info.inFamily) {
-          // 被踢出家庭了
-          this.setData({ isFamilyMode: false })
-          this.loadGarden()
-          this.loadTodayTasks()
-          this.loadStats()
+          // 被踢出家庭了，跳转家庭页
+          wx.redirectTo({ url: '/pages/family/family' })
         }
       })
     } else {
-      // 缓存未命中（首次打开/缓存过期），先问云端
       const info = await family.refreshFamilyInfo()
-      const isFamilyMode = info.success && info.inFamily
-      this.setData({ isFamilyMode })
-      if (isFamilyMode) {
+      if (info.success && info.inFamily) {
+        this.setData({ isFamilyMode: true })
         this.loadFamilyData()
       } else {
-        this.loadGarden()
-        this.loadTodayTasks()
-        this.loadStats()
+        // 未加入家庭，跳转家庭页
+        wx.redirectTo({ url: '/pages/family/family' })
+        return
       }
     }
     this.loadWeather()
@@ -387,25 +381,23 @@ Page({
       return
     }
 
-    // 个人模式
+    // 家庭模式
     const tasks = this.data.todayTasks.map(t => t.id === taskId ? { ...t, completing: true } : t)
     this.setData({ todayTasks: tasks })
 
-    setTimeout(() => {
-      storage.completeTask(taskId)
-      const task = storage.getTasks().find(t => t.id === taskId)
-      if (task) {
-        this.setData({ showTip: true, tipText: `${task.typeName}完成！` })
-        setTimeout(() => this.setData({ showTip: false }), 2000)
+    setTimeout(async () => {
+      try {
+        const result = await family.completeTask(taskId)
+        if (result.success) {
+          this.setData({ showTip: true, tipText: '完成啦~' })
+          setTimeout(() => this.setData({ showTip: false }), 2000)
+          await this.loadFamilyData()
+        } else {
+          wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        wx.showToast({ title: '操作失败', icon: 'none' })
       }
-      const achievement = require('../../utils/achievement')
-      const newBadges = achievement.checkAchievements()
-      if (newBadges.length > 0) {
-        setTimeout(() => wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 }), 2200)
-      }
-      this.loadTodayTasks()
-      this.loadGarden()
-      this.loadStats()
     }, 280)
   },
 
@@ -424,11 +416,6 @@ Page({
               wx.showToast({ title: `${failures.length}项完成失败`, icon: 'none' })
             }
             await this.loadFamilyData()
-          } else {
-            tasks.forEach(t => storage.completeTask(t.id))
-            this.loadTodayTasks()
-            this.loadGarden()
-            this.loadStats()
           }
           this.setData({ showTip: true, tipText: `${tasks.length}项全部完成！` })
           setTimeout(() => this.setData({ showTip: false }), 2000)
@@ -438,14 +425,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    if (this.data.isFamilyMode) {
-      this.loadFamilyData().then(() => wx.stopPullDownRefresh())
-    } else {
-      this.loadGarden()
-      this.loadTodayTasks()
-      this.loadStats()
-      wx.stopPullDownRefresh()
-    }
+    this.loadFamilyData().then(() => wx.stopPullDownRefresh())
   },
 
   onShareAppMessage() {
