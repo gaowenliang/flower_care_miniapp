@@ -77,7 +77,7 @@
 .modal-emoji { font-size: 80rpx; display: block; margin-bottom: 12rpx; }
 .modal-title { font-size: 32rpx; font-weight: 600; color: #2D3436; }
 
-.modal-body { padding: 16rpx 40rpx 28rpx; }
+.modal-body { padding: 16rpx 24rpx 28rpx; }
 .form-item { margin-bottom: 28rpx; }
 .form-label { font-size: 26rpx; color: #90A4AE; margin-bottom: 12rpx; display: block; }
 .form-input {
