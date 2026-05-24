@@ -223,7 +223,7 @@ async function updatePlant(event, openid, familyId) {
   if (!plantId || !updates) return { success: false, error: '缺少参数' }
 
   // 白名单：只允许更新这些字段
-  const allowed = ['nickname', 'location', 'emoji', 'avatar', 'photo', 'purchasePrice', 'purchaseDate', 'purchaseSource']
+  const allowed = ['nickname', 'location', 'emoji', 'avatar', 'photo', 'purchasePrice', 'purchaseDate', 'purchaseSource', 'family', 'genus', 'latin', 'category']
   const safe = {}
   for (const key of allowed) {
     if (updates[key] !== undefined) safe[key] = updates[key]
