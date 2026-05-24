@@ -160,6 +160,7 @@ Page({
         if (this.data.isFamilyMode) {
           for (let i = 0; i < files.length; i++) {
             const photoUrl = await imageUtil.uploadImage(files[i].tempFilePath)
+            if (!photoUrl) continue // 上传失败跳过
             await family.addRecord({
               plantId: this.data.userPlant._id,
               type: 'photo',
@@ -177,6 +178,7 @@ Page({
         // 个人模式
         const promises = files.map(async (file, index) => {
           const photoUrl = await imageUtil.uploadImage(file.tempFilePath)
+          if (!photoUrl) return null // 上传失败跳过
           const record = { id: util.genId() + '_' + index, userPlantId: this.data.userPlant.id, type: 'photo', typeName: '拍照记录', date: Date.now() + index, note: '', photo: photoUrl, size: file.size }
           storage.addRecord(record)
           return record
