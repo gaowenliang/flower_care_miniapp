@@ -14,7 +14,7 @@ App({
         this.cloudSync()
       }
     } catch (e) {
-      console.log('云开发未启用，使用本地存储模式')
+      console.debug('[app] 云开发未启用，本地模式')
     }
 
     this.globalData = {}
@@ -57,7 +57,7 @@ App({
   async cloudSync() {
     try {
       const result = await cloudSync.syncOnStartup(storage)
-      console.log('云同步结果:', result)
+      console.debug('[app] 云同步完成:', result)
     } catch (e) {
       console.warn('云同步失败，使用本地数据:', e)
     }

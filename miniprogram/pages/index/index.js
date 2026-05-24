@@ -267,8 +267,9 @@ Page({
     } catch (e) {}
     if (!wx.cloud) return
     this.setData({ weatherLoading: true })
-    let city = '310000'
-    try { city = wx.getStorageSync('_weather_city') || '310000' } catch (e) {}
+    let city = ''
+    try { city = wx.getStorageSync('_weather_city') || '' } catch (e) {}
+    if (!city) { this.setData({ weatherLoading: false }); return } // 首次无城市则跳过天气
     wx.cloud.callFunction({
       name: 'getWeather', data: { city },
       success: (res) => {

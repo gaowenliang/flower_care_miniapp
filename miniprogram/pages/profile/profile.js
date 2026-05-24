@@ -253,7 +253,7 @@ Page({
     const categoryCostList = Object.entries(categoryCost)
       .map(([name, total]) => {
         const count = garden.filter(p => (p.category || '其他') === name).length
-        return { name, total, count, avg: (total / count).toFixed(1) }
+        return { name, total, count, avg: (total / (count || 1)).toFixed(1) }
       })
       .sort((a, b) => b.total - a.total)
     const maxCatCost = Math.max(1, ...categoryCostList.map(c => c.total))
@@ -342,7 +342,7 @@ Page({
   showAbout() {
     wx.showModal({
       title: '🪴 养花助手',
-      content: '版本：v1.2.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录\n智能贴士 · AI识花 · 病害诊断 · 成就系统',
+      content: '版本：v1.3.0\n\n帮助你更好地照顾每一棵植物\n浇水提醒 · 养护日历 · 成长记录\n智能贴士 · AI识花 · 病害诊断 · 成就系统\n家庭花园 · 花费追踪',
       showCancel: false
     })
   },

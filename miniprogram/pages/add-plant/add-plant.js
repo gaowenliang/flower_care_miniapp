@@ -208,6 +208,7 @@ Page({
 
     const nickname = nameCheck.value
     const price = parseFloat(this.data.customPrice) || 0
+    if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
     const purchaseDate = this.data.customPurchaseDate || ''
     const purchaseSource = this.data.customPurchaseSource || ''
 
@@ -346,6 +347,7 @@ Page({
     const nickname = nameCheck.value || plant.name
     const location = this.data.location || '阳台'
     const price = parseFloat(this.data.price) || 0
+    if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
     const purchaseDate = this.data.purchaseDate || ''
     const purchaseSource = this.data.purchaseSource || ''
 

@@ -39,7 +39,14 @@ Page({
   },
 
   async loadFamilyInfo() {
-    const result = await family.refreshFamilyInfo()
+    let result
+    try {
+      result = await family.refreshFamilyInfo()
+    } catch (e) {
+      this.setData({ loadError: true, loading: false })
+      wx.showToast({ title: '网络不给力，请重试', icon: 'none' })
+      return
+    }
     if (result.success && result.inFamily) {
       const members = (result.members || []).map((m, idx) => ({
         ...m, initial: (m.nickname || '用').charAt(0), color: this.data.colorMap[idx % this.data.colorMap.length]

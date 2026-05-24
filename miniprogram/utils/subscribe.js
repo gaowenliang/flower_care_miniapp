@@ -31,10 +31,10 @@ function requestSubscribe(templateId) {
       tmplIds: [templateId],
       success: (res) => {
         if (res[templateId] === 'accept') {
-          console.log('用户同意订阅')
+          console.debug('[subscribe] 用户同意订阅')
           resolve(true)
         } else {
-          console.log('用户拒绝订阅')
+          console.debug('[subscribe] 用户拒绝订阅')
           resolve(false)
         }
       },
@@ -120,7 +120,7 @@ async function checkAndNotify(force) {
 
   // 模板ID未替换时跳过订阅
   if (isTemplatePlaceholder(SUBSCRIBE_TEMPLATES.WATER_REMINDER)) {
-    console.warn('订阅消息模板ID未替换，跳过订阅')
+    console.debug('[subscribe] 模板ID未替换，跳过订阅')
     return
   }
 
