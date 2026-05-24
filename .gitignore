@@ -1,6 +1,11 @@
 node_modules/
+miniprogram_npm/
+cloud/functions/*/node_modules/
 tests/coverage/
 .DS_Store
 *.log
-miniprogram_npm/
-cloud/functions/*/node_modules/
+
+# 预览/临时文件
+preview*.png
+preview*.html
+*.bak
