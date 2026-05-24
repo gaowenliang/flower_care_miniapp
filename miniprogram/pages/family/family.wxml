@@ -36,6 +36,7 @@
     <!-- Tab：汇总→排行→报表→心愿→动态 -->
     <scroll-view scroll-x class="tab-bar" enhanced show-scrollbar="{{false}}">
       <view class="tab {{activeTab==='summary'?'active':''}}" bindtap="switchTab" data-tab="summary">汇总</view>
+      <view class="tab {{activeTab==='plants'?'active':''}}" bindtap="switchTab" data-tab="plants">植物</view>
       <view class="tab {{activeTab==='members'?'active':''}}" bindtap="switchTab" data-tab="members">排行</view>
       <view class="tab {{activeTab==='report'?'active':''}}" bindtap="switchTab" data-tab="report">报表</view>
       <view class="tab {{activeTab==='wish'?'active':''}}" bindtap="switchTab" data-tab="wish">心愿</view>
@@ -67,7 +68,11 @@
         </view>
       </view>
 
-      <!-- 健康看板 -->
+      </view>
+    </view>
+
+    <!-- ===== 植物 ===== -->
+    <view wx:if="{{activeTab==='plants'}}">
       <view class="section-card">
         <view class="section-title">💚 植物健康看板</view>
         <view class="health-list">

@@ -73,6 +73,7 @@ Page({
   async loadTabData(tab) {
     switch (tab) {
       case 'summary': await this.loadSummaryData(); break
+      case 'plants': await this.loadPlantsBoard(); break
       case 'feed': await this.loadActivities(); break
       case 'report': if (!this.data.reportData) await this.loadReport(); break
       case 'wish': await this.loadWishlist(); break
@@ -82,16 +83,19 @@ Page({
   // ========== 汇总 ==========
 
   async loadSummaryData() {
-    const [pkResult, healthResult, reportResult] = await Promise.all([
+    const [pkResult, reportResult] = await Promise.all([
       family.getPK('week'),
-      family.getHealthBoard(),
       family.getWeeklyReport()
     ])
     this.setData({
       pkData: pkResult.success ? pkResult : null,
-      healthPlants: healthResult.success ? healthResult.plants : [],
       weeklyReport: reportResult.success ? reportResult.report : null
     })
+  },
+
+  async loadPlantsBoard() {
+    const healthResult = await family.getHealthBoard()
+    this.setData({ healthPlants: healthResult.success ? healthResult.plants : [] })
   },
 
   // ========== 动态流 ==========
