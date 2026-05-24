@@ -1,6 +1,6 @@
 /* pages/identify/identify.wxss */
 
-.container { padding: 24rpx; }
+scroll-view.container { height: 100vh; padding: 24rpx; box-sizing: border-box; }
 
 /* 拍照区 */
 .photo-preview {
@@ -9,13 +9,12 @@
 }
 .preview-img { width: 100%; max-height: 360rpx; }
 
-.camera-bar { display: flex; gap: 16rpx; margin: 40rpx 0; }
+.camera-bar { display: flex; gap: 16rpx; margin: 40rpx 0; justify-content: center; }
 .btn-camera {
-  flex: 1; text-align: center; padding: 24rpx;
+  text-align: center; padding: 24rpx 60rpx;
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
   color: white; border-radius: 44rpx; font-size: 28rpx; font-weight: 600;
 }
-.btn-album { background: linear-gradient(135deg, #66BB6A, #81C784); }
 
 /* 标题 */
 .section-title {
@@ -55,6 +54,14 @@
   background: #E8F5E9; padding: 2rpx 12rpx; border-radius: 20rpx;
   flex-shrink: 0;
 }
+
+/* 科属标签 */
+.result-tags { display: flex; gap: 8rpx; margin-top: 4rpx; }
+.tag {
+  font-size: 20rpx; color: #78909C; background: #ECEFF1;
+  padding: 2rpx 10rpx; border-radius: 6rpx;
+}
+
 .result-desc {
   font-size: 24rpx; color: #90A4AE; line-height: 1.4;
   margin-top: 4rpx;
@@ -72,8 +79,9 @@
 }
 
 /* 错误 */
-.error-card { text-align: center; padding: 40rpx; }
-.error-text { font-size: 28rpx; color: #90A4AE; display: block; margin-bottom: 24rpx; }
+.error-card { text-align: center; padding: 60rpx 40rpx; }
+.error-emoji { font-size: 64rpx; display: block; margin-bottom: 16rpx; }
+.error-text { font-size: 28rpx; color: #607D8B; display: block; margin-bottom: 32rpx; line-height: 1.5; }
 .error-btns { display: flex; justify-content: center; gap: 16rpx; }
 .btn-retry {
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
@@ -86,11 +94,12 @@
 }
 
 /* 加载 */
-.loading { text-align: center; padding: 100rpx 0; }
+.loading { text-align: center; padding: 120rpx 0; }
 .loading-spinner {
   width: 60rpx; height: 60rpx; border: 6rpx solid #E8F5E9;
   border-top: 6rpx solid #4CAF50; border-radius: 50%;
   margin: 0 auto 20rpx; animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 28rpx; color: #90A4AE; }
+.loading-text { font-size: 28rpx; color: #90A4AE; display: block; }
+.loading-hint { font-size: 24rpx; color: #B0BEC5; display: block; margin-top: 8rpx; }

@@ -1,4 +1,4 @@
-// utils/ai-identify.js — AI 植物识别（腾讯云Image插件 + 本地降级）
+// utils/ai-identify.js — AI 植物识别
 
 const plantsData = require('../data/plants')
 
@@ -23,35 +23,35 @@ function identifyFromCamera() {
 
 /**
  * 识别图片中的植物
- * 优先级：云函数(腾讯API) → 本地特征匹配 → 降级提示
+ * 优先：云函数(百度API) → 降级提示
  */
 async function identifyImage(imagePath) {
-  // 1. 尝试云函数调用（需要部署 identifyPlant 云函数）
+  // 1. 云函数识别
   try {
     const base64 = await imageToBase64(imagePath)
-    if (base64) {
-      const cloudResult = await callCloudIdentify(base64)
-      if (cloudResult && cloudResult.plants && cloudResult.plants.length > 0) {
-        // 匹配本地数据库
-        cloudResult.plants.forEach(p => matchLocal(p))
-        return { plants: cloudResult.plants, imagePath }
-      }
+    if (!base64) {
+      return { error: '图片处理失败，请重试', imagePath }
+    }
+
+    const cloudResult = await callCloudIdentify(base64)
+    if (cloudResult && cloudResult.plants && cloudResult.plants.length > 0) {
+      cloudResult.plants.forEach(p => matchLocal(p))
+      return { plants: cloudResult.plants, imagePath }
+    }
+
+    // 云函数返回了但没结果
+    if (cloudResult && cloudResult.error) {
+      return { error: cloudResult.error, imagePath }
     }
   } catch (e) {
-    console.warn('云函数识别失败，降级本地匹配:', e.message)
-  }
-
-  // 2. 本地特征匹配（用图片信息做简单匹配）
-  try {
-    const localResult = await localMatch(imagePath)
-    if (localResult && localResult.length > 0) {
-      return { plants: localResult, imagePath }
+    console.warn('云函数识别失败:', e.message)
+    // 给出具体错误
+    if (e.errMsg && e.errMsg.includes('cloud')) {
+      return { error: '云函数未部署，请联系管理员', imagePath }
     }
-  } catch (e) {
-    console.warn('本地匹配失败:', e.message)
   }
 
-  // 3. 完全失败
+  // 2. 完全失败 — 不造假数据
   return { error: '暂时无法识别，请手动选择植物', imagePath }
 }
 
@@ -68,32 +68,14 @@ function callCloudIdentify(base64) {
       name: 'identifyPlant',
       data: { imageData: base64 },
       success: (res) => {
-        if (res.result && res.result.success) {
-          resolve(res.result)
-        } else {
-          reject(new Error(res.result?.error || '识别失败'))
-        }
+        resolve(res.result)
       },
-      fail: reject
+      fail: (err) => {
+        console.error('云函数调用失败:', err)
+        reject(err)
+      }
     })
   })
-}
-
-/**
- * 本地匹配 — 基于用户选择的特征引导匹配
- */
-async function localMatch(imagePath) {
-  // AI服务不可用时，展示常见植物让用户手动选择，不造假分数
-  return plantsData.plants.slice(0, 8).map(p => ({
-    name: p.name,
-    latin: p.latin,
-    score: null, // 标记为非AI识别结果
-    description: `${p.category} · ${p.care.difficulty} · ${p.care.light}`,
-    matched: true,
-    localId: p.id,
-    care: p.care,
-    emoji: p.emoji
-  }))
 }
 
 /**
@@ -102,49 +84,52 @@ async function localMatch(imagePath) {
 function matchLocal(plant) {
   const match = plantsData.plants.find(local =>
     local.name === plant.name ||
-    local.latin === plant.latin ||
-    (local.name.includes(plant.name)) ||
-    (plant.name && plant.name.includes(local.name))
+    (local.name && plant.name && local.name.includes(plant.name)) ||
+    (local.name && plant.name && plant.name.includes(local.name))
   )
   if (match) {
     plant.matched = true
     plant.localId = match.id
     plant.care = match.care
     plant.emoji = match.emoji
+    plant.category = match.category
+    // 如果本地数据库有更准确的科属信息，用本地的
+    if (match.family) plant.family = match.family
+    if (match.genus) plant.genus = match.genus
   }
 }
 
 /**
- * 图片转base64
+ * 图片转base64（压缩到200KB以内）
  */
 function imageToBase64(path) {
   return new Promise((resolve) => {
-    // 先压缩图片，确保不超过百度API限制
     wx.compressImage({
       src: path,
-      quality: 60,
+      quality: 40,
       success: (res) => {
-        wx.getFileSystemManager().readFile({
-          filePath: res.tempFilePath,
-          encoding: 'base64',
-          success: (r) => resolve(r.data),
-          fail: () => {
-            // 压缩后读取失败，尝试原图
-            wx.getFileSystemManager().readFile({
-              filePath: path, encoding: 'base64',
-              success: (r) => resolve(r.data), fail: () => resolve(null)
-            })
-          }
-        })
+        readAndCheck(res.tempFilePath, resolve)
       },
       fail: () => {
-        // 压缩失败，用原图
-        wx.getFileSystemManager().readFile({
-          filePath: path, encoding: 'base64',
-          success: (r) => resolve(r.data), fail: () => resolve(null)
-        })
+        readAndCheck(path, resolve)
       }
     })
+  })
+}
+
+function readAndCheck(filePath, resolve) {
+  wx.getFileSystemManager().readFile({
+    filePath,
+    encoding: 'base64',
+    success: (r) => {
+      // 检查大小，base64 字符串长度 * 0.75 ≈ 原始字节
+      const sizeKB = (r.data.length * 0.75) / 1024
+      if (sizeKB > 800) {
+        console.warn('图片仍然过大:', Math.round(sizeKB), 'KB，云函数可能超时')
+      }
+      resolve(r.data)
+    },
+    fail: () => resolve(null)
   })
 }
 

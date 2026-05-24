@@ -31,6 +31,8 @@ Page({
     customPrice: '',
     customPurchaseDate: '',
     customPurchaseSource: '',
+    customFamily: '',
+    customGenus: '',
     emojiOptions: ['🌱', '🌿', '🪴', '🌸', '🌺', '🌻', '🌹', '🌵', '🍀', '🪻', '🪷', '🌾', '🍃', '🌳', '🌴', '🫐', '🍅', '🌶️', '🧄', '💐']
   },
 
@@ -47,11 +49,13 @@ Page({
       if (match) {
         this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
       } else {
-        // 识花结果不在数据库，走自定义
+        // 识花结果不在数据库，走自定义（带AI识别的科属信息）
         this.setData({
           showCustomModal: true,
           customName: identified.name,
           customEmoji: '🌱',
+          customFamily: identified.family || '',
+          customGenus: identified.genus || '',
           customPrice: '',
           customPurchaseDate: '',
           customPurchaseSource: ''
@@ -164,7 +168,7 @@ Page({
 
   // 打开自定义添加
   openCustomAdd() {
-    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '' })
+    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '', customFamily: '', customGenus: '' })
   },
 
   selectCustomEmoji(e) {
@@ -216,6 +220,8 @@ Page({
     const price = Math.max(0, parseFloat(this.data.customPrice) || 0)
     const purchaseDate = this.data.customPurchaseDate || ''
     const purchaseSource = this.data.customPurchaseSource || ''
+    const plantFamily = this.data.customFamily || '自定义'
+    const plantGenus = this.data.customGenus || ''
 
     // 家庭模式
     if (family.isInFamily()) {
@@ -224,9 +230,10 @@ Page({
         plantId: 'custom_' + Date.now(),
         name: nickname,
         latin: '',
-        family: '自定义',
+        family: plantFamily,
+        genus: plantGenus,
         emoji: this.data.customEmoji,
-        category: '自定义',
+        category: plantFamily === '自定义' ? '自定义' : plantFamily,
         nickname,
         location: this.data.customLocation,
         waterDays: this.data.customWaterDays,
@@ -251,9 +258,10 @@ Page({
       plantId: 'custom_' + Date.now(),
       name: nickname,
       latin: '',
-      family: '自定义',
+      family: plantFamily,
+      genus: plantGenus,
       emoji: this.data.customEmoji,
-      category: '自定义',
+      category: plantFamily === '自定义' ? '自定义' : plantFamily,
       nickname,
       location: this.data.customLocation,
       addedAt: Date.now(),

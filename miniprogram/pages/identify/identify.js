@@ -40,11 +40,17 @@ Page({
     const index = e.currentTarget.dataset.index
     const plant = this.data.plants[index]
     if (!plant) return
-    if (plant.matched) {
-      wx.navigateTo({ url: `/pages/add-plant/add-plant?identifyId=${plant.localId}` })
-    } else {
-      wx.navigateTo({ url: `/pages/add-plant/add-plant?customName=${encodeURIComponent(plant.name)}` })
+
+    // 保存识花结果到 storage，带科属信息
+    const info = {
+      name: plant.name,
+      family: plant.family || '',
+      genus: plant.genus || '',
+      description: plant.description || '',
+      image: plant.image || ''
     }
+    wx.setStorageSync('identifiedPlant', info)
+    wx.navigateTo({ url: '/pages/add-plant/add-plant' })
   },
 
   retry() {

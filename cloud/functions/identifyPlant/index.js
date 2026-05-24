@@ -6,7 +6,15 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
 const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
 
+// 缓存 access_token（有效期30天）
+let _tokenCache = { token: null, expiresAt: 0 }
+
 async function getBaiduToken() {
+  // 使用缓存的 token
+  if (_tokenCache.token && Date.now() < _tokenCache.expiresAt) {
+    return _tokenCache.token
+  }
+
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
   return new Promise((resolve) => {
     const https = require('https')
@@ -16,7 +24,14 @@ async function getBaiduToken() {
       res.on('end', () => {
         try {
           const json = JSON.parse(data)
-          resolve(json.access_token || null)
+          if (json.access_token) {
+            // 缓存29天
+            _tokenCache = { token: json.access_token, expiresAt: Date.now() + 29 * 86400000 }
+            resolve(json.access_token)
+          } else {
+            console.error('百度token响应异常:', data.substring(0, 200))
+            resolve(null)
+          }
         } catch (e) { resolve(null) }
       })
     }).on('error', (e) => { console.error('getBaiduToken error:', e); resolve(null) })
@@ -30,18 +45,21 @@ exports.main = async (event) => {
     return { success: false, error: '缺少图片数据' }
   }
 
+  // 检查 API Key 配置
+  if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) {
+    return { success: false, error: '百度API未配置，请联系管理员设置环境变量 BAIDU_API_KEY 和 BAIDU_SECRET_KEY' }
+  }
+
   try {
-    // 1. 获取 token
     const token = await getBaiduToken()
     if (!token) {
-      return { success: false, error: '百度AI服务获取token失败，请检查API Key' }
+      return { success: false, error: '百度AI服务获取token失败，请检查API Key配置' }
     }
 
-    // 2. 调用植物识别 — 使用 form-urlencoded 格式
     const querystring = require('querystring')
     const postData = querystring.stringify({
       image: imageData,
-      baike_num: 3
+      baike_num: 5
     })
 
     const result = await new Promise((resolve, reject) => {
@@ -68,10 +86,18 @@ exports.main = async (event) => {
       req.end()
     })
 
-    // 检查百度API错误
     if (result.error_code) {
       console.error('百度API错误:', result.error_code, result.error_msg)
-      return { success: false, error: `百度API错误: ${result.error_msg || result.error_code}` }
+      // 常见错误码友好提示
+      const errorMessages = {
+        110: 'API Key无效或过期',
+        111: 'API Token过期',
+        18: 'QPS超限，请稍后再试',
+        19: '请求量超限',
+        216201: '图片中未检测到植物',
+        216202: '图片模糊，请重新拍摄'
+      }
+      return { success: false, error: errorMessages[result.error_code] || `识别失败(${result.error_code})` }
     }
 
     if (result.result && result.result.length > 0) {
@@ -80,7 +106,10 @@ exports.main = async (event) => {
         score: (r.score * 100).toFixed(1),
         baikeUrl: (r.baike_info && r.baike_info.baike_url) || '',
         description: (r.baike_info && r.baike_info.description) || '',
-        image: (r.baike_info && r.baike_info.image_url) || ''
+        image: (r.baike_info && r.baike_info.image_url) || '',
+        // 提取科属信息（从百科描述或名字中解析）
+        family: extractFamily(r),
+        genus: extractGenus(r)
       }))
       return { success: true, plants }
     }
@@ -88,6 +117,28 @@ exports.main = async (event) => {
     return { success: false, error: '未识别到植物，请换个角度再试' }
   } catch (err) {
     console.error('植物识别失败:', err)
-    return { success: false, error: err.message }
+    return { success: false, error: '识别服务异常，请稍后再试' }
   }
+}
+
+/**
+ * 从百度返回结果中提取"科"
+ * 百度植物识别的 baike_info.description 通常包含"xxx科xxx属"
+ */
+function extractFamily(result) {
+  const desc = (result.baike_info && result.baike_info.description) || ''
+  // 匹配"XX科"
+  const match = desc.match(/([\u4e00-\u9fa5]{1,4}科)/)
+  if (match) return match[1]
+  return ''
+}
+
+/**
+ * 提取"属"
+ */
+function extractGenus(result) {
+  const desc = (result.baike_info && result.baike_info.description) || ''
+  const match = desc.match(/([\u4e00-\u9fa5]{1,4}属)/)
+  if (match) return match[1]
+  return ''
 }
