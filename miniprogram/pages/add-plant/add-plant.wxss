@@ -82,7 +82,7 @@
 .form-label { font-size: 26rpx; color: #90A4AE; margin-bottom: 12rpx; display: block; }
 .form-input {
   border: 2rpx solid #E8F5E9; border-radius: 20rpx;
-  padding: 20rpx 24rpx; font-size: 28rpx; color: #2D3436;
+  padding: 28rpx 24rpx; font-size: 28rpx; color: #2D3436;
   background: #F7F9F7;
   width: 100%;
   box-sizing: border-box;
@@ -169,4 +169,4 @@
   border-color: #4CAF50;
   background: #E8F5E9;
 }
-.picker-value { color: #2D3436; display: flex; justify-content: space-between; align-items: center; }
+.picker-value { color: #2D3436; display: flex; justify-content: space-between; align-items: center; padding: 28rpx 0; }
