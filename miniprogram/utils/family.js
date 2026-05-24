@@ -131,12 +131,19 @@ function getPlantById(plantId) {
  * 添加植物 — 乐观写
  */
 function addPlant(plantData) {
+  // 防重复（同 plantId + 同 nickname）
+  const cached = _readCache(FAMILY_PLANTS_KEY)
+  if (cached && cached.plants) {
+    const dup = cached.plants.find(p => p.plantId === plantData.plantId && p.nickname === plantData.nickname && !p._id.startsWith('_opt_'))
+    if (dup) return Promise.resolve({ success: false, error: '该植物已添加' })
+  }
+
   const tempId = _genTempId()
   const now = Date.now()
 
   // 乐观写入本地缓存
-  const cached = _readCache(FAMILY_PLANTS_KEY) || { plants: [], _cachedAt: now }
-  cached.plants.unshift({
+  const cache = cached || { plants: [], _cachedAt: now }
+  cache.plants.unshift({
     _id: tempId,
     ...plantData,
     addedAt: now,
@@ -145,7 +152,7 @@ function addPlant(plantData) {
     adopters: [],
     adopterNames: []
   })
-  _saveCache(FAMILY_PLANTS_KEY, cached)
+  _saveCache(FAMILY_PLANTS_KEY, cache)
 
   // 后台推云端
   enqueueWrite(async () => {

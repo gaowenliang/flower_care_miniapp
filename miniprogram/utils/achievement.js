@@ -277,6 +277,7 @@ function getCareStreak() {
 
   const days = new Set()
   records.forEach(r => {
+    if (r.type === 'cost' || r.type === 'note') return // 花费和备注不算养护打卡
     const d = new Date(r.date)
     days.add(`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`)
   })

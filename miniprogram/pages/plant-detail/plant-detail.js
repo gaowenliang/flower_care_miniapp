@@ -344,6 +344,9 @@ Page({
       mediaType: ['image'],
       success: async (res) => {
         const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
+        if (!photoUrl) {
+          wx.showToast({ title: '图片上传失败', icon: 'none' }); return
+        }
         if (this.data.isFamilyMode) {
           await family.addRecord({
             userPlantId: this.data.userPlant._id,
