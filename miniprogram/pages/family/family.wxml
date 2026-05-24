@@ -1,4 +1,4 @@
-<!-- pages/family/family.wxml v3 — 全功能 -->
+<!-- pages/family/family.wxml v4 — 重构Tab+隐私 -->
 <view class="page-family">
   <!-- 加载中 -->
   <view class="loading-box" wx:if="{{loading}}"><view class="loading-spinner"></view><text class="loading-text">加载中...</text></view>
@@ -19,10 +19,13 @@
   </view>
 
   <!-- 已加入 -->
-  <view class="family-info" wx:else>
-    <!-- 头部 -->
+  <scroll-view scroll-y class="family-info" wx:else>
+    <!-- 头部：家庭名 + 设置图标 -->
     <view class="family-header">
-      <view class="family-name">{{familyInfo.name}}</view>
+      <view class="header-top">
+        <view class="family-name">{{familyInfo.name}}</view>
+        <view class="settings-btn" bindtap="toggleSettings">⚙️</view>
+      </view>
       <view class="family-meta">
         <text class="member-count">{{members.length}}人</text>
         <text class="role-tag {{myRole==='admin'?'admin':'member'}}">{{myRole==='admin'?'管理员':'成员'}}</text>
@@ -30,40 +33,54 @@
       </view>
     </view>
 
-    <!-- 邀请码 -->
-    <view class="invite-section" wx:if="{{familyInfo.inviteCode}}">
-      <view class="invite-card">
-        <view class="invite-label">邀请码</view>
-        <view class="invite-code">{{familyInfo.inviteCode}}</view>
-        <view class="invite-actions">
-          <view class="invite-btn copy" bindtap="copyInviteCode">📋 复制</view>
-          <button class="invite-btn share" open-type="share">分享邀请</button>
-        </view>
-      </view>
-    </view>
-
-    <!-- Tab -->
-    <view class="tab-bar">
-      <view class="tab {{activeTab==='feed'?'active':''}}" bindtap="switchTab" data-tab="feed">动态</view>
+    <!-- Tab：汇总→排行→报表→心愿→动态 -->
+    <scroll-view scroll-x class="tab-bar" enhanced show-scrollbar="{{false}}">
+      <view class="tab {{activeTab==='summary'?'active':''}}" bindtap="switchTab" data-tab="summary">汇总</view>
       <view class="tab {{activeTab==='members'?'active':''}}" bindtap="switchTab" data-tab="members">排行</view>
       <view class="tab {{activeTab==='report'?'active':''}}" bindtap="switchTab" data-tab="report">报表</view>
-      <view class="tab {{activeTab==='more'?'active':''}}" bindtap="switchTab" data-tab="more">更多</view>
-    </view>
+      <view class="tab {{activeTab==='wish'?'active':''}}" bindtap="switchTab" data-tab="wish">心愿</view>
+      <view class="tab {{activeTab==='feed'?'active':''}}" bindtap="switchTab" data-tab="feed">动态</view>
+    </scroll-view>
 
-    <!-- ===== 动态流 ===== -->
-    <view wx:if="{{activeTab==='feed'}}">
+    <!-- ===== 汇总 ===== -->
+    <view wx:if="{{activeTab==='summary'}}">
+      <!-- 周报 -->
+      <view class="section-card" wx:if="{{weeklyReport}}">
+        <view class="section-title">📰 本周周报</view>
+        <view class="weekly-report">
+          <view class="wr-item">📅 {{weeklyReport.week}}</view>
+          <view class="wr-item">🌱 共 {{weeklyReport.totalPlants}} 棵植物</view>
+          <view class="wr-item">💧 累计养护 {{weeklyReport.totalCare}} 次</view>
+          <view class="wr-item">👑 最勤快：{{weeklyReport.topMember}}（{{weeklyReport.topCount}}次）</view>
+          <view class="wr-item" wx:if="{{weeklyReport.neglectedPlants.length>0}}">😟 需要关心：{{weeklyReport.neglectedPlants.join('、')}}</view>
+        </view>
+      </view>
+
+      <!-- 本周之星 -->
+      <view class="section-card" wx:if="{{pkData && pkData.badges.length>0}}">
+        <view class="section-title">🏅 本周之星</view>
+        <view class="pk-list">
+          <view class="pk-item" wx:for="{{pkData.badges}}" wx:key="title">
+            <text class="pk-emoji">{{item.emoji}}</text>
+            <view class="pk-info"><view class="pk-title">{{item.title}}</view><view class="pk-desc">{{item.nickname}} · {{item.desc}}</view></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 健康看板 -->
       <view class="section-card">
-        <view class="section-title">📰 家庭动态</view>
-        <view class="activity-list">
-          <view class="activity-item" wx:for="{{activities}}" wx:key="_id">
-            <text class="activity-emoji">{{item.emoji}}</text>
-            <view class="activity-content">
-              <view class="activity-text"><text class="activity-name">{{item.nickname}}</text> {{item.content}}</view>
-              <text class="activity-time">{{item.timeAgo}}</text>
+        <view class="section-title">💚 植物健康看板</view>
+        <view class="health-list">
+          <view class="health-item" wx:for="{{healthPlants}}" wx:key="_id">
+            <text class="health-plant-emoji">{{item.emoji}}</text>
+            <view class="health-plant-info"><view class="health-name">{{item.name}}</view><view class="health-location">{{item.location}}</view></view>
+            <view class="health-score-wrap">
+              <text class="health-icon">{{item.emojiIcon}}</text>
+              <text class="health-score {{item.level}}">{{item.score}}</text>
             </view>
           </view>
         </view>
-        <view class="empty-hint" wx:if="{{activities.length===0}}">还没有动态，养护植物后自动记录</view>
+        <view class="empty-hint" wx:if="{{healthPlants.length===0}}">暂无植物</view>
       </view>
     </view>
 
@@ -84,10 +101,8 @@
           <view class="member-item" wx:for="{{members}}" wx:key="openid">
             <view class="member-avatar" style="background:{{item.color}}">{{item.initial}}</view>
             <view class="member-info"><view class="member-name">{{item.nickname||'成员'}}</view><view class="member-role">{{item.role==='admin'?'管理员':'成员'}}</view></view>
-            <view class="member-action" wx:if="{{myRole==='admin'&&item.role!=='admin'}}" catchtap="kickMember" data-index="{{index}}"><text class="kick-btn">移除</text></view>
           </view>
         </view>
-        <view class="edit-nickname" bindtap="editNickname">修改昵称</view>
       </view>
     </view>
 
@@ -114,67 +129,26 @@
           <view class="type-list">
             <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name"><view class="type-emoji">{{item.emoji}}</view><view class="type-name">{{item.name}}</view><view class="type-count">{{item.count}}次</view></view>
           </view>
-
-          <!-- 花费统计 -->
-          <view class="section-title" wx:if="{{reportData.costStats}}">💰 花费统计</view>
-          <view class="stat-overview" wx:if="{{reportData.costStats}}">
+        </view>
+        <!-- 花费统计 -->
+        <view class="section-card" wx:if="{{reportData.costStats}}">
+          <view class="section-title">💰 花费统计</view>
+          <view class="stat-overview">
             <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalAll}}</view><view class="stat-label">总花费</view></view>
             <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalPurchase}}</view><view class="stat-label">购入</view></view>
             <view class="stat-item"><view class="stat-num">¥{{reportData.costStats.totalMaintenance}}</view><view class="stat-label">维护</view></view>
           </view>
-          <view class="type-list" wx:if="{{reportData.costStats && reportData.costStats.memberCosts.length > 0}}">
+          <view class="type-list" wx:if="{{reportData.costStats.memberCosts.length > 0}}">
             <view class="type-item" wx:for="{{reportData.costStats.memberCosts}}" wx:key="openid">
-              <view class="type-emoji">💸</view>
-              <view class="type-name">{{item.nickname}}</view>
-              <view class="type-count">¥{{item.cost}}</view>
+              <view class="type-emoji">💸</view><view class="type-name">{{item.nickname}}</view><view class="type-count">¥{{item.cost}}</view>
             </view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- ===== 更多 ===== -->
-    <view wx:if="{{activeTab==='more'}}">
-      <!-- 周报 -->
-      <view class="section-card" wx:if="{{weeklyReport}}">
-        <view class="section-title">📰 本周周报</view>
-        <view class="weekly-report">
-          <view class="wr-item">📅 {{weeklyReport.week}}</view>
-          <view class="wr-item">🌱 共 {{weeklyReport.totalPlants}} 棵植物</view>
-          <view class="wr-item">💧 累计养护 {{weeklyReport.totalCare}} 次</view>
-          <view class="wr-item">👑 最勤快：{{weeklyReport.topMember}}（{{weeklyReport.topCount}}次）</view>
-          <view class="wr-item" wx:if="{{weeklyReport.neglectedPlants.length>0}}">😟 需要关心：{{weeklyReport.neglectedPlants.join('、')}}</view>
-        </view>
-      </view>
-
-      <!-- PK -->
-      <view class="section-card" wx:if="{{pkData && pkData.badges.length>0}}">
-        <view class="section-title">🏅 本周之星</view>
-        <view class="pk-list">
-          <view class="pk-item" wx:for="{{pkData.badges}}" wx:key="title">
-            <text class="pk-emoji">{{item.emoji}}</text>
-            <view class="pk-info"><view class="pk-title">{{item.title}}</view><view class="pk-desc">{{item.nickname}} · {{item.desc}}</view></view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 健康看板 -->
-      <view class="section-card">
-        <view class="section-title">💚 植物健康看板</view>
-        <view class="health-list">
-          <view class="health-item" wx:for="{{healthPlants}}" wx:key="_id">
-            <text class="health-plant-emoji">{{item.emoji}}</text>
-            <view class="health-plant-info"><view class="health-name">{{item.name}}</view><view class="health-location">{{item.location}}</view></view>
-            <view class="health-score-wrap">
-              <text class="health-icon">{{item.emojiIcon}}</text>
-              <text class="health-score {{item.level}}">{{item.score}}</text>
-            </view>
-          </view>
-        </view>
-        <view class="empty-hint" wx:if="{{healthPlants.length===0}}">暂无植物</view>
-      </view>
-
-      <!-- 心愿单 -->
+    <!-- ===== 心愿 ===== -->
+    <view wx:if="{{activeTab==='wish'}}">
       <view class="section-card">
         <view class="section-title">💝 心愿单 <text class="add-link" bindtap="showAddWishModal">+ 添加</text></view>
         <view class="wish-list">
@@ -195,23 +169,61 @@
         </view>
         <view class="empty-hint" wx:if="{{wishlists.length===0}}">还没有心愿，添加一个吧~</view>
       </view>
+    </view>
 
-      <!-- 里程碑 -->
-      <view class="section-card" wx:if="{{milestones.length>0}}">
-        <view class="section-title">🏆 里程碑</view>
-        <view class="milestone-list">
-          <view class="milestone-item" wx:for="{{milestones}}" wx:key="_id">
-            <text class="milestone-name">{{item.name}}</text>
-            <text class="milestone-plant">「{{item.plantName}}」</text>
+    <!-- ===== 动态 ===== -->
+    <view wx:if="{{activeTab==='feed'}}">
+      <view class="section-card">
+        <view class="section-title">📰 家庭动态</view>
+        <view class="activity-list">
+          <view class="activity-item" wx:for="{{activities}}" wx:key="_id">
+            <text class="activity-emoji">{{item.emoji}}</text>
+            <view class="activity-content">
+              <view class="activity-text"><text class="activity-name">{{item.nickname}}</text> {{item.content}}</view>
+              <text class="activity-time">{{item.timeAgo}}</text>
+            </view>
           </view>
         </view>
+        <view class="empty-hint" wx:if="{{activities.length===0}}">还没有动态，养护植物后自动记录</view>
       </view>
     </view>
 
-    <!-- 底部 -->
-    <view class="bottom-actions">
-      <view class="action-btn leave" bindtap="leaveFamily" wx:if="{{myRole!=='admin'}}">退出家庭</view>
-      <view class="action-btn dissolve" bindtap="dissolveFamily" wx:if="{{myRole==='admin'}}">解散家庭</view>
+    <view style="height:40rpx"></view>
+  </scroll-view>
+
+  <!-- ===== 设置面板（下拉遮罩） ===== -->
+  <view class="settings-mask {{showSettings?'show':''}}" bindtap="closeSettings">
+    <view class="settings-panel" catchtap="preventBubble">
+      <view class="settings-header">
+        <text class="settings-title">家庭设置</text>
+        <text class="settings-close" bindtap="closeSettings">✕</text>
+      </view>
+
+      <!-- 邀请码（藏在这里） -->
+      <view class="settings-section" wx:if="{{familyInfo.inviteCode}}">
+        <view class="settings-label">邀请码</view>
+        <view class="invite-row">
+          <text class="invite-code-sm">{{familyInfo.inviteCode}}</text>
+          <view class="invite-btn copy" bindtap="copyInviteCode">📋 复制</view>
+          <button class="invite-btn share" open-type="share">分享邀请</button>
+        </view>
+      </view>
+
+      <view class="settings-section">
+        <view class="settings-item" bindtap="editNickname">✏️ 修改昵称</view>
+        <view class="settings-item danger" wx:if="{{myRole==='admin'}}">
+          <view class="settings-subtitle">成员管理</view>
+          <view class="settings-member" wx:for="{{members}}" wx:key="openid" wx:if="{{item.role!=='admin'}}">
+            <text>{{item.nickname||'成员'}}</text>
+            <text class="kick-btn" catchtap="kickMember" data-index="{{index}}">移除</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="settings-section">
+        <view class="settings-item danger" bindtap="leaveFamily" wx:if="{{myRole!=='admin'}}">退出家庭</view>
+        <view class="settings-item danger" bindtap="dissolveFamily" wx:if="{{myRole==='admin'}}">解散家庭</view>
+      </view>
     </view>
   </view>
 
