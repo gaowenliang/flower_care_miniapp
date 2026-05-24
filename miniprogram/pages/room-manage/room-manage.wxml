@@ -45,19 +45,19 @@
 
       <view class="env-field">
         <text class="env-label">🌬️ 通风</text>
-        <picker range="['差','一般','良好','极佳']" value="{{envForm.ventilation}}" bindchange="onVentilationChange">
+        <picker range="['极差','差','一般','良好','极佳']" value="{{envForm.ventilation}}" bindchange="onVentilationChange">
           <view class="env-value">{{envForm.ventilation}} ›</view>
         </picker>
       </view>
       <view class="env-field">
         <text class="env-label">☀️ 采光</text>
-        <picker range="['阴暗','散射光','明亮','强光']" value="{{envForm.lighting}}" bindchange="onLightingChange">
+        <picker range="['阴暗','弱光','散射光','明亮','强光']" value="{{envForm.lighting}}" bindchange="onLightingChange">
           <view class="env-value">{{envForm.lighting}} ›</view>
         </picker>
       </view>
       <view class="env-field">
         <text class="env-label">💧 湿度</text>
-        <picker range="['干燥','偏低','适中','潮湿']" value="{{envForm.humidity}}" bindchange="onHumidityChange">
+        <picker range="['极干','干燥','适中','潮湿','极潮']" value="{{envForm.humidity}}" bindchange="onHumidityChange">
           <view class="env-value">{{envForm.humidity}} ›</view>
         </picker>
       </view>

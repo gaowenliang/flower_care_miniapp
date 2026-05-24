@@ -11,7 +11,7 @@ Page({
     // 编辑环境参数
     editingRoom: null,
     showEnvModal: false,
-    envForm: { ventilation: '良好', lighting: '明亮', humidity: '适中', temperature: '常温' }
+    envForm: { ventilation: '一般', lighting: '散射光', humidity: '适中', temperature: '常温' }
   },
 
   onShow() {
@@ -77,7 +77,7 @@ Page({
   editEnv(e) {
     const name = e.currentTarget.dataset.name
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
-    const env = roomEnvs[name] || { ventilation: '良好', lighting: '明亮', humidity: '适中', temperature: '常温' }
+    const env = roomEnvs[name] || { ventilation: '一般', lighting: '散射光', humidity: '适中', temperature: '常温' }
     this.setData({
       showEnvModal: true,
       editingRoom: name,
