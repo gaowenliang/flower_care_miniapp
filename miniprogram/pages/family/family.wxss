@@ -142,15 +142,16 @@
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0); z-index: 900;
   pointer-events: none; transition: background 0.3s;
-  overflow: hidden;
+  overflow: hidden; visibility: hidden;
 }
-.settings-mask.show { background: rgba(0,0,0,0.4); pointer-events: auto; }
+.settings-mask.show { background: rgba(0,0,0,0.4); pointer-events: auto; visibility: visible; }
 .settings-panel {
-  position: absolute; top: 0; right: -560rpx; width: 560rpx; height: 100vh;
+  position: absolute; top: 0; right: 0; width: 560rpx; height: 100vh;
   background: #fff; padding: 40rpx 24rpx; overflow-y: auto;
-  transition: right 0.3s ease; box-shadow: -4rpx 0 20rpx rgba(0,0,0,0.1);
+  transform: translateX(100%); transition: transform 0.3s ease;
+  box-shadow: -4rpx 0 20rpx rgba(0,0,0,0.1);
 }
-.settings-mask.show .settings-panel { right: 0; }
+.settings-mask.show .settings-panel { transform: translateX(0); }
 .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid #f0f0f0; }
 .settings-title { font-size: 32rpx; font-weight: bold; color: #333; }
 .settings-close { font-size: 28rpx; color: #999; padding: 8rpx; }

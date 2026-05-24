@@ -161,7 +161,7 @@ Page({
     // 先完成，再问费用（不阻塞完成操作）
     const doComplete = async (cost) => {
       cost = Math.round((cost || 0) * 100) / 100
-      if (cost < 0) { wx.showToast({ title: '花费不能为负数', icon: 'none' }); cost = 0 }
+      if (cost < 0) { wx.showToast({ title: '花费不能为负数', icon: 'none' }); return }
 
       if (this.data.isFamilyMode) {
         const result = await family.completeTask(taskId)
