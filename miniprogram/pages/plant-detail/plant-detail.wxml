@@ -26,7 +26,9 @@
           <text class="edit-icon" bindtap="editNickname">✏️</text>
         </view>
         <view class="species-row">
-          <text class="header-species">{{plantInfo.name}} · {{plantInfo.latin}}</text>
+          <text class="header-species">{{plantInfo.name}}{{plantInfo.latin ? ' · ' + plantInfo.latin : ''}}</text>
+          <text class="species-tag" wx:if="{{plantInfo.family}}">{{plantInfo.family}}</text>
+          <text class="species-tag" wx:if="{{plantInfo.genus}}">{{plantInfo.genus}}</text>
           <text class="search-icon" bindtap="showClassifyMenu">🔍</text>
         </view>
         <view class="header-location-row" bindtap="editLocation">

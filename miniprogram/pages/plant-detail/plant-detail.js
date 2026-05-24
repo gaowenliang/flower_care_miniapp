@@ -46,7 +46,20 @@ Page({
         setTimeout(() => wx.navigateBack(), 1000)
         return
       }
-      const plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
+      let plantInfo = plantsData.plants.find(p => p.id === userPlant.plantId)
+      // 自定义植物或数据库无匹配时，用云端数据构造
+      if (!plantInfo) {
+        plantInfo = {
+          name: userPlant.name || '',
+          latin: userPlant.latin || '',
+          category: userPlant.family || userPlant.category || '',
+          family: userPlant.family || '',
+          genus: userPlant.genus || ''
+        }
+      } else {
+        // 合并云端最新的科属信息
+        plantInfo = { ...plantInfo, family: userPlant.family || plantInfo.family || '', genus: userPlant.genus || plantInfo.genus || '', latin: userPlant.latin || plantInfo.latin || '' }
+      }
       userPlant.id = userPlant._id || id
       this.setData({
         userPlant, plantInfo,

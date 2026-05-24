@@ -230,7 +230,8 @@
 .price-add { color: #4CAF50; font-size: 24rpx; }
 
 /* 学名行 + 放大镜 */
-.species-row { display: flex; align-items: center; gap: 12rpx; }
+.species-row { display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
+.species-tag { font-size: 20rpx; background: #E8F5E9; color: #2E7D32; padding: 2rpx 10rpx; border-radius: 6rpx; }
 .search-icon { font-size: 28rpx; opacity: 0.6; padding: 4rpx 8rpx; }
 .search-icon:active { opacity: 1; }
 
