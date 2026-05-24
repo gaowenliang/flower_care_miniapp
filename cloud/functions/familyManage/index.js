@@ -399,9 +399,23 @@ async function getReport(openid, { period }) {
     memberCosts[r.createdBy] += r.cost
   })
 
-  // 购入花费
+  // 购入花费 + 品类花费
   const plantsRes = await db.collection('family_plants').where({ familyId }).get()
   const totalPurchaseCost = plantsRes.data.reduce((s, p) => s + (p.purchasePrice || 0), 0)
+  const categoryCost = {}
+  plantsRes.data.forEach(p => {
+    const cat = p.category || p.family || '其他'
+    const price = p.purchasePrice || 0
+    if (!categoryCost[cat]) categoryCost[cat] = { total: 0, count: 0 }
+    categoryCost[cat].total += price
+    categoryCost[cat].count++
+  })
+  const categoryCostList = Object.entries(categoryCost)
+    .map(([name, d]) => ({ name, total: Math.round(d.total * 100) / 100, count: d.count, avg: d.count > 0 ? Math.round(d.total / d.count * 100) / 100 : 0 }))
+    .filter(c => c.total > 0)
+    .sort((a, b) => b.total - a.total)
+  const maxCatCost = Math.max(1, ...categoryCostList.map(c => c.total))
+  categoryCostList.forEach(c => { c.percent = (c.total / maxCatCost * 100).toFixed(0) })
 
   return {
     success: true, period, totalRecords: records.length, typeStats,
@@ -411,7 +425,8 @@ async function getReport(openid, { period }) {
       totalAll: Math.round((totalPurchaseCost + totalMaintenanceCost) * 100) / 100,
       memberCosts: Object.entries(memberCosts).map(([openid, cost]) => ({
         openid, nickname: (memberMap[openid] || {}).nickname || '未知', cost: Math.round(cost * 100) / 100
-      })).sort((a, b) => b.cost - a.cost)
+      })).sort((a, b) => b.cost - a.cost),
+      categoryCostList
     },
     memberStats: Object.values(memberStats).sort((a, b) => b.total - a.total).map(s => ({ ...s, nickname: (memberMap[s.openid] || {}).nickname || '未知' }))
   }

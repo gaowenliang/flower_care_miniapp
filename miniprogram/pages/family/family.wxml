@@ -148,6 +148,15 @@
             </view>
           </view>
         </view>
+        <!-- 品类花费 -->
+        <view class="section-card" wx:if="{{reportData.costStats && reportData.costStats.categoryCostList.length > 0}}">
+          <view class="section-title" style="padding:4px 0"><text>📊 品类花费</text></view>
+          <view class="cat-bar-row" wx:for="{{reportData.costStats.categoryCostList}}" wx:key="name">
+            <text class="cat-bar-name">{{item.name}}</text>
+            <view class="cat-bar-wrap"><view class="cat-bar-fill orange" style="width: {{item.percent}}%"></view></view>
+            <text class="cat-bar-count">¥{{item.total}} ({{item.count}}棵 均¥{{item.avg}})</text>
+          </view>
+        </view>
       </view>
     </view>
 

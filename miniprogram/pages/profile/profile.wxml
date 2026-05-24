@@ -134,17 +134,7 @@
     </view>
   </view>
 
-  <!-- 品类花费 -->
-  <view class="card" wx:if="{{categoryCostList.length > 0}}">
-    <view class="section-title" style="padding:4px 0"><text>📊 品类花费</text></view>
-    <view class="cat-bar-row" wx:for="{{categoryCostList}}" wx:key="name">
-      <text class="cat-bar-name">{{item.name}}</text>
-      <view class="cat-bar-wrap">
-        <view class="cat-bar-fill" style="width: {{item.percent}}%;background:#FF9800"></view>
-      </view>
-      <text class="cat-bar-count">¥{{item.total}} ({{item.count}}棵 均¥{{item.avg}})</text>
-    </view>
-  </view>
+
 
   <!-- 月度花费趋势 -->
   <view class="card" wx:if="{{monthlyCost.length > 0}}">
