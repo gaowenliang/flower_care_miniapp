@@ -101,16 +101,20 @@ exports.main = async (event) => {
     }
 
     if (result.result && result.result.length > 0) {
-      const plants = result.result.map(r => ({
-        name: r.name || '未知',
-        score: (r.score * 100).toFixed(1),
-        baikeUrl: (r.baike_info && r.baike_info.baike_url) || '',
-        description: (r.baike_info && r.baike_info.description) || '',
-        image: (r.baike_info && r.baike_info.image_url) || '',
-        // 提取科属信息（从百科描述或名字中解析）
-        family: extractFamily(r),
-        genus: extractGenus(r)
-      }))
+      const plants = result.result.map(r => {
+        const family = extractFamily(r)
+        const genus = extractGenus(r)
+        console.log(`[identifyPlant] name=${r.name}, family=${family}, genus=${genus}, desc=${((r.baike_info && r.baike_info.description) || '').substring(0, 80)}`)
+        return {
+          name: r.name || '未知',
+          score: (r.score * 100).toFixed(1),
+          baikeUrl: (r.baike_info && r.baike_info.baike_url) || '',
+          description: (r.baike_info && r.baike_info.description) || '',
+          image: (r.baike_info && r.baike_info.image_url) || '',
+          family,
+          genus
+        }
+      })
       return { success: true, plants }
     }
 
