@@ -8,6 +8,11 @@ const FAMILY_TASKS_KEY = '_family_tasks'
 const FAMILY_RECORDS_KEY = '_family_records'
 const CACHE_TTL = 5 * 60 * 1000
 
+let _tempIdCounter = 0
+function _genTempId() {
+  return '_opt_' + Date.now() + '_' + (++_tempIdCounter)
+}
+
 // ========== 云函数基础调用 ==========
 
 function callCloud(name, action, data) {
@@ -126,7 +131,7 @@ function getPlantById(plantId) {
  * 添加植物 — 乐观写
  */
 function addPlant(plantData) {
-  const tempId = '_opt_' + Date.now()
+  const tempId = _genTempId()
   const now = Date.now()
 
   // 乐观写入本地缓存
@@ -317,7 +322,7 @@ function completeTask(taskId) {
     const existingRecord = (cachedRec.records || []).find(r => r.creatorNickname && !r._id.startsWith('_opt_'))
     const myNickname = existingRecord ? existingRecord.creatorNickname : '我'
     cachedRec.records.unshift({
-      _id: '_opt_' + now,
+      _id: _genTempId(),
       plantId: task.plantId || task.userPlantId,
       userPlantId: task.userPlantId,
       type: task.type, typeName: task.typeName,
@@ -434,7 +439,7 @@ function getCachedRecords(plantId) {
  */
 function addRecord(recordData) {
   const now = Date.now()
-  const tempId = '_opt_' + now
+  const tempId = _genTempId()
 
   const cached = _readCache(FAMILY_RECORDS_KEY) || { records: [], _cachedAt: now }
   cached.records.unshift({

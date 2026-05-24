@@ -209,15 +209,18 @@ async function dissolveFamily(openid) {
   const familyRes = await db.collection('families').doc(member.familyId).get()
   if (familyRes.data.createdBy !== openid) return { success: false, error: '仅管理员' }
   const familyId = member.familyId
-  const batchDelete = async (col) => { while (true) { const r = await db.collection(col).where({ familyId }).limit(100).get(); if (!r.data.length) break; for (const d of r.data) await db.collection(col).doc(d._id).remove(); if (r.data.length < 100) break } }
-  await batchDelete('family_members')
-  await batchDelete('family_plants')
-  await batchDelete('family_records')
-  await batchDelete('family_tasks')
-  await batchDelete('family_activities')
-  await batchDelete('family_milestones')
-  await batchDelete('family_wishlists')
-  await batchDelete('family_duties')
+  const batchDelete = async (col) => { while (true) { const r = await db.collection(col).where({ familyId }).limit(100).get(); if (!r.data.length) break; await Promise.all(r.data.map(d => db.collection(col).doc(d._id).remove())); if (r.data.length < 100) break } }
+  // 并行删所有关联集合
+  await Promise.all([
+    batchDelete('family_members'),
+    batchDelete('family_plants'),
+    batchDelete('family_records'),
+    batchDelete('family_tasks'),
+    batchDelete('family_activities'),
+    batchDelete('family_milestones'),
+    batchDelete('family_wishlists'),
+    batchDelete('family_duties')
+  ])
   await db.collection('families').doc(familyId).remove()
   return { success: true }
 }

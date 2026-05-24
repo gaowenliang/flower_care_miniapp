@@ -31,9 +31,14 @@ exports.main = async (event, context) => {
       if (!plant || plant.length === 0) continue
 
       try {
+        const templateId = process.env.TEMPLATE_ID || ''
+        if (!templateId || templateId.startsWith('YOUR_')) {
+          console.warn('checkReminders: 模板ID未配置，跳过发送')
+          continue
+        }
         await cloud.openapi.subscribeMessage.send({
           touser: plant[0]._openid,
-          templateId: process.env.TEMPLATE_ID || 'YOUR_WATER_TEMPLATE_ID',
+          templateId,
           page: `pages/plant-detail/plant-detail?id=${task.userPlantId}`,
           data: {
             thing1: { value: plant[0].nickname },

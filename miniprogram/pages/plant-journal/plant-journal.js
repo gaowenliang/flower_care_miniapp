@@ -59,15 +59,16 @@ Page({
     sorted.forEach(record => {
       const dateStr = util.formatDate(record.date)
       if (!grouped[dateStr]) {
-        grouped[dateStr] = { date: dateStr, dateLabel: this.getDateLabel(record.date), weekday: this.getWeekday(record.date), photos: [], notes: [] }
+        grouped[dateStr] = { date: dateStr, maxTs: record.date, dateLabel: this.getDateLabel(record.date), weekday: this.getWeekday(record.date), photos: [], notes: [] }
       }
+      if (record.date > grouped[dateStr].maxTs) grouped[dateStr].maxTs = record.date
       if (record.type === 'photo' && record.photo) {
         grouped[dateStr].photos.push({ ...record, time: this.formatTime(record.date) })
       } else if ((record.type === 'note' || record.note) && record.note) {
         grouped[dateStr].notes.push({ ...record, time: this.formatTime(record.date) })
       }
     })
-    const journal = Object.values(grouped).filter(g => g.photos.length > 0 || g.notes.length > 0).sort((a, b) => new Date(b.date) - new Date(a.date))
+    const journal = Object.values(grouped).filter(g => g.photos.length > 0 || g.notes.length > 0).sort((a, b) => b.maxTs - a.maxTs)
     const allPhotos = sorted.filter(r => r.type === 'photo' && r.photo).sort((a, b) => a.date - b.date)
     const comparePhotos = []
     if (allPhotos.length >= 2) {
@@ -90,6 +91,7 @@ Page({
       if (!grouped[dateStr]) {
         grouped[dateStr] = {
           date: dateStr,
+          maxTs: record.date,
           dateLabel: this.getDateLabel(record.date),
           weekday: this.getWeekday(record.date),
           photos: [],
@@ -101,11 +103,12 @@ Page({
       } else if (record.type === 'note' && record.note) {
         grouped[dateStr].notes.push({ ...record, time: this.formatTime(record.date) })
       }
+      if (record.date > grouped[dateStr].maxTs) grouped[dateStr].maxTs = record.date
     })
 
     const journal = Object.values(grouped)
       .filter(g => g.photos.length > 0 || g.notes.length > 0)
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .sort((a, b) => b.maxTs - a.maxTs)
 
     // 成长对比：找最早和最新的照片
     const allPhotos = records.filter(r => r.type === 'photo' && r.photo).sort((a, b) => a.date - b.date)

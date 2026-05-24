@@ -248,7 +248,7 @@ Page({
       task.daysText = daysOver === 0 ? '今天' : `逾期${daysOver}天`
     })
     this.setData({ todayTasks: dueTasks })
-    this.checkRainyDay()
+    // 雨天检查已合并到 loadWeather
   },
 
   loadWeather() {
@@ -256,6 +256,7 @@ Page({
       const cached = wx.getStorageSync('_weather_cache')
       if (cached && Date.now() - cached._t < 30 * 60000) {
         this.setData({ weather: cached.data })
+        this._checkRainyDayFromCache(cached.data)
         return
       }
     } catch (e) {}
@@ -273,32 +274,22 @@ Page({
           const data = { temp: w.temp, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.wind, city: w.city || '上海' }
           this.setData({ weather: data, weatherLoading: false })
           try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
+          this._checkRainyDayFromCache(data)
         } else { this.setData({ weatherLoading: false }) }
       },
       fail: () => { this.setData({ weatherLoading: false }) }
     })
   },
 
-  checkRainyDay() {
+  _checkRainyDayFromCache(weatherData) {
     try {
       const weatherTip = wx.getStorageSync('weatherTip_' + util.formatDate(Date.now()))
       if (weatherTip) return
-      if (!wx.cloud) return
-      let city = '310000'
-      try { city = wx.getStorageSync('_weather_city') || '310000' } catch (e) {}
-      wx.cloud.callFunction({
-        name: 'getWeather', data: { city },
-        success: (res) => {
-          if (res.result && res.result.weather) {
-            const w = res.result.weather
-            if (w.weather && w.weather.includes('雨')) {
-              const waterTasks = this.data.todayTasks.filter(t => t.typeName === '浇水')
-              if (waterTasks.length > 0) wx.showToast({ title: `雨天可暂缓浇水（${waterTasks.length}项）`, icon: 'none', duration: 3000 })
-            }
-            try { wx.setStorageSync('weatherTip_' + util.formatDate(Date.now()), true) } catch(e) {}
-          }
-        }
-      })
+      if (weatherData && weatherData.weather && weatherData.weather.includes('雨')) {
+        const waterTasks = this.data.todayTasks.filter(t => t.typeName === '浇水')
+        if (waterTasks.length > 0) wx.showToast({ title: `雨天可暂缓浇水（${waterTasks.length}项）`, icon: 'none', duration: 3000 })
+        try { wx.setStorageSync('weatherTip_' + util.formatDate(Date.now()), true) } catch(e) {}
+      }
     } catch (e) {}
   },
 

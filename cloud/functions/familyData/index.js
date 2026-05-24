@@ -96,13 +96,15 @@ async function getPlants(familyId) {
   const plants = await fetchAll('family_plants', { familyId })
   plants.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
 
-  // 为每个植物获取认养者昵称
-  const allOpenids = new Set()
-  plants.forEach(p => (p.adopters || []).forEach(oid => allOpenids.add(oid)))
+  // 只查有认养者的 openid
+  const adopterSets = new Set()
+  plants.forEach(p => (p.adopters || []).forEach(oid => adopterSets.add(oid)))
 
   let memberMap = {}
-  if (allOpenids.size > 0) {
-    const membersRes = await db.collection('family_members').where({ familyId }).get()
+  if (adopterSets.size > 0) {
+    const membersRes = await db.collection('family_members')
+      .where({ familyId, openid: _.in([...adopterSets]) })
+      .get()
     membersRes.data.forEach(m => { memberMap[m.openid] = m })
   }
 
@@ -300,12 +302,12 @@ async function completeTask(event, openid, familyId) {
     }
   })
 
-  // 给成员加分
-  await addPointsToMember(openid, task.type)
-
-  // 写动态
+  // 加分 + 写动态 + 里程碑并行
   const plantName = await getPlantName(task.plantId || task.userPlantId)
-  await logActivity(familyId, openid, 'care', `${task.typeName}了「${plantName}」`)
+  await Promise.all([
+    addPointsToMember(openid, task.type),
+    logActivity(familyId, openid, 'care', `${task.typeName}了「${plantName}」`)
+  ])
 
   // 里程碑检测（异步不阻塞）
   checkMilestonesAsync(familyId, task.plantId || task.userPlantId)
@@ -449,13 +451,13 @@ async function addRecord(event, openid, familyId) {
     }
   })
 
-  // 加分
-  await addPointsToMember(openid, record.type || 'custom')
-
-  // 写动态
+  // 加分 + 写动态并行
   const plantName = await getPlantName(record.userPlantId || record.plantId)
   const actionText = record.type === 'photo' ? `给「${plantName}」拍了照片` : record.type === 'note' ? `给「${plantName}」写了备注` : `${record.typeName || '养护'}了「${plantName}」`
-  await logActivity(familyId, openid, record.type || 'care', actionText)
+  await Promise.all([
+    addPointsToMember(openid, record.type || 'custom'),
+    logActivity(familyId, openid, record.type || 'care', actionText)
+  ])
 
   return { success: true }
 }
