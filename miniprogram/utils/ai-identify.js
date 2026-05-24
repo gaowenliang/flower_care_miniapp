@@ -124,8 +124,14 @@ function readAndCheck(filePath, resolve) {
     success: (r) => {
       // 检查大小，base64 字符串长度 * 0.75 ≈ 原始字节
       const sizeKB = (r.data.length * 0.75) / 1024
+      if (sizeKB > 4096) {
+        // 超过4MB直接拒绝，云函数payload上限约5MB
+        console.error('图片过大:', Math.round(sizeKB), 'KB')
+        resolve(null)
+        return
+      }
       if (sizeKB > 800) {
-        console.warn('图片仍然过大:', Math.round(sizeKB), 'KB，云函数可能超时')
+        console.warn('图片较大:', Math.round(sizeKB), 'KB，云函数可能超时')
       }
       resolve(r.data)
     },
