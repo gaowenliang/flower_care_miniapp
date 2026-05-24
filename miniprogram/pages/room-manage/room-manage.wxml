@@ -21,7 +21,6 @@
     </view>
   </view>
 
-  <!-- 添加按钮 -->
   <view class="add-room-btn" bindtap="showAdd">
     <text>+ 添加房间</text>
   </view>
@@ -40,32 +39,51 @@
 
   <!-- 环境参数弹窗 -->
   <view class="modal-mask" wx:if="{{showEnvModal}}" bindtap="hideEnvModal">
-    <view class="modal-content env-modal" catchtap="">
-      <view class="modal-title">⚙️ {{editingRoom}} 环境参数</view>
+    <view class="modal-content env-modal" catchtap="preventBubble">
+      <view class="modal-title">⚙️ {{editingRoom}}</view>
 
-      <view class="env-field">
+      <view class="env-row">
         <text class="env-label">🌬️ 通风</text>
-        <picker range="{{ventilationOptions}}" value="{{envForm.ventilation}}" bindchange="onVentilationChange">
-          <view class="env-value">{{ventilationOptions[envForm.ventilation]}} ›</view>
-        </picker>
+        <view class="env-options">
+          <text class="env-opt {{ventilation === '极差' ? 'active' : ''}}" bindtap="setEnv" data-key="ventilation" data-val="极差">极差</text>
+          <text class="env-opt {{ventilation === '差' ? 'active' : ''}}" bindtap="setEnv" data-key="ventilation" data-val="差">差</text>
+          <text class="env-opt {{ventilation === '一般' ? 'active' : ''}}" bindtap="setEnv" data-key="ventilation" data-val="一般">一般</text>
+          <text class="env-opt {{ventilation === '良好' ? 'active' : ''}}" bindtap="setEnv" data-key="ventilation" data-val="良好">良好</text>
+          <text class="env-opt {{ventilation === '极佳' ? 'active' : ''}}" bindtap="setEnv" data-key="ventilation" data-val="极佳">极佳</text>
+        </view>
       </view>
-      <view class="env-field">
+
+      <view class="env-row">
         <text class="env-label">☀️ 采光</text>
-        <picker range="{{lightingOptions}}" value="{{envForm.lighting}}" bindchange="onLightingChange">
-          <view class="env-value">{{lightingOptions[envForm.lighting]}} ›</view>
-        </picker>
+        <view class="env-options">
+          <text class="env-opt {{lighting === '阴暗' ? 'active' : ''}}" bindtap="setEnv" data-key="lighting" data-val="阴暗">阴暗</text>
+          <text class="env-opt {{lighting === '弱光' ? 'active' : ''}}" bindtap="setEnv" data-key="lighting" data-val="弱光">弱光</text>
+          <text class="env-opt {{lighting === '散射光' ? 'active' : ''}}" bindtap="setEnv" data-key="lighting" data-val="散射光">散射光</text>
+          <text class="env-opt {{lighting === '明亮' ? 'active' : ''}}" bindtap="setEnv" data-key="lighting" data-val="明亮">明亮</text>
+          <text class="env-opt {{lighting === '强光' ? 'active' : ''}}" bindtap="setEnv" data-key="lighting" data-val="强光">强光</text>
+        </view>
       </view>
-      <view class="env-field">
+
+      <view class="env-row">
         <text class="env-label">💧 湿度</text>
-        <picker range="{{humidityOptions}}" value="{{envForm.humidity}}" bindchange="onHumidityChange">
-          <view class="env-value">{{humidityOptions[envForm.humidity]}} ›</view>
-        </picker>
+        <view class="env-options">
+          <text class="env-opt {{humidity === '极干' ? 'active' : ''}}" bindtap="setEnv" data-key="humidity" data-val="极干">极干</text>
+          <text class="env-opt {{humidity === '干燥' ? 'active' : ''}}" bindtap="setEnv" data-key="humidity" data-val="干燥">干燥</text>
+          <text class="env-opt {{humidity === '适中' ? 'active' : ''}}" bindtap="setEnv" data-key="humidity" data-val="适中">适中</text>
+          <text class="env-opt {{humidity === '潮湿' ? 'active' : ''}}" bindtap="setEnv" data-key="humidity" data-val="潮湿">潮湿</text>
+          <text class="env-opt {{humidity === '极潮' ? 'active' : ''}}" bindtap="setEnv" data-key="humidity" data-val="极潮">极潮</text>
+        </view>
       </view>
-      <view class="env-field">
+
+      <view class="env-row">
         <text class="env-label">🌡️ 温度</text>
-        <picker range="{{temperatureOptions}}" value="{{envForm.temperature}}" bindchange="onTemperatureChange">
-          <view class="env-value">{{temperatureOptions[envForm.temperature]}} ›</view>
-        </picker>
+        <view class="env-options">
+          <text class="env-opt {{temperature === '寒冷' ? 'active' : ''}}" bindtap="setEnv" data-key="temperature" data-val="寒冷">寒冷</text>
+          <text class="env-opt {{temperature === '偏凉' ? 'active' : ''}}" bindtap="setEnv" data-key="temperature" data-val="偏凉">偏凉</text>
+          <text class="env-opt {{temperature === '常温' ? 'active' : ''}}" bindtap="setEnv" data-key="temperature" data-val="常温">常温</text>
+          <text class="env-opt {{temperature === '温暖' ? 'active' : ''}}" bindtap="setEnv" data-key="temperature" data-val="温暖">温暖</text>
+          <text class="env-opt {{temperature === '炎热' ? 'active' : ''}}" bindtap="setEnv" data-key="temperature" data-val="炎热">炎热</text>
+        </view>
       </view>
 
       <view class="modal-btns">

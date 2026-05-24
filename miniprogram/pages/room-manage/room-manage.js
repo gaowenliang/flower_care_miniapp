@@ -2,13 +2,6 @@
 const storage = require('../../utils/storage')
 
 const PRESET_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
-const ENV_OPTIONS = {
-  ventilation: ['极差', '差', '一般', '良好', '极佳'],
-  lighting: ['阴暗', '弱光', '散射光', '明亮', '强光'],
-  humidity: ['极干', '干燥', '适中', '潮湿', '极潮'],
-  temperature: ['寒冷', '偏凉', '常温', '温暖', '炎热']
-}
-const ENV_DEFAULT = { ventilation: 2, lighting: 2, humidity: 2, temperature: 2 }
 
 Page({
   data: {
@@ -17,12 +10,11 @@ Page({
     newRoomName: '',
     editingRoom: null,
     showEnvModal: false,
-    envForm: { ...ENV_DEFAULT },
-    // 选项数据
-    ventilationOptions: ENV_OPTIONS.ventilation,
-    lightingOptions: ENV_OPTIONS.lighting,
-    humidityOptions: ENV_OPTIONS.humidity,
-    temperatureOptions: ENV_OPTIONS.temperature
+    // 当前选中文字
+    ventilation: '一般',
+    lighting: '散射光',
+    humidity: '适中',
+    temperature: '常温'
   },
 
   onShow() {
@@ -35,19 +27,12 @@ Page({
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
 
     const rooms = [...PRESET_ROOMS, ...customRooms.filter(r => !PRESET_ROOMS.includes(r))].map(name => {
-      const envRaw = roomEnvs[name]
-      const env = envRaw ? {
-        ventilation: ENV_OPTIONS.ventilation[envRaw.ventilation] || '',
-        lighting: ENV_OPTIONS.lighting[envRaw.lighting] || '',
-        humidity: ENV_OPTIONS.humidity[envRaw.humidity] || '',
-        temperature: ENV_OPTIONS.temperature[envRaw.temperature] || ''
-      } : null
+      const env = roomEnvs[name] || null
       return { name, isPreset: PRESET_ROOMS.includes(name), env }
     })
     this.setData({ rooms })
   },
 
-  // 添加房间
   showAdd() { this.setData({ showAddModal: true, newRoomName: '' }) },
   hideAdd() { this.setData({ showAddModal: false }) },
   onNameInput(e) { this.setData({ newRoomName: e.detail.value }) },
@@ -56,13 +41,11 @@ Page({
     const name = this.data.newRoomName.trim()
     if (!name) { wx.showToast({ title: '请输入房间名', icon: 'none' }); return }
     if (name.length > 6) { wx.showToast({ title: '最多6个字', icon: 'none' }); return }
-
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
     if (customRooms.includes(name) || PRESET_ROOMS.includes(name)) {
       wx.showToast({ title: '该房间已存在', icon: 'none' }); return
     }
-
     customRooms.push(name)
     try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
     this.setData({ showAddModal: false })
@@ -70,7 +53,6 @@ Page({
     wx.showToast({ title: '已添加', icon: 'none' })
   },
 
-  // 删除房间
   deleteRoom(e) {
     const name = e.currentTarget.dataset.name
     wx.showModal({
@@ -89,26 +71,39 @@ Page({
     })
   },
 
-  // 环境参数
   editEnv(e) {
     const name = e.currentTarget.dataset.name
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
-    const saved = roomEnvs[name] || null
+    const saved = roomEnvs[name]
     this.setData({
       showEnvModal: true,
       editingRoom: name,
-      envForm: saved ? { ...saved } : { ...ENV_DEFAULT }
+      ventilation: saved ? saved.ventilation : '一般',
+      lighting: saved ? saved.lighting : '散射光',
+      humidity: saved ? saved.humidity : '适中',
+      temperature: saved ? saved.temperature : '常温'
     })
   },
 
-  onVentilationChange(e) { this.setData({ 'envForm.ventilation': Number(e.detail.value) }) },
-  onLightingChange(e) { this.setData({ 'envForm.lighting': Number(e.detail.value) }) },
-  onHumidityChange(e) { this.setData({ 'envForm.humidity': Number(e.detail.value) }) },
-  onTemperatureChange(e) { this.setData({ 'envForm.temperature': Number(e.detail.value) }) },
+  onVentilationChange(e) { this.setData({ ventilation: e.detail.value }) },
+  onLightingChange(e) { this.setData({ lighting: e.detail.value }) },
+  onHumidityChange(e) { this.setData({ humidity: e.detail.value }) },
+  onTemperatureChange(e) { this.setData({ temperature: e.detail.value }) },
+
+  setEnv(e) {
+    const key = e.currentTarget.dataset.key
+    const val = e.currentTarget.dataset.val
+    this.setData({ [key]: val })
+  },
 
   saveEnv() {
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
-    roomEnvs[this.data.editingRoom] = { ...this.data.envForm }
+    roomEnvs[this.data.editingRoom] = {
+      ventilation: this.data.ventilation,
+      lighting: this.data.lighting,
+      humidity: this.data.humidity,
+      temperature: this.data.temperature
+    }
     try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
     this.setData({ showEnvModal: false })
     this.loadRooms()
