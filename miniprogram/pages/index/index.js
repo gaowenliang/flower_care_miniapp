@@ -41,32 +41,33 @@ Page({
   },
 
   async initMode() {
-    // 优先用缓存判断模式，避免每次 onShow 都调云函数
+    // 优先用缓存判断模式
     const cachedInfo = family.getCachedFamily()
-    const isFamilyMode = !!cachedInfo && cachedInfo.inFamily
-    this.setData({ isFamilyMode })
-
-    if (isFamilyMode) {
-      // 先用缓存渲染，后台静默刷新
+    if (cachedInfo && cachedInfo.inFamily) {
+      // 缓存命中，先用缓存渲染，后台静默刷新
+      this.setData({ isFamilyMode: true })
       this.loadFamilyDataFromCache()
       family.refreshFamilyInfo().then(info => {
-        if (info.success && info.inFamily !== isFamilyMode) {
-          // 模式变化（退出家庭等），重新初始化
-          this.setData({ isFamilyMode: info.inFamily })
-          if (info.inFamily) {
-            this.loadFamilyData()
-          } else {
-            this.loadGarden()
-            this.loadTodayTasks()
-            this.loadStats()
-          }
+        if (info.success && !info.inFamily) {
+          // 被踢出家庭了
+          this.setData({ isFamilyMode: false })
+          this.loadGarden()
+          this.loadTodayTasks()
+          this.loadStats()
         }
       })
     } else {
-      // 个人模式不走云端
-      this.loadGarden()
-      this.loadTodayTasks()
-      this.loadStats()
+      // 缓存未命中（首次打开/缓存过期），先问云端
+      const info = await family.refreshFamilyInfo()
+      const isFamilyMode = info.success && info.inFamily
+      this.setData({ isFamilyMode })
+      if (isFamilyMode) {
+        this.loadFamilyData()
+      } else {
+        this.loadGarden()
+        this.loadTodayTasks()
+        this.loadStats()
+      }
     }
     this.loadWeather()
     subscribe.checkAndNotify()
