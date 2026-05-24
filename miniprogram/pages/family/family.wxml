@@ -69,7 +69,6 @@
       </view>
 
       </view>
-    </view>
 
     <!-- ===== 植物 ===== -->
     <view wx:if="{{activeTab==='plants'}}">
