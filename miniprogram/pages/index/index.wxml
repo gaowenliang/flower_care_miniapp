@@ -68,6 +68,9 @@
       <text class="weather-desc">{{weather.weather}}</text>
       <text class="weather-detail" wx:if="{{weather.humidity}}">💧 {{weather.humidity}}%</text>
     </view>
+    <view class="weather-card loading" wx:elif="{{weatherLoading}}">
+      <text class="weather-desc">正在获取天气...</text>
+    </view>
 
     <!-- 统计条 -->
     <view class="stats-bar" wx:if="{{hasPlants && stats}}">
@@ -90,7 +93,7 @@
               wx:for="{{rooms}}" wx:key="*this"
               bindtap="switchRoom" data-room="{{item}}"
               longpress="deleteRoom">{{item}}</view>
-        <view class="room-tag add" bindtap="switchRoom" data-room="+ 添加">+</view>
+        <view class="room-tag manage" bindtap="goRoomManage">⚙️</view>
       </scroll-view>
 
       <!-- 搜索栏 -->

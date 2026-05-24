@@ -1,0 +1,77 @@
+<!-- pages/room-manage/room-manage.wxml -->
+<view class="page">
+  <view class="section-title">🏠 房间管理</view>
+
+  <view class="room-list">
+    <view class="room-card" wx:for="{{rooms}}" wx:key="name">
+      <view class="room-info">
+        <text class="room-name">{{item.name}}</text>
+        <view class="room-env-tags" wx:if="{{item.env}}">
+          <text class="env-tag">🌬️ {{item.env.ventilation}}</text>
+          <text class="env-tag">☀️ {{item.env.lighting}}</text>
+          <text class="env-tag">💧 {{item.env.humidity}}</text>
+          <text class="env-tag">🌡️ {{item.env.temperature}}</text>
+        </view>
+        <text class="room-no-env" wx:else>未设置环境参数</text>
+      </view>
+      <view class="room-actions">
+        <view class="action-btn env-btn" bindtap="editEnv" data-name="{{item.name}}">⚙️</view>
+        <view class="action-btn del-btn" wx:if="{{!item.isPreset}}" bindtap="deleteRoom" data-name="{{item.name}}">🗑️</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-room-btn" bindtap="showAdd">
+    <text>+ 添加房间</text>
+  </view>
+
+  <!-- 添加弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="hideAdd">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">添加房间</view>
+      <input class="modal-input" placeholder="输入房间名称，如：厨房、走廊..." maxlength="6" value="{{newRoomName}}" bindinput="onNameInput" focus="{{showAddModal}}" />
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideAdd">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmAdd">添加</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 环境参数弹窗 -->
+  <view class="modal-mask" wx:if="{{showEnvModal}}" bindtap="hideEnvModal">
+    <view class="modal-content env-modal" catchtap="">
+      <view class="modal-title">⚙️ {{editingRoom}} 环境参数</view>
+
+      <view class="env-field">
+        <text class="env-label">🌬️ 通风</text>
+        <picker range="['差','一般','良好','极佳']" value="{{envForm.ventilation}}" bindchange="onVentilationChange">
+          <view class="env-value">{{envForm.ventilation}} ›</view>
+        </picker>
+      </view>
+      <view class="env-field">
+        <text class="env-label">☀️ 采光</text>
+        <picker range="['阴暗','散射光','明亮','强光']" value="{{envForm.lighting}}" bindchange="onLightingChange">
+          <view class="env-value">{{envForm.lighting}} ›</view>
+        </picker>
+      </view>
+      <view class="env-field">
+        <text class="env-label">💧 湿度</text>
+        <picker range="['干燥','偏低','适中','潮湿']" value="{{envForm.humidity}}" bindchange="onHumidityChange">
+          <view class="env-value">{{envForm.humidity}} ›</view>
+        </picker>
+      </view>
+      <view class="env-field">
+        <text class="env-label">🌡️ 温度</text>
+        <picker range="['寒冷','偏凉','常温','温暖','炎热']" value="{{envForm.temperature}}" bindchange="onTemperatureChange">
+          <view class="env-value">{{envForm.temperature}} ›</view>
+        </picker>
+      </view>
+
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideEnvModal">取消</view>
+        <view class="modal-btn confirm" bindtap="saveEnv">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

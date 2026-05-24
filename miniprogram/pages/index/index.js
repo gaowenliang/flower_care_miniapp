@@ -202,6 +202,10 @@ Page({
 
   cancelAddRoom() { this.setData({ showAddRoom: false }) },
 
+  goRoomManage() {
+    wx.navigateTo({ url: '/pages/room-manage/room-manage' })
+  },
+
   deleteRoom(e) {
     const room = e.currentTarget.dataset.room
     if (DEFAULT_ROOMS.includes(room)) { wx.showToast({ title: '预设房间不能删除', icon: 'none' }); return }

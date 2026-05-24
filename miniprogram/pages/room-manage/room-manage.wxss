@@ -1,0 +1,56 @@
+/* pages/room-manage/room-manage.wxss */
+.page { padding: 24rpx; background: #F7F9F7; min-height: 100vh; }
+.section-title { font-size: 32rpx; font-weight: bold; color: #2D3436; margin-bottom: 24rpx; }
+
+.room-list { display: flex; flex-direction: column; gap: 12rpx; }
+.room-card {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; border-radius: 16rpx; padding: 20rpx 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.room-info { flex: 1; min-width: 0; }
+.room-name { font-size: 30rpx; font-weight: 600; color: #2D3436; display: block; }
+.room-env-tags { display: flex; flex-wrap: wrap; gap: 8rpx; margin-top: 8rpx; }
+.env-tag { font-size: 20rpx; color: #607D8B; background: #ECEFF1; padding: 2rpx 10rpx; border-radius: 6rpx; }
+.room-no-env { font-size: 22rpx; color: #B0BEC5; margin-top: 4rpx; display: block; }
+
+.room-actions { display: flex; gap: 12rpx; flex-shrink: 0; }
+.action-btn { font-size: 24rpx; padding: 8rpx 12rpx; border-radius: 12rpx; }
+.env-btn { background: #E8F5E9; }
+.del-btn { background: #FFF3E0; }
+
+.add-room-btn {
+  text-align: center; padding: 28rpx; margin-top: 24rpx;
+  background: #fff; border-radius: 16rpx; color: #4CAF50;
+  font-size: 28rpx; font-weight: 600;
+  border: 2rpx dashed #4CAF50;
+}
+.add-room-btn:active { background: #E8F5E9; }
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center; z-index: 999;
+}
+.modal-content {
+  background: #fff; border-radius: 20rpx; padding: 40rpx 32rpx; width: 560rpx;
+}
+.modal-title { font-size: 32rpx; font-weight: bold; text-align: center; margin-bottom: 28rpx; }
+.modal-input {
+  border: 2rpx solid #e0e0e0; border-radius: 14rpx; padding: 20rpx 24rpx;
+  font-size: 28rpx; width: 100%; box-sizing: border-box;
+}
+.modal-btns { display: flex; gap: 16rpx; margin-top: 28rpx; }
+.modal-btn { flex: 1; text-align: center; padding: 16rpx; border-radius: 14rpx; font-size: 28rpx; }
+.modal-btn.cancel { background: #f5f5f5; color: #666; }
+.modal-btn.confirm { background: #4CAF50; color: #fff; }
+
+/* 环境参数 */
+.env-field {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16rpx 0; border-bottom: 1rpx solid #f0f0f0;
+}
+.env-field:last-of-type { border-bottom: none; }
+.env-label { font-size: 28rpx; color: #2D3436; }
+.env-value { font-size: 28rpx; color: #4CAF50; font-weight: 500; }
