@@ -228,7 +228,6 @@
 .room-water-btn:active { transform: scale(0.96); opacity: 0.9; }
 .water-btn-icon { font-size: 36rpx; }
 .water-btn-text { font-size: 28rpx; font-weight: 600; color: #fff; margin-top: 4rpx; }
-.water-btn-hint { font-size: 20rpx; color: rgba(255,255,255,0.7); margin-top: 2rpx; }
 /* 新用户引导 */
 .empty-state.onboarding { padding: 20rpx 32rpx 40rpx; }
 .onboarding-steps {

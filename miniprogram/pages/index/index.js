@@ -557,49 +557,6 @@ Page({
     })
   },
 
-  // 长按：给所有房间浇水
-  async waterAllRooms() {
-    const allPlants = this.data.garden.filter(p => !p.dead)
-    if (allPlants.length === 0) {
-      wx.showToast({ title: '没有需要浇水的植物', icon: 'none' }); return
-    }
-    wx.showModal({
-      title: '全部浇水', content: `给所有房间${allPlants.length}棵活植物浇水？`,
-      success: async (res) => {
-        if (!res.confirm) return
-        wx.showLoading({ title: '浇水中...' })
-        let done = 0
-        if (this.data.isFamilyMode) {
-          for (const plant of allPlants) {
-            const tasks = family.getCachedTasks(plant._id || plant.id)
-            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
-            if (waterTask) {
-              await family.completeTask(waterTask._id || waterTask.id).catch(() => {})
-              done++
-            }
-          }
-          await this.loadFamilyData()
-        } else {
-          for (const plant of allPlants) {
-            const tasks = storage.getTasksByPlant(plant.id)
-            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
-            if (waterTask) {
-              storage.completeTask(waterTask.id)
-              storage.addRecord({ id: util.genId(), userPlantId: plant.id, type: 'water', typeName: '浇水', date: Date.now(), note: '全部一键浇水' })
-              done++
-            }
-          }
-          this.loadGarden()
-          this.loadTodayTasks()
-          this.loadStats()
-        }
-        wx.hideLoading()
-        this.setData({ showTip: true, tipText: `💧 全部${done}棵已浇水！` })
-        setTimeout(() => this.setData({ showTip: false }), 2000)
-      }
-    })
-  },
-
   onPullDownRefresh() {
     this.loadFamilyData().then(() => wx.stopPullDownRefresh())
   },
