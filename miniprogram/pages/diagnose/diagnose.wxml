@@ -1,8 +1,64 @@
 <!-- pages/diagnose/diagnose.wxml -->
 <view class="container">
-  <!-- 输入区 -->
+  <!-- AI拍照识别 -->
+  <view class="card photo-card">
+    <view class="photo-header">
+      <text class="photo-title">🔬 AI 病虫害识别</text>
+      <text class="photo-hint">拍一张病叶照片，AI帮你诊断</text>
+    </view>
+    <view class="photo-area">
+      <view class="photo-preview" wx:if="{{photoPath}}">
+        <image class="photo-img" src="{{photoPath}}" mode="aspectFill" />
+        <view class="photo-retry" bindtap="clearPhoto">重新拍照</view>
+      </view>
+      <view class="photo-btn" wx:else bindtap="takePhoto">
+        <text class="photo-btn-icon">📷</text>
+        <text class="photo-btn-text">拍照/相册</text>
+      </view>
+      <view class="photo-loading" wx:if="{{aiLoading}}">
+        <view class="loading-spinner"></view>
+        <text>AI 分析中...</text>
+      </view>
+    </view>
+    <view class="ai-error" wx:if="{{aiError}}">
+      <text>{{aiError}}</text>
+    </view>
+  </view>
+
+  <!-- AI识别结果 -->
+  <view class="results" wx:if="{{showAIResult && aiResults.length > 0}}">
+    <view class="section-title">🔬 AI 诊断结果</view>
+    <view class="card result-card" wx:for="{{aiResults}}" wx:key="id">
+      <view class="result-header">
+        <text class="result-emoji">{{item.emoji}}</text>
+        <view class="result-title">
+          <text class="result-name">{{item.name}}</text>
+          <text class="result-score" wx:if="{{item.score}}">{{item.score}}%</text>
+          <text class="result-severity severity-{{item.severity}}">{{item.severity === 'high' ? '严重' : item.severity === 'medium' ? '中等' : '轻微'}}</text>
+        </view>
+      </view>
+      <view class="result-cause">
+        <text class="label">可能原因：</text>
+        <text>{{item.causes}}</text>
+      </view>
+      <view class="result-solutions">
+        <text class="label">处理建议：</text>
+        <view class="solution-item" wx:for="{{item.solutions}}" wx:for-item="sol" wx:key="*this" wx:for-index="si">
+          <text class="sol-num">{{si + 1}}</text>
+          <text class="sol-text">{{sol}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分隔线 -->
+  <view class="divider" wx:if="{{showAIResult}}">
+    <text>或手动描述症状</text>
+  </view>
+
+  <!-- 文字输入区 -->
   <view class="card input-card">
-    <text class="input-title">🔍 描述你的植物症状</text>
+    <text class="input-title">🔍 描述植物症状</text>
     <textarea class="symptom-input" placeholder="例如：叶子发黄、有黑斑、根部发软..."
       value="{{symptomText}}" bindinput="onInput" maxlength="200" auto-height />
     <view class="input-actions">
@@ -19,8 +75,8 @@
       bindtap="addSymptom" data-symptom="{{item}}">{{item}}</view>
   </view>
 
-  <!-- 诊断结果 -->
-  <view class="results" wx:if="{{results.length > 0}}">
+  <!-- 文字诊断结果 -->
+  <view class="results" wx:if="{{results.length > 0 && !showAIResult}}">
     <view class="section-title">📋 诊断结果</view>
     <view class="card result-card" wx:for="{{results}}" wx:key="id">
       <view class="result-header">
@@ -48,6 +104,6 @@
   <view class="no-result" wx:if="{{showNoResult}}">
     <text class="no-result-emoji">🤔</text>
     <text class="no-result-text">没有匹配到已知病害</text>
-    <text class="no-result-hint">试试更详细描述症状，或咨询专业园艺师</text>
+    <text class="no-result-hint">试试更详细描述症状，或用拍照识别</text>
   </view>
 </view>
