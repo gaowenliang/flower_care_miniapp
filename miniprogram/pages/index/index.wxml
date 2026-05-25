@@ -131,6 +131,7 @@
           <view class="garden-avatar {{item.dead ? 'dead-avatar' : item.hasOverdue ? 'needs-care' : ''}}">
             <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" lazy-load />
             <text wx:else class="garden-emoji">{{item.dead ? '💀' : item.emoji}}</text>
+            <view class="dead-overlay" wx:if="{{item.dead && item.avatar}}">🪦</view>
             <text class="garden-due" wx:if="{{item.dueCount > 0 && !item.dead}}">{{item.dueCount}}</text>
           </view>
           <text class="garden-name">{{item.nickname}}</text>

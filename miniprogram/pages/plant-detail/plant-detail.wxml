@@ -17,8 +17,9 @@
     <view class="header-main">
       <view class="header-avatar {{userPlant.dead ? 'dead-avatar' : ''}}" bindtap="changeAvatar">
         <image wx:if="{{userPlant.avatar}}" class="header-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" binderror="onAvatarError" />
-        <text wx:else class="header-emoji-text">{{userPlant.emoji}}</text>
-        <view class="avatar-camera">📷</view>
+        <text wx:else class="header-emoji-text">{{userPlant.dead ? '💀' : userPlant.emoji}}</text>
+        <view class="dead-overlay" wx:if="{{userPlant.dead && userPlant.avatar}}">🪦</view>
+        <view class="avatar-camera" wx:if="{{!userPlant.dead}}">📷</view>
       </view>
       <view class="header-info">
         <view class="header-name-row">
