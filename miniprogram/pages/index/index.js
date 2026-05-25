@@ -115,6 +115,7 @@ Page({
       })
 
       garden.sort((a, b) => {
+        if (a.dead !== b.dead) return a.dead ? 1 : -1
         if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
         return (b.addedAt || 0) - (a.addedAt || 0)
       })
@@ -162,6 +163,13 @@ Page({
   loadRooms() {
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    // 如果有嘎了的植物，确保💀天堂房间存在
+    const garden = this.data.isFamilyMode ? family.getCachedPlants() : storage.getGarden()
+    const hasDead = garden && garden.some(p => p.dead)
+    if (hasDead && !customRooms.includes('💀 天堂')) {
+      customRooms.push('💀 天堂')
+      try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+    }
     this.setData({ rooms: [...DEFAULT_ROOMS, ...customRooms] })
   },
 
@@ -233,6 +241,8 @@ Page({
       plant.addedDays = Math.floor((Date.now() - plant.addedAt) / 86400000)
     })
     garden.sort((a, b) => {
+      // 嘎了的排最后
+      if (a.dead !== b.dead) return a.dead ? 1 : -1
       if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
       return b.addedAt - a.addedAt
     })

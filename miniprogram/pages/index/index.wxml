@@ -127,11 +127,11 @@
 
       <!-- 矩阵网格 -->
       <view class="garden-grid" wx:if="{{filteredGarden.length > 0}}">
-        <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}" bindlongpress="showPlantActions" data-idx="{{index}}">
-          <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
+        <view class="garden-item {{item.dead ? 'dead-plant' : ''}}" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}" bindlongpress="showPlantActions" data-idx="{{index}}">
+          <view class="garden-avatar {{item.dead ? 'dead-avatar' : item.hasOverdue ? 'needs-care' : ''}}">
             <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" lazy-load />
-            <text wx:else class="garden-emoji">{{item.emoji}}</text>
-            <text class="garden-due" wx:if="{{item.dueCount > 0}}">{{item.dueCount}}</text>
+            <text wx:else class="garden-emoji">{{item.dead ? '💀' : item.emoji}}</text>
+            <text class="garden-due" wx:if="{{item.dueCount > 0 && !item.dead}}">{{item.dueCount}}</text>
           </view>
           <text class="garden-name">{{item.nickname}}</text>
           <text class="garden-location">📍 {{item.location}}</text>

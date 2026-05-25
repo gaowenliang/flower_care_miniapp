@@ -15,7 +15,7 @@
   <!-- 植物头部 -->
   <view class="plant-header card">
     <view class="header-main">
-      <view class="header-avatar" bindtap="changeAvatar">
+      <view class="header-avatar {{userPlant.dead ? 'dead-avatar' : ''}}" bindtap="changeAvatar">
         <image wx:if="{{userPlant.avatar}}" class="header-avatar-img" src="{{userPlant.avatar}}" mode="aspectFill" binderror="onAvatarError" />
         <text wx:else class="header-emoji-text">{{userPlant.emoji}}</text>
         <view class="avatar-camera">📷</view>
@@ -23,6 +23,7 @@
       <view class="header-info">
         <view class="header-name-row">
           <text class="header-name">{{userPlant.nickname}}</text>
+          <text class="dead-badge" wx:if="{{userPlant.dead}}">💀 已嘎</text>
           <text class="edit-icon" bindtap="editNickname">✏️</text>
         </view>
         <view class="species-row">
@@ -75,6 +76,7 @@
       <view class="action-btn" bindtap="showAddTaskModal">➕ 任务</view>
       <view class="action-btn" bindtap="retroCard">🔖 补卡</view>
       <view class="action-btn danger" bindtap="deletePlant">🗑️</view>
+      <view class="action-btn {{userPlant.dead ? 'revive' : 'dead'}}" bindtap="markDead">{{userPlant.dead ? '🌱 复活' : '💀'}}</view>
     </view>
   </view>
 

@@ -213,3 +213,7 @@
 .family-header-icon { font-size: 36rpx; margin-right: 12rpx; }
 .family-header-info { display: flex; flex-direction: column; }
 .family-header-title { font-size: 30rpx; font-weight: 700; color: #2E7D32; }
+/* 死亡植物 */
+.dead-plant { opacity: 0.55; }
+.dead-plant .garden-name { text-decoration: line-through; color: #B0BEC5; }
+.dead-avatar { filter: grayscale(100%); }

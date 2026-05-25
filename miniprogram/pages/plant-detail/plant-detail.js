@@ -333,6 +333,49 @@ Page({
     wx.showToast({ title: '任务已添加', icon: 'none' })
   },
 
+  markDead() {
+    const isDead = this.data.userPlant.dead
+    const action = isDead ? '复活' : '标记嘎了'
+    const content = isDead ? `让${this.data.userPlant.nickname}复活？` : `确认${this.data.userPlant.nickname}嘎了？\n将停止所有养护提醒`
+
+    wx.showModal({
+      title: action, content, confirmColor: isDead ? '#4CAF50' : '#e53935',
+      success: async (res) => {
+        if (!res.confirm) return
+        const updates = { dead: !isDead }
+        if (!isDead) {
+          // 标记嘎了：移到💀天堂房间
+          updates.location = '💀 天堂'
+        }
+
+        // 更新本地显示
+        const up = { ...this.data.userPlant, ...updates }
+        this.setData({ userPlant: up })
+
+        // 保存
+        const plantId = this.data.userPlant._id || this.data.userPlant.id
+        if (this.data.isFamilyMode && plantId) {
+          try {
+            await family.updatePlant(plantId, updates)
+            await family.getPlants(true)
+          } catch (e) {
+            wx.showToast({ title: '保存失败', icon: 'none' }); return
+          }
+        } else {
+          storage.updatePlant(this.data.userPlant.id, updates)
+          // 禁用/启用任务
+          const tasks = storage.getTasksByPlant(this.data.userPlant.id)
+          tasks.forEach(t => {
+            if (!isDead) storage.toggleTask(t.id) // 嘎了：禁用
+            else if (!t.enabled) storage.toggleTask(t.id) // 复活：启用
+          })
+        }
+
+        wx.showToast({ title: isDead ? '复活了! 🌱' : '已标记 💀', icon: 'none' })
+      }
+    })
+  },
+
   deletePlant() {
     wx.showModal({
       title: '确认删除',

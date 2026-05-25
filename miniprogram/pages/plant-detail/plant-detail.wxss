@@ -282,3 +282,8 @@
 .classify-result-text { font-size: 30rpx; color: #2D3436; }
 .classify-no-result { text-align: center; padding: 40rpx; font-size: 26rpx; color: #999; }
 .classify-sheet-footer { display: flex; gap: 20rpx; margin-top: 20rpx; padding-top: 16rpx; border-top: 1rpx solid #f0f0f0; }
+/* 死亡植物 */
+.dead-avatar { filter: grayscale(100%) opacity(0.5); }
+.dead-badge { font-size: 22rpx; background: #FFEBEE; color: #C62828; padding: 4rpx 12rpx; border-radius: 16rpx; margin-left: 8rpx; }
+.action-btn.dead { background: #FFEBEE; color: #C62828; }
+.action-btn.revive { background: #E8F5E9; color: #4CAF50; }
