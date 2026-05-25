@@ -107,7 +107,9 @@ function fetchWeather(city) {
 
 function fetchWeatherDirect(city) {
   const amapKey = 'de9c6192fc5bc7a1e4dfa319f6c26ee8'
-  const adcode = city || '310000'
+  // 前端 fallback 只处理 adcode，其他格式直接用上海
+  let adcode = city || '310000'
+  if (!/^\d{6}$/.test(adcode)) adcode = '310000'
   return new Promise((resolve) => {
     wx.request({
       url: `https://restapi.amap.com/v3/weather/weatherInfo?key=${amapKey}&city=${adcode}&extensions=base`,

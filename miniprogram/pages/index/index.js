@@ -282,7 +282,7 @@ Page({
           this._fetchWeather(city)
         },
         fail: () => {
-          city = '上海'
+          city = '310000'
           try { wx.setStorageSync('_weather_city', city) } catch (e) {}
           this._fetchWeather(city)
         }
