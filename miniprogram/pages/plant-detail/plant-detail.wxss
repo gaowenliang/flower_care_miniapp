@@ -20,7 +20,7 @@
 .header-main { display: flex; align-items: center; margin-bottom: 24rpx; }
 
 .header-avatar {
-  width: 96rpx; height: 96rpx; border-radius: 50%; margin-right: 28rpx;
+  width: 128rpx; height: 128rpx; border-radius: 28rpx; margin-right: 24rpx;
   position: relative; overflow: hidden; flex-shrink: 0;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   display: flex; align-items: center; justify-content: center;
@@ -29,11 +29,11 @@
   width: 100%; height: 100%; position: absolute; top: 0; left: 0;
 }
 .header-emoji-text {
-  font-size: 48rpx; z-index: 1;
+  font-size: 56rpx; z-index: 1;
 }
 .avatar-camera {
   position: absolute; bottom: 0; right: 0;
-  width: 32rpx; height: 32rpx; border-radius: 50%;
+  width: 36rpx; height: 36rpx; border-radius: 50%;
   background: rgba(0,0,0,0.5); display: flex;
   align-items: center; justify-content: center;
   font-size: 18rpx; z-index: 2;
@@ -287,4 +287,4 @@
 .dead-badge { font-size: 22rpx; background: #FFEBEE; color: #C62828; padding: 4rpx 12rpx; border-radius: 16rpx; margin-left: 8rpx; }
 .action-btn.dead { background: #FFEBEE; color: #C62828; }
 .action-btn.revive { background: #E8F5E9; color: #4CAF50; }
-.dead-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 48rpx; background: rgba(0,0,0,0.35); border-radius: 50%; }
+.dead-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 48rpx; background: rgba(0,0,0,0.35); border-radius: 28rpx; }
