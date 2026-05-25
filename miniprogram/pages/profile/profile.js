@@ -56,9 +56,10 @@ Page({
         categories: {},
         families: {}
       }
-      // 按科(family)归类
+      // 按科(family)归类，排除嘎了的植物
       const familyPlants = {}
-      plants.forEach(p => {
+      const alivePlants = plants.filter(p => !p.dead)
+      alivePlants.forEach(p => {
         const fam = p.family || '其他'
         if (!familyPlants[fam]) familyPlants[fam] = []
         familyPlants[fam].push(p)
@@ -67,7 +68,7 @@ Page({
         .map(([name, items]) => ({
           name,
           count: items.length,
-          percent: plants.length > 0 ? Math.round(items.length / plants.length * 100) : 0,
+          percent: alivePlants.length > 0 ? Math.round(items.length / alivePlants.length * 100) : 0,
           plants: items.map(p => ({ id: p._id || p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
         }))
         .sort((a, b) => b.count - a.count)
@@ -78,8 +79,9 @@ Page({
     } else {
       const stats = storage.getStats()
       const garden = storage.getGarden()
+      const aliveGarden = garden.filter(p => !p.dead)
       const familyPlants = {}
-      garden.forEach(p => {
+      aliveGarden.forEach(p => {
         const fam = p.family || '其他'
         if (!familyPlants[fam]) familyPlants[fam] = []
         familyPlants[fam].push(p)
@@ -88,7 +90,7 @@ Page({
         .map(([name, items]) => ({
           name,
           count: items.length,
-          percent: garden.length > 0 ? Math.round(items.length / garden.length * 100) : 0,
+          percent: aliveGarden.length > 0 ? Math.round(items.length / aliveGarden.length * 100) : 0,
           plants: items.map(p => ({ id: p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
         }))
         .sort((a, b) => b.count - a.count)
