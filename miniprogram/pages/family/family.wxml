@@ -223,6 +223,7 @@
       </view>
 
       <view class="settings-section">
+        <view class="settings-item" bindtap="renameFamily" wx:if="{{myRole==='admin'}}">🏠 修改家庭名称</view>
         <view class="settings-item" bindtap="editNickname">✏️ 修改昵称</view>
         <view class="settings-item danger" wx:if="{{myRole==='admin'}}">
           <view class="settings-subtitle">成员管理</view>

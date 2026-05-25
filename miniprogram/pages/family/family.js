@@ -176,6 +176,14 @@ Page({
     })
   },
 
+  renameFamily() {
+    this.setData({ showSettings: false })
+    const currentName = this.data.familyInfo.name || ''
+    wx.showModal({ title: '修改家庭名称', editable: true, placeholderText: '输入新名称', content: currentName,
+      success: async (res) => { if (res.confirm && res.content && res.content.trim()) { const r = await family.manage('renameFamily', { name: res.content.trim() }); if (r.success) { wx.showToast({ title: '已修改', icon: 'none' }); await this.loadFamilyInfo() } else { wx.showToast({ title: r.error || '修改失败', icon: 'none' }) } } }
+    })
+  },
+
   leaveFamily() {
     this.setData({ showSettings: false })
     wx.showModal({ title: '退出家庭', content: '确定退出？', confirmColor: '#e53935',

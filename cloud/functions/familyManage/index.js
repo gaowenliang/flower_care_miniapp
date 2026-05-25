@@ -120,6 +120,18 @@ async function joinFamily(openid, { inviteCode }) {
   return { success: true, familyId: family._id, name: family.name }
 }
 
+async function renameFamily(openid, { name }) {
+  if (!name || !name.trim()) return { success: false, error: '名称不能为空' }
+  name = name.trim().slice(0, 20)
+  const memberRes = await db.collection('family_members').where({ openid }).limit(1).get()
+  if (memberRes.data.length === 0) return { success: false, error: '不在家庭中' }
+  const member = memberRes.data[0]
+  if (member.role !== 'admin') return { success: false, error: '只有管理员可以修改' }
+  await db.collection('families').doc(member.familyId).update({ data: { name, updatedAt: Date.now() } })
+  await logActivity(member.familyId, openid, 'note', `家庭更名为「${name}」`)
+  return { success: true, name }
+}
+
 async function getFamilyInfo(openid) {
   const memberRes = await db.collection('family_members').where({ openid }).limit(1).get()
   if (memberRes.data.length === 0) return { success: true, inFamily: false }
@@ -493,6 +505,7 @@ exports.main = async (event) => {
       case 'pk': return await getPK(OPENID, data || {})
       case 'healthBoard': return await getHealthBoard(OPENID)
       case 'weeklyReport': return await generateWeeklyReport(OPENID)
+      case 'renameFamily': return await renameFamily(OPENID, data || {})
       default: return { success: false, error: '未知操作' }
     }
   } catch (err) {
