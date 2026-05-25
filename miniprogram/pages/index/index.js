@@ -369,6 +369,67 @@ Page({
     wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${id}` })
   },
 
+  showPlantActions(e) {
+    const idx = e.currentTarget.dataset.idx
+    const plant = this.data.filteredGarden[idx]
+    if (!plant) return
+
+    const items = ['💧 浇水', '🧪 施肥', '✂️ 修剪', '📍 查看/编辑']
+    wx.showActionSheet({
+      alertText: plant.nickname,
+      itemList: items,
+      success: async (res) => {
+        const tapIndex = res.tapIndex
+        if (tapIndex === 3) {
+          // 查看详情
+          wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${plant.id}` })
+          return
+        }
+        // 快捷养护
+        const typeMap = ['water', 'fertilize', 'prune']
+        const nameMap = ['浇水', '施肥', '修剪']
+        const type = typeMap[tapIndex]
+        const typeName = nameMap[tapIndex]
+        if (!type) return
+
+        if (this.data.isFamilyMode) {
+          const tasks = family.getCachedTasks(plant._id || plant.id)
+          const task = tasks.find(t => t.type === type && t.enabled !== false)
+          if (task) {
+            wx.showLoading({ title: '完成中...' })
+            const result = await family.completeTask(task._id || task.id)
+            wx.hideLoading()
+            if (result.success) {
+              this.setData({ showTip: true, tipText: `${plant.nickname} ${typeName}完成！` })
+              setTimeout(() => this.setData({ showTip: false }), 2000)
+              await this.loadFamilyData()
+            } else {
+              wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+            }
+          } else {
+            wx.showToast({ title: '暂无该养护任务', icon: 'none' })
+          }
+        } else {
+          const tasks = storage.getTasksByPlant(plant.id)
+          const task = tasks.find(t => t.type === type && t.enabled)
+          if (task) {
+            storage.completeTask(task.id)
+            storage.addRecord({
+              id: util.genId(), userPlantId: plant.id, type, typeName,
+              date: Date.now(), note: typeName
+            })
+            this.setData({ showTip: true, tipText: `${plant.nickname} ${typeName}完成！` })
+            setTimeout(() => this.setData({ showTip: false }), 2000)
+            this.loadGarden()
+            this.loadStats()
+          } else {
+            wx.showToast({ title: '暂无该养护任务', icon: 'none' })
+          }
+        }
+      }
+    })
+  },
+
   async completeTask(e) {
     const taskId = e.currentTarget.dataset.id
     wx.vibrateShort({ type: 'light' })

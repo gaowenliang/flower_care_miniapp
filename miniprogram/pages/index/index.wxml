@@ -127,7 +127,7 @@
 
       <!-- 矩阵网格 -->
       <view class="garden-grid" wx:if="{{filteredGarden.length > 0}}">
-        <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="garden-item" wx:for="{{filteredGarden}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}" bindlongpress="showPlantActions" data-idx="{{index}}">
           <view class="garden-avatar {{item.hasOverdue ? 'needs-care' : ''}}">
             <image wx:if="{{item.avatar}}" class="garden-avatar-img" src="{{item.avatar}}" mode="aspectFill" lazy-load />
             <text wx:else class="garden-emoji">{{item.emoji}}</text>
