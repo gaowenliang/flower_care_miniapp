@@ -436,14 +436,24 @@ Page({
   },
 
   takePhoto() {
+    const exifDate = require('../../utils/exif-date')
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       success: async (res) => {
-        const photoUrl = await imageUtil.uploadImage(res.tempFiles[0].tempFilePath)
+        const tempFile = res.tempFiles[0]
+        const photoUrl = await imageUtil.uploadImage(tempFile.tempFilePath)
         if (!photoUrl) {
           wx.showToast({ title: '图片上传失败', icon: 'none' }); return
         }
+        // 确定日期：相机用当前时间，相册尝试读取 EXIF 拍摄日期
+        let photoDate = Date.now()
+        const isCamera = tempFile.sourceType === 'camera' || (res.sourceType && res.sourceType === 'camera')
+        if (!isCamera) {
+          const exifTs = await exifDate.getExifDate(tempFile.tempFilePath)
+          if (exifTs && exifTs > 0) photoDate = exifTs
+        }
+
         if (this.data.isFamilyMode) {
           await family.addRecord({
             userPlantId: this.data.userPlant._id,
@@ -451,7 +461,8 @@ Page({
             type: 'photo',
             typeName: '拍照记录',
             note: '',
-            photo: photoUrl
+            photo: photoUrl,
+            date: photoDate
           })
           await this.loadFamilyRecords()
         } else {
@@ -460,7 +471,7 @@ Page({
             userPlantId: this.data.userPlant.id,
             type: 'photo',
             typeName: '拍照记录',
-            date: Date.now(),
+            date: photoDate,
             note: '',
             photo: photoUrl
           })

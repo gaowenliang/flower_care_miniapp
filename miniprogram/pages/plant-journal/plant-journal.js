@@ -151,22 +151,33 @@ Page({
 
   // 拍照记录
   async takePhoto() {
+    const exifDate = require('../../utils/exif-date')
     wx.chooseMedia({
       count: 9, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'],
       success: async (res) => {
         const files = res.tempFiles
         wx.showLoading({ title: '上传中...' })
 
+        // 判断是否有相机拍的照片
+        const hasCamera = res.sourceType === 'camera'
+
         if (this.data.isFamilyMode) {
           for (let i = 0; i < files.length; i++) {
             const photoUrl = await imageUtil.uploadImage(files[i].tempFilePath)
-            if (!photoUrl) continue // 上传失败跳过
+            if (!photoUrl) continue
+            // 日期：相机用当前时间，相册读 EXIF
+            let photoDate = Date.now() + i
+            if (!hasCamera) {
+              const exifTs = await exifDate.getExifDate(files[i].tempFilePath)
+              if (exifTs && exifTs > 0) photoDate = exifTs + i
+            }
             await family.addRecord({
               plantId: this.data.userPlant._id,
               type: 'photo',
               typeName: '拍照记录',
               note: '',
-              photo: photoUrl
+              photo: photoUrl,
+              date: photoDate
             })
           }
           wx.hideLoading()
@@ -178,8 +189,13 @@ Page({
         // 个人模式
         const promises = files.map(async (file, index) => {
           const photoUrl = await imageUtil.uploadImage(file.tempFilePath)
-          if (!photoUrl) return null // 上传失败跳过
-          const record = { id: util.genId() + '_' + index, userPlantId: this.data.userPlant.id, type: 'photo', typeName: '拍照记录', date: Date.now() + index, note: '', photo: photoUrl, size: file.size }
+          if (!photoUrl) return null
+          let photoDate = Date.now() + index
+          if (!hasCamera) {
+            const exifTs = await exifDate.getExifDate(file.tempFilePath)
+            if (exifTs && exifTs > 0) photoDate = exifTs + index
+          }
+          const record = { id: util.genId() + '_' + index, userPlantId: this.data.userPlant.id, type: 'photo', typeName: '拍照记录', date: photoDate, note: '', photo: photoUrl, size: file.size }
           storage.addRecord(record)
           return record
         })
