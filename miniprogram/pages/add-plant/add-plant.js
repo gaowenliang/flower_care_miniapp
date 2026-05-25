@@ -22,6 +22,9 @@ Page({
     purchaseSource: '',
     sourceOptions: ['花店', '网购', '花市', '亲友赠', '其他'],
     allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园'],
+    // 头像
+    avatarPath: '',
+    customAvatarPath: '',
     // 自定义添加
     showCustomModal: false,
     customName: '',
@@ -106,6 +109,55 @@ Page({
     this.setData({ filteredPlants: list })
   },
 
+  // 拍照/选图作为头像（预设植物弹窗）
+  chooseAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        wx.showLoading({ title: '上传中...' })
+        const imageUtil = require('../../utils/image')
+        const url = await imageUtil.uploadSquareAvatar(res.tempFiles[0].tempFilePath)
+        wx.hideLoading()
+        if (url) {
+          this.setData({ avatarPath: url })
+        } else {
+          wx.showToast({ title: '图片上传失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  // 拍照/选图作为头像（自定义添加弹窗）
+  chooseCustomAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        wx.showLoading({ title: '上传中...' })
+        const imageUtil = require('../../utils/image')
+        const url = await imageUtil.uploadSquareAvatar(res.tempFiles[0].tempFilePath)
+        wx.hideLoading()
+        if (url) {
+          this.setData({ customAvatarPath: url })
+        } else {
+          wx.showToast({ title: '图片上传失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  removeAvatar() {
+    this.setData({ avatarPath: '' })
+  },
+  removeCustomAvatar() {
+    this.setData({ customAvatarPath: '' })
+  },
+
   // 拍照识花 — 内联拍照，不走跳转
   takePhoto() {
     wx.chooseMedia({
@@ -155,6 +207,8 @@ Page({
         showCustomModal: true,
         customName: result.name,
         customEmoji: result.emoji || '🌱',
+        customFamily: result.family || '',
+        customGenus: result.genus || '',
         customPrice: '',
         customPurchaseDate: '',
         customPurchaseSource: ''
@@ -168,7 +222,7 @@ Page({
 
   // 打开自定义添加
   openCustomAdd() {
-    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '', customFamily: '', customGenus: '' })
+    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '', customFamily: '', customGenus: '', customAvatarPath: '' })
   },
 
   selectCustomEmoji(e) {
@@ -239,7 +293,8 @@ Page({
         waterDays: this.data.customWaterDays,
         price,
         purchaseDate,
-        purchaseSource
+        purchaseSource,
+        avatar: this.data.customAvatarPath || ''
       })
       wx.hideLoading()
       if (result.success) {
@@ -266,6 +321,7 @@ Page({
       location: this.data.customLocation,
       addedAt: Date.now(),
       photo: null,
+      avatar: this.data.customAvatarPath || '',
       purchasePrice: price,
       purchaseDate: purchaseDate || Date.now(),
       purchaseSource: purchaseSource
@@ -308,7 +364,7 @@ Page({
     const plantId = e.currentTarget.dataset.id
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
-    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
+    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, price: '', purchaseDate: '', purchaseSource: '', avatarPath: '' })
   },
 
   onNickNameInput(e) {
@@ -378,7 +434,8 @@ Page({
         waterDays: this.data.waterDays,
         price,
         purchaseDate,
-        purchaseSource
+        purchaseSource,
+        avatar: this.data.avatarPath || ''
       })
       wx.hideLoading()
       if (result.success) {
@@ -404,6 +461,7 @@ Page({
       location,
       addedAt: Date.now(),
       photo: null,
+      avatar: this.data.avatarPath || '',
       purchasePrice: price,
       purchaseDate: purchaseDate || Date.now(),
       purchaseSource: purchaseSource

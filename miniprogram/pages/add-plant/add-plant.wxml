@@ -91,6 +91,19 @@
       </view>
       <view class="modal-body">
         <view class="form-item">
+          <text class="form-label">📷 植物头像</text>
+          <view class="avatar-upload-row">
+            <view class="avatar-preview" wx:if="{{avatarPath}}" bindtap="chooseAvatar">
+              <image class="avatar-preview-img" src="{{avatarPath}}" mode="aspectFill" />
+              <view class="avatar-remove" catchtap="removeAvatar">✕</view>
+            </view>
+            <view class="avatar-add" wx:else bindtap="chooseAvatar">
+              <text class="avatar-add-icon">📷</text>
+              <text class="avatar-add-text">拍照/相册</text>
+            </view>
+          </view>
+        </view>
+        <view class="form-item">
           <text class="form-label">给它取个名字</text>
           <input class="form-input" placeholder="{{selectedPlant.name}}" value="{{nickName}}" bindinput="onNickNameInput" />
         </view>
@@ -142,6 +155,19 @@
         <text class="modal-title">自定义添加</text>
       </view>
       <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">📷 植物头像</text>
+          <view class="avatar-upload-row">
+            <view class="avatar-preview" wx:if="{{customAvatarPath}}" bindtap="chooseCustomAvatar">
+              <image class="avatar-preview-img" src="{{customAvatarPath}}" mode="aspectFill" />
+              <view class="avatar-remove" catchtap="removeCustomAvatar">✕</view>
+            </view>
+            <view class="avatar-add" wx:else bindtap="chooseCustomAvatar">
+              <text class="avatar-add-icon">📷</text>
+              <text class="avatar-add-text">拍照/相册</text>
+            </view>
+          </view>
+        </view>
         <view class="form-item">
           <text class="form-label">选个图标</text>
           <view class="emoji-options">

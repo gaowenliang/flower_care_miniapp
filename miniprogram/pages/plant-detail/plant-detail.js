@@ -818,10 +818,18 @@ Page({
     })
   },
 
-  // 从AI识别结果中选取信息更新
+  // 从AI识别结果中选取 — 点击直接应用
   selectClassifyItem(e) {
     const idx = parseInt(e.currentTarget.dataset.idx)
-    this.setData({ classifySelectedIdx: idx })
+    const r = this.data.classifyResults[idx]
+    if (!r) return
+    const updates = {}
+    if (r.family) updates.family = r.family
+    if (r.genus) updates.genus = r.genus
+    if (r.name) updates.latin = r.name
+    // 直接关闭弹窗并应用
+    this.setData({ showClassifyResult: false, classifySelectedIdx: -1 })
+    this._updatePlantClassify(updates)
   },
 
   applyClassifyResult() {
@@ -835,7 +843,6 @@ Page({
     if (r.family) updates.family = r.family
     if (r.genus) updates.genus = r.genus
     if (r.name) updates.latin = r.name
-    // 先关弹窗再保存，避免重复点击
     this.setData({ showClassifyResult: false, classifySelectedIdx: -1 })
     this._updatePlantClassify(updates)
   },
