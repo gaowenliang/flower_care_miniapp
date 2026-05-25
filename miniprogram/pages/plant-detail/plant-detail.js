@@ -367,10 +367,11 @@ Page({
           try {
             await family.updatePlant(plantId, updates)
             // 家庭模式：停用/启用任务
+            // isDead=操作前状态: false=正在标记死亡→停用enabled任务; true=正在复活→启用disabled任务
             const tasks = await family.getTasks(plantId)
             for (const t of (tasks || [])) {
-              if (!isDead && t.enabled) await family.toggleTask(t._id || t.id)
-              else if (isDead && !t.enabled) await family.toggleTask(t._id || t.id)
+              if (!isDead && t.enabled) await family.toggleTask(t._id || t.id) // 停用
+              else if (isDead && !t.enabled) await family.toggleTask(t._id || t.id) // 启用
             }
             await family.getPlants(true)
           } catch (e) {
@@ -388,8 +389,6 @@ Page({
 
         wx.showToast({ title: isDead ? '复活了! 🌱' : '已标记 💀', icon: 'none' })
       }
-    })
-  },
     })
   },
 

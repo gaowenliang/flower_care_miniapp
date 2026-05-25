@@ -318,23 +318,8 @@ Page({
         })
       })
     }
-    // 前端兜底直连
-    const tryDirect = () => {
-      let adcode = city || '310000'
-      if (!/^\d{6}$/.test(adcode)) adcode = '310000'
-      return new Promise((resolve, reject) => {
-        wx.request({
-          url: `https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=${adcode}&extensions=base`,
-          success: (res) => {
-            if (res.data && res.data.lives && res.data.lives[0]) resolve(res.data.lives[0])
-            else reject(new Error('API无数据'))
-          },
-          fail: (err) => reject(err)
-        })
-      })
-    }
-
-    tryCloud().catch(() => tryDirect()).then(w => {
+    // 云函数失败 → 天气不可用（不暴露 API Key）
+    tryCloud().then(w => {
       const emojiMap = { '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️', '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '🌨️', '中雪': '🌨️', '大雪': '❄️', '雾': '🌫️' }
       const weatherEmoji = emojiMap[w.weather] || '🌤️'
       const data = { temp: w.temperature, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.windpower, city: w.city || '上海' }
