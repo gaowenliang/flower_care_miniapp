@@ -180,6 +180,7 @@ Page({
   },
 
   async doIdentify(imagePath) {
+    this._identifyImagePath = imagePath // 保存识别图片路径，后面用来做头像
     wx.showLoading({ title: '识别中...' })
     try {
       const aiIdentify = require('../../utils/ai-identify')
@@ -199,14 +200,23 @@ Page({
   },
 
   // 选择识别结果
-  pickIdentifyResult(e) {
+  async pickIdentifyResult(e) {
     const idx = e.currentTarget.dataset.index
     const result = this.data.identifyResults[idx]
     this.setData({ showIdentifyModal: false })
 
+    // AI 识图的原图自动设为头像
+    let avatarUrl = ''
+    if (this._identifyImagePath) {
+      try {
+        avatarUrl = await imageUtil.uploadSquareAvatar(this._identifyImagePath)
+      } catch (e) { /* 上传失败不阻塞 */ }
+      this._identifyImagePath = null
+    }
+
     const match = plantsData.plants.find(p => p.name === result.name || p.name.includes(result.name) || result.name.includes(p.name))
     if (match) {
-      this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
+      this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '', avatarPath: avatarUrl || '' })
     } else {
       this.setData({
         showCustomModal: true,
@@ -216,7 +226,8 @@ Page({
         customGenus: result.genus || '',
         customPrice: '',
         customPurchaseDate: '',
-        customPurchaseSource: ''
+        customPurchaseSource: '',
+        customAvatarPath: avatarUrl || ''
       })
     }
   },
@@ -372,6 +383,7 @@ Page({
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
     this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, fertilizeDays: 30, pruneDays: 60, price: '', purchaseDate: '', purchaseSource: '', avatarPath: '' })
+    this._identifyImagePath = null // 非AI入口，清空
   },
 
   onNickNameInput(e) {
