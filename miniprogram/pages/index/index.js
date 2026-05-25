@@ -293,22 +293,46 @@ Page({
   },
 
   _fetchWeather(city) {
-    if (!wx.cloud) { this.setData({ weatherLoading: false, weatherError: '云开发未启用' }); return }
     this.setData({ weatherLoading: true })
-    wx.cloud.callFunction({
-      name: 'getWeather', data: { city },
-      success: (res) => {
-        if (res.result && res.result.weather) {
-          const w = res.result.weather
-          const emojiMap = { '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️', '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '🌨️', '中雪': '🌨️', '大雪': '❄️', '雾': '🌫️' }
-          const weatherEmoji = emojiMap[w.weather] || '🌤️'
-          const data = { temp: w.temp, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.wind, city: w.city || '上海' }
-          this.setData({ weather: data, weatherLoading: false })
-          try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
-          this._checkRainyDayFromCache(data)
-        } else { this.setData({ weatherLoading: false, weatherError: res.result ? (res.result.error || '天气数据为空') : '云函数返回异常' }) }
-      },
-      fail: (err) => { this.setData({ weatherLoading: false, weatherError: '云函数调用失败：' + (err.errMsg || '未知错误') }) }
+    // 先试云函数
+    const tryCloud = () => {
+      if (!wx.cloud) return Promise.reject(new Error('no cloud'))
+      return new Promise((resolve, reject) => {
+        wx.cloud.callFunction({
+          name: 'getWeather', data: { city },
+          success: (res) => {
+            if (res.result && res.result.weather) resolve(res.result.weather)
+            else reject(new Error(res.result ? (res.result.error || '天气数据为空') : '云函数返回异常'))
+          },
+          fail: (err) => reject(err)
+        })
+      })
+    }
+    // 前端兜底直连
+    const tryDirect = () => {
+      let adcode = city || '310000'
+      if (!/^\d{6}$/.test(adcode)) adcode = '310000'
+      return new Promise((resolve, reject) => {
+        wx.request({
+          url: `https://restapi.amap.com/v3/weather/weatherInfo?key=de9c6192fc5bc7a1e4dfa319f6c26ee8&city=${adcode}&extensions=base`,
+          success: (res) => {
+            if (res.data && res.data.lives && res.data.lives[0]) resolve(res.data.lives[0])
+            else reject(new Error('API无数据'))
+          },
+          fail: (err) => reject(err)
+        })
+      })
+    }
+
+    tryCloud().catch(() => tryDirect()).then(w => {
+      const emojiMap = { '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️', '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '🌨️', '中雪': '🌨️', '大雪': '❄️', '雾': '🌫️' }
+      const weatherEmoji = emojiMap[w.weather] || '🌤️'
+      const data = { temp: w.temperature, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.windpower, city: w.city || '上海' }
+      this.setData({ weather: data, weatherLoading: false })
+      try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
+      this._checkRainyDayFromCache(data)
+    }).catch(err => {
+      this.setData({ weatherLoading: false, weatherError: (err.message || '获取天气失败') })
     })
   },
 
