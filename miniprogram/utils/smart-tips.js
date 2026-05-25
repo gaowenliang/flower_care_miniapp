@@ -90,11 +90,12 @@ function fetchWeather(city) {
           if (res.result && res.result.success && res.result.weather) {
             resolve(res.result.weather)
           } else {
-            resolve(null)
+            // 云函数返回但没数据，降级前端直连
+            fetchWeatherDirect(city).then(resolve)
           }
         },
         fail: () => {
-          // 云函数失败，降级直接请求（开发阶段保留）
+          // 云函数调用失败，降级前端直连
           fetchWeatherDirect(city).then(resolve)
         }
       })
@@ -105,9 +106,21 @@ function fetchWeather(city) {
 }
 
 function fetchWeatherDirect(city) {
-  // 前端不再直连高德API，避免暴露Key
-  // 如果云函数不可用，返回null让贴士降级为纯季节建议
-  return Promise.resolve(null)
+  const amapKey = 'de9c6192fc5bc7a1e4dfa319f6c26ee8'
+  const adcode = city || '310000'
+  return new Promise((resolve) => {
+    wx.request({
+      url: `https://restapi.amap.com/v3/weather/weatherInfo?key=${amapKey}&city=${adcode}&extensions=base`,
+      success: (res) => {
+        if (res.data && res.data.lives && res.data.lives[0]) {
+          resolve(res.data.lives[0])
+        } else {
+          resolve(null)
+        }
+      },
+      fail: () => resolve(null)
+    })
+  })
 }
 
 /**
