@@ -71,6 +71,9 @@ Page({
           plants: items.map(p => ({ id: p._id || p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
         }))
         .sort((a, b) => b.count - a.count)
+      // bar 宽度：最多的顶满 100%
+      const maxCount = familyList.length > 0 ? familyList[0].count : 1
+      familyList.forEach(f => { f.barWidth = maxCount > 0 ? Math.round(f.count / maxCount * 100) : 0 })
       this.setData({ stats, familyList, settings: storage.getSettings() })
     } else {
       const stats = storage.getStats()
@@ -89,6 +92,9 @@ Page({
           plants: items.map(p => ({ id: p.id, name: p.nickname || p.name, emoji: p.emoji || '🌱', location: p.location || '' }))
         }))
         .sort((a, b) => b.count - a.count)
+      // bar 宽度：最多的顶满 100%
+      const maxCount = familyList.length > 0 ? familyList[0].count : 1
+      familyList.forEach(f => { f.barWidth = maxCount > 0 ? Math.round(f.count / maxCount * 100) : 0 })
       this.setData({ stats, familyList, settings: storage.getSettings() })
     }
   },

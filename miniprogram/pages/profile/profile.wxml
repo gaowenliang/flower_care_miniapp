@@ -81,7 +81,7 @@
       <view class="family-header-row" bindtap="toggleFamily" data-name="{{item.name}}">
         <text class="family-bar-name">{{item.name}}</text>
         <view class="family-bar-wrap">
-          <view class="family-bar-fill" style="width: {{item.percent}}%"></view>
+          <view class="family-bar-fill" style="width: {{item.barWidth}}%"></view>
         </view>
         <text class="family-bar-count">{{item.count}}棵</text>
         <text class="family-arrow {{expandedFamily===item.name?'expanded':''}}">›</text>
