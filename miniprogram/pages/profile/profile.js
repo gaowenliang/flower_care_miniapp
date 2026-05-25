@@ -400,5 +400,45 @@ Page({
         }
       }
     })
+  },
+
+  addEquipmentCost() {
+    wx.showModal({
+      title: '🔧 记录设备花费', editable: true,
+      placeholderText: '输入金额，如：29.9',
+      success: async (res) => {
+        if (!res.confirm) return
+        const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
+        if (cost <= 0) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
+        const note = '设备购买'
+        if (this.data.isFamilyMode) {
+          await family.addRecord({ plantId: '__equipment__', type: 'cost', typeName: '设备花费', note, cost })
+        } else {
+          storage.addRecord({ id: require('../../utils/util').genId(), userPlantId: '__equipment__', type: 'cost', typeName: '设备花费', date: Date.now(), note, cost })
+        }
+        wx.showToast({ title: `已记录 ¥${cost.toFixed(2)}`, icon: 'none' })
+        this.loadStats()
+      }
+    })
+  },
+
+  addMaterialCost() {
+    wx.showModal({
+      title: '🧴 记录废料花费', editable: true,
+      placeholderText: '输入金额，如：15',
+      success: async (res) => {
+        if (!res.confirm) return
+        const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
+        if (cost <= 0) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
+        const note = '废料购买'
+        if (this.data.isFamilyMode) {
+          await family.addRecord({ plantId: '__material__', type: 'cost', typeName: '废料花费', note, cost })
+        } else {
+          storage.addRecord({ id: require('../../utils/util').genId(), userPlantId: '__material__', type: 'cost', typeName: '废料花费', date: Date.now(), note, cost })
+        }
+        wx.showToast({ title: `已记录 ¥${cost.toFixed(2)}`, icon: 'none' })
+        this.loadStats()
+      }
+    })
   }
 })

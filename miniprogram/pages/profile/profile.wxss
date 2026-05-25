@@ -103,3 +103,12 @@
 .cost-record-right { text-align: right; }
 .cost-record-amount { font-size: 28rpx; font-weight: 700; color: #FF9800; display: block; }
 .cost-record-date { font-size: 20rpx; color: #B0BEC5; display: block; }
+.cost-action-btns {
+  display: flex; gap: 16rpx; margin-top: 20rpx;
+}
+.cost-action-btn {
+  flex: 1; text-align: center; padding: 16rpx 0;
+  background: #F7F9F7; border: 2rpx solid #C8E6C9; border-radius: 16rpx;
+  font-size: 26rpx; color: #2E7D32; font-weight: 500;
+}
+.cost-action-btn:active { background: #E8F5E9; }

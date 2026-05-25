@@ -132,6 +132,10 @@
         <text class="cost-label">维护</text>
       </view>
     </view>
+    <view class="cost-action-btns">
+      <view class="cost-action-btn" bindtap="addEquipmentCost">🔧 记设备花费</view>
+      <view class="cost-action-btn" bindtap="addMaterialCost">🧴 记废料花费</view>
+    </view>
   </view>
 
 
