@@ -155,6 +155,7 @@ Page({
           })()
         }
       })
+      this.loadRooms() // 数据加载后再刷新房间列表（确保💀天堂出现）
       this.applyFilter()
   },
 
@@ -247,6 +248,7 @@ Page({
       return b.addedAt - a.addedAt
     })
     this.setData({ garden, hasPlants: garden.length > 0 })
+    this.loadRooms() // 个人模式也刷新房间列表
     this.applyFilter()
   },
 
@@ -367,6 +369,8 @@ Page({
   applyFilter() {
     let filtered = [...this.data.garden]
     const { searchKeyword, activeRoom } = this.data
+    // 【全部】不显示嘎了的植物，只在【💀天堂】显示
+    if (activeRoom === '全部') filtered = filtered.filter(p => !p.dead)
     if (activeRoom !== '全部') filtered = filtered.filter(p => p.location === activeRoom)
     if (searchKeyword) {
       filtered = filtered.filter(p =>

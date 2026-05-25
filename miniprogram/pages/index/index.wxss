@@ -143,7 +143,7 @@
 .garden-item:active { transform: scale(0.95); }
 
 .garden-avatar {
-  width: 120rpx; height: 120rpx; border-radius: 24rpx;
+  width: 128rpx; height: 128rpx; border-radius: 24rpx;
   background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 12rpx; position: relative; overflow: hidden;

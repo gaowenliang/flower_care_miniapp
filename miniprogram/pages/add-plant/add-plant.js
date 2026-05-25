@@ -210,6 +210,7 @@ Page({
     if (this._identifyImagePath) {
       try {
         avatarUrl = await imageUtil.uploadSquareAvatar(this._identifyImagePath)
+        if (!avatarUrl) avatarUrl = await imageUtil.uploadImage(this._identifyImagePath) // 裁切失败直接上传原图
       } catch (e) { /* 上传失败不阻塞 */ }
       this._identifyImagePath = null
     }
