@@ -16,12 +16,18 @@ Page({
     selectedPlant: null,
     nickName: '',
     location: '阳台',
-    waterDays: 7,
     price: '',
     purchaseDate: '',
     purchaseSource: '',
     sourceOptions: ['花店', '网购', '花市', '亲友赠', '其他'],
     allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园'],
+    // 养护周期
+    waterDays: 7,
+    fertilizeDays: 30,
+    pruneDays: 60,
+    customWaterDays: 7,
+    customFertilizeDays: 30,
+    customPruneDays: 60,
     // 头像
     avatarPath: '',
     customAvatarPath: '',
@@ -30,7 +36,6 @@ Page({
     customName: '',
     customEmoji: '🌱',
     customLocation: '阳台',
-    customWaterDays: 7,
     customPrice: '',
     customPurchaseDate: '',
     customPurchaseSource: '',
@@ -222,7 +227,7 @@ Page({
 
   // 打开自定义添加
   openCustomAdd() {
-    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customPrice: '', customPurchaseDate: '', customPurchaseSource: '', customFamily: '', customGenus: '', customAvatarPath: '' })
+    this.setData({ showCustomModal: true, customName: this.data.keyword || '', customEmoji: '🌱', customLocation: '阳台', customWaterDays: 7, customFertilizeDays: 30, customPruneDays: 60, customPrice: '', customPurchaseDate: '', customPurchaseSource: '', customFamily: '', customGenus: '', customAvatarPath: '' })
   },
 
   selectCustomEmoji(e) {
@@ -245,6 +250,25 @@ Page({
     const delta = parseInt(e.currentTarget.dataset.delta)
     this.setData({ customWaterDays: Math.max(1, this.data.customWaterDays + delta) })
   },
+
+  onCustomFertilizeDaysInput(e) {
+    this.setData({ customFertilizeDays: Math.max(1, parseInt(e.detail.value) || 1) })
+  },
+
+  adjustCustomFertilizeDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    this.setData({ customFertilizeDays: Math.max(1, this.data.customFertilizeDays + delta) })
+  },
+
+  onCustomPruneDaysInput(e) {
+    this.setData({ customPruneDays: Math.max(1, parseInt(e.detail.value) || 1) })
+  },
+
+  adjustCustomPruneDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    this.setData({ customPruneDays: Math.max(1, this.data.customPruneDays + delta) })
+  },
+
 
   onCustomPriceInput(e) {
     this.setData({ customPrice: e.detail.value })
@@ -331,8 +355,8 @@ Page({
 
     const defaultTasks = [
       { type: 'water', typeName: '浇水', days: this.data.customWaterDays },
-      { type: 'fertilize', typeName: '施肥', days: 30 },
-      { type: 'prune', typeName: '修剪', days: 60 }
+      { type: 'fertilize', typeName: '施肥', days: this.data.customFertilizeDays },
+      { type: 'prune', typeName: '修剪', days: this.data.customPruneDays }
     ]
     defaultTasks.forEach(t => {
       storage.addTask({
@@ -364,7 +388,7 @@ Page({
     const plantId = e.currentTarget.dataset.id
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
-    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, price: '', purchaseDate: '', purchaseSource: '', avatarPath: '' })
+    this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, fertilizeDays: 30, pruneDays: 60, price: '', purchaseDate: '', purchaseSource: '', avatarPath: '' })
   },
 
   onNickNameInput(e) {
@@ -385,6 +409,29 @@ Page({
     const newVal = Math.max(1, this.data.waterDays + delta)
     this.setData({ waterDays: newVal })
   },
+
+  onFertilizeDaysInput(e) {
+    const val = parseInt(e.detail.value) || 1
+    this.setData({ fertilizeDays: Math.max(1, val) })
+  },
+
+  adjustFertilizeDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    const newVal = Math.max(1, this.data.fertilizeDays + delta)
+    this.setData({ fertilizeDays: newVal })
+  },
+
+  onPruneDaysInput(e) {
+    const val = parseInt(e.detail.value) || 1
+    this.setData({ pruneDays: Math.max(1, val) })
+  },
+
+  adjustPruneDays(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta)
+    const newVal = Math.max(1, this.data.pruneDays + delta)
+    this.setData({ pruneDays: newVal })
+  },
+
 
   onPriceInput(e) {
     this.setData({ price: e.detail.value })
@@ -471,8 +518,8 @@ Page({
 
     const defaultTasks = [
       { type: 'water', typeName: '浇水', days: this.data.waterDays },
-      { type: 'fertilize', typeName: '施肥', days: 30 },
-      { type: 'prune', typeName: '修剪', days: 60 }
+      { type: 'fertilize', typeName: '施肥', days: this.data.fertilizeDays },
+      { type: 'prune', typeName: '修剪', days: this.data.pruneDays }
     ]
     defaultTasks.forEach(t => {
       storage.addTask({

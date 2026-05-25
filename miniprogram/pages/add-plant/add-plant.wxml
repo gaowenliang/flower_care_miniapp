@@ -139,6 +139,24 @@
           </view>
           <text class="form-hint">建议：{{selectedPlant.care.waterDays}}天（可按实际情况调整）</text>
         </view>
+        <view class="form-item">
+          <text class="form-label">🧪 施肥周期</text>
+          <view class="interval-control">
+            <view class="interval-btn" bindtap="adjustFertilizeDays" data-delta="-1">−</view>
+            <input class="interval-input" type="number" value="{{fertilizeDays}}" bindinput="onFertilizeDaysInput" />
+            <text class="interval-unit">天</text>
+            <view class="interval-btn" bindtap="adjustFertilizeDays" data-delta="1">+</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">✂️ 修剪周期</text>
+          <view class="interval-control">
+            <view class="interval-btn" bindtap="adjustPruneDays" data-delta="-1">−</view>
+            <input class="interval-input" type="number" value="{{pruneDays}}" bindinput="onPruneDaysInput" />
+            <text class="interval-unit">天</text>
+            <view class="interval-btn" bindtap="adjustPruneDays" data-delta="1">+</view>
+          </view>
+        </view>
       </view>
       <view class="modal-footer">
         <view class="btn-cancel" bindtap="closeModal">取消</view>
@@ -207,6 +225,24 @@
             <input class="interval-input" type="number" value="{{customWaterDays}}" bindinput="onCustomWaterDaysInput" />
             <text class="interval-unit">天</text>
             <view class="interval-btn" bindtap="adjustCustomWaterDays" data-delta="1">+</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">🧪 施肥周期</text>
+          <view class="interval-control">
+            <view class="interval-btn" bindtap="adjustCustomFertilizeDays" data-delta="-1">−</view>
+            <input class="interval-input" type="number" value="{{customFertilizeDays}}" bindinput="onCustomFertilizeDaysInput" />
+            <text class="interval-unit">天</text>
+            <view class="interval-btn" bindtap="adjustCustomFertilizeDays" data-delta="1">+</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">✂️ 修剪周期</text>
+          <view class="interval-control">
+            <view class="interval-btn" bindtap="adjustCustomPruneDays" data-delta="-1">−</view>
+            <input class="interval-input" type="number" value="{{customPruneDays}}" bindinput="onCustomPruneDaysInput" />
+            <text class="interval-unit">天</text>
+            <view class="interval-btn" bindtap="adjustCustomPruneDays" data-delta="1">+</view>
           </view>
         </view>
       </view>
