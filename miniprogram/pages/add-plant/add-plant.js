@@ -180,7 +180,11 @@ Page({
   },
 
   async doIdentify(imagePath) {
-    this._identifyImagePath = imagePath // 保存识别图片路径，后面用来做头像
+    // 立即上传图片作为头像（避免临时文件过期）
+    this._identifyAvatarUrl = ''
+    try {
+      this._identifyAvatarUrl = await imageUtil.uploadImage(imagePath)
+    } catch (e) { /* 上传失败不阻塞 */ }
     wx.showLoading({ title: '识别中...' })
     try {
       const aiIdentify = require('../../utils/ai-identify')
@@ -205,15 +209,9 @@ Page({
     const result = this.data.identifyResults[idx]
     this.setData({ showIdentifyModal: false })
 
-    // AI 识图的原图自动设为头像
-    let avatarUrl = ''
-    if (this._identifyImagePath) {
-      try {
-        avatarUrl = await imageUtil.uploadSquareAvatar(this._identifyImagePath)
-        if (!avatarUrl) avatarUrl = await imageUtil.uploadImage(this._identifyImagePath) // 裁切失败直接上传原图
-      } catch (e) { /* 上传失败不阻塞 */ }
-      this._identifyImagePath = null
-    }
+    // AI 识图的原图自动设为头像（已在 doIdentify 时上传）
+    const avatarUrl = this._identifyAvatarUrl || ''
+    this._identifyAvatarUrl = ''
 
     const match = plantsData.plants.find(p => p.name === result.name || p.name.includes(result.name) || result.name.includes(p.name))
     if (match) {
@@ -384,7 +382,7 @@ Page({
     const plant = plantsData.plants.find(p => p.id === plantId)
     if (!plant) return
     this.setData({ selectedPlant: plant, showModal: true, nickName: '', location: '阳台', waterDays: plant.care.waterDays, fertilizeDays: 30, pruneDays: 60, price: '', purchaseDate: '', purchaseSource: '', avatarPath: '' })
-    this._identifyImagePath = null // 非AI入口，清空
+    this._identifyAvatarUrl = null // 非AI入口，清空
   },
 
   onNickNameInput(e) {

@@ -37,7 +37,6 @@ Page({
     const now = Date.now()
     if (now - this.data._lastLoadTime < 500) return
     this.setData({ loading: true, _lastLoadTime: now })
-    this.loadRooms()
     this.initMode()
   },
 
@@ -164,8 +163,8 @@ Page({
   loadRooms() {
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
-    // 如果有嘎了的植物，确保💀天堂房间存在
-    const garden = this.data.isFamilyMode ? family.getCachedPlants() : storage.getGarden()
+    // 直接用 this.data.garden（已经 setData 过了）
+    const garden = this.data.garden
     const hasDead = garden && garden.some(p => p.dead)
     if (hasDead && !customRooms.includes('💀 天堂')) {
       customRooms.push('💀 天堂')
