@@ -138,6 +138,13 @@
           <text class="garden-location">📍 {{item.location}}</text>
         </view>
       </view>
+
+      <!-- 房间一键浇水 -->
+      <view class="room-water-btn" wx:if="{{filteredGarden.length > 0}}" bindtap="waterRoom" bindlongpress="waterAllRooms">
+        <text class="water-btn-icon">💧</text>
+        <text class="water-btn-text">{{activeRoom === '全部' ? '全部浇水' : activeRoom + '浇水'}}</text>
+        <text class="water-btn-hint">长按浇全部房间</text>
+      </view>
     </view>
   </view>
 

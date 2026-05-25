@@ -83,7 +83,7 @@ exports.main = async (event) => {
       const https = require('https')
       const req = https.request({
         hostname: 'aip.baidubce.com',
-        path: `/rest/2.0/image-classify/v1/plant?access_token=${token}`,
+        path: `/rest/2.0/image-classify/v1/plant_disease?access_token=${token}`,
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(postData) }
       }, (res) => {

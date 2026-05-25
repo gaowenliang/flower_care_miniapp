@@ -523,15 +523,111 @@ Page({
     })
   },
 
+  // 给当前房间的活植物浇水
+  async waterRoom() {
+    const room = this.data.activeRoom
+    const plants = this.data.filteredGarden.filter(p => !p.dead)
+    if (plants.length === 0) {
+      wx.showToast({ title: '没有需要浇水的植物', icon: 'none' }); return
+    }
+    const roomText = room === '全部' ? '所有植物' : room + '的植物'
+    wx.showModal({
+      title: '一键浇水', content: `给${roomText}（${plants.length}棵）浇水？`,
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '浇水中...' })
+        let done = 0
+        if (this.data.isFamilyMode) {
+          for (const plant of plants) {
+            const tasks = family.getCachedTasks(plant._id || plant.id)
+            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
+            if (waterTask) {
+              await family.completeTask(waterTask._id || waterTask.id).catch(() => {})
+              done++
+            }
+          }
+          await this.loadFamilyData()
+        } else {
+          for (const plant of plants) {
+            const tasks = storage.getTasksByPlant(plant.id)
+            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
+            if (waterTask) {
+              storage.completeTask(waterTask.id)
+              storage.addRecord({ id: util.genId(), userPlantId: plant.id, type: 'water', typeName: '浇水', date: Date.now(), note: '房间一键浇水' })
+              done++
+            }
+          }
+          this.loadGarden()
+          this.loadTodayTasks()
+          this.loadStats()
+        }
+        wx.hideLoading()
+        this.setData({ showTip: true, tipText: `💧 ${done}棵植物已浇水！` })
+        setTimeout(() => this.setData({ showTip: false }), 2000)
+      }
+    })
+  },
+
+  // 长按：给所有房间浇水
+  async waterAllRooms() {
+    const allPlants = this.data.garden.filter(p => !p.dead)
+    if (allPlants.length === 0) {
+      wx.showToast({ title: '没有需要浇水的植物', icon: 'none' }); return
+    }
+    wx.showModal({
+      title: '全部浇水', content: `给所有房间${allPlants.length}棵活植物浇水？`,
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '浇水中...' })
+        let done = 0
+        if (this.data.isFamilyMode) {
+          for (const plant of allPlants) {
+            const tasks = family.getCachedTasks(plant._id || plant.id)
+            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
+            if (waterTask) {
+              await family.completeTask(waterTask._id || waterTask.id).catch(() => {})
+              done++
+            }
+          }
+          await this.loadFamilyData()
+        } else {
+          for (const plant of allPlants) {
+            const tasks = storage.getTasksByPlant(plant.id)
+            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
+            if (waterTask) {
+              storage.completeTask(waterTask.id)
+              storage.addRecord({ id: util.genId(), userPlantId: plant.id, type: 'water', typeName: '浇水', date: Date.now(), note: '全部一键浇水' })
+              done++
+            }
+          }
+          this.loadGarden()
+          this.loadTodayTasks()
+          this.loadStats()
+        }
+        wx.hideLoading()
+        this.setData({ showTip: true, tipText: `💧 全部${done}棵已浇水！` })
+        setTimeout(() => this.setData({ showTip: false }), 2000)
+      }
+    })
+  },
+
   onPullDownRefresh() {
     this.loadFamilyData().then(() => wx.stopPullDownRefresh())
   },
 
   onShareAppMessage() {
-    return { title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！`, path: '/pages/index/index' }
+    const count = this.data.garden.length
+    const alive = this.data.garden.filter(p => !p.dead).length
+    const days = this.data.garden.length > 0 ? Math.max(...this.data.garden.map(p => Math.floor((Date.now() - (p.addedAt || Date.now())) / 86400000))) : 0
+    return {
+      title: count === 0 ? '开始你的养花之旅吧~' : `我养了${alive}棵植物${days > 0 ? '，最长' + days + '天了' : ''}！`,
+      path: '/pages/index/index'
+    }
   },
 
   onShareTimeline() {
-    return { title: `我在养${this.data.garden.length}棵植物，快来一起养花吧！`, query: '' }
+    const count = this.data.garden.length
+    const alive = this.data.garden.filter(p => !p.dead).length
+    return { title: count === 0 ? '养花助手 - 开始你的花园' : `我在养${alive}棵植物，快来一起养花~`, query: '' }
   }
 })
