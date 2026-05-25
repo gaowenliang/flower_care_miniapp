@@ -153,7 +153,7 @@
       </view>
 
       <!-- 房间一键浇水 -->
-      <view class="room-water-btn" wx:if="{{filteredGarden.length > 0}}" bindtap="waterRoom">
+      <view class="room-water-btn" wx:if="{{filteredGarden.length > 0}}" bindlongpress="waterRoom">
         <text class="water-btn-icon">💧</text>
         <text class="water-btn-text">{{activeRoom === '全部' ? '全部浇水' : activeRoom + '浇水'}}</text>
       </view>
