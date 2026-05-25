@@ -191,3 +191,18 @@
 .cat-bar-fill.orange { background: linear-gradient(90deg, #FF9800, #FFB74D); }
 .cat-bar-count { font-size: 22rpx; color: #FF9800; font-weight: 500; min-width: 120rpx; text-align: right; }
 
+/* 新用户引导步骤 */
+.onboarding-steps {
+  display: flex; align-items: center; justify-content: center;
+  margin: 40rpx 40rpx 20rpx; gap: 0;
+}
+.step { display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.step-num {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  background: #F0F2F0; color: #B0BEC5; font-size: 28rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.step.active .step-num { background: #4CAF50; color: #fff; }
+.step-label { font-size: 22rpx; color: #B0BEC5; }
+.step.active .step-label { color: #4CAF50; font-weight: 600; }
+.step-line { width: 60rpx; height: 4rpx; background: #E8E8E8; margin: 0 8rpx; margin-bottom: 28rpx; }

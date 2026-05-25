@@ -255,7 +255,7 @@ Page({
     wx.showLoading({ title: '创建中...' })
     const result = await family.manage('create', { name })
     wx.hideLoading()
-    if (result.success) { wx.showToast({ title: '创建成功! 🏠', icon: 'none' }); this.setData({ showCreate: false }); await this.loadFamilyInfo() }
+    if (result.success) { wx.showToast({ title: '创建成功! 🏠', icon: 'none' }); this.setData({ showCreate: false }); await this.loadFamilyInfo(); setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1000) }
     else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
 
@@ -268,7 +268,7 @@ Page({
     wx.showLoading({ title: '加入中...' })
     const result = await family.manage('join', { inviteCode: code })
     wx.hideLoading()
-    if (result.success) { wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' }); this.setData({ showJoin: false }); await this.loadFamilyInfo() }
+    if (result.success) { wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' }); this.setData({ showJoin: false }); await this.loadFamilyInfo(); setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1000) }
     else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
 

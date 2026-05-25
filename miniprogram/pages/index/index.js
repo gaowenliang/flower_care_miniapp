@@ -397,6 +397,7 @@ Page({
   // ========== 操作 ==========
 
   goAddPlant() { wx.switchTab({ url: '/pages/add-plant/add-plant' }) },
+  goIdentify() { wx.navigateTo({ url: '/pages/identify/identify' }) },
 
   goDetail(e) {
     const id = e.currentTarget.dataset.id

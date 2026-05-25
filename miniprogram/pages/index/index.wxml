@@ -110,12 +110,25 @@
         </view>
       </view>
 
-      <!-- 空状态 -->
-      <view class="empty-state" wx:if="{{!hasPlants}}">
+      <!-- 空状态 — 新用户引导 -->
+      <view class="empty-state onboarding" wx:if="{{!hasPlants}}">
+        <view class="onboarding-steps">
+          <view class="step done"><text class="step-num">✓</text><text class="step-label">建家庭</text></view>
+          <view class="step-line done"></view>
+          <view class="step active"><text class="step-num">2</text><text class="step-label">加植物</text></view>
+          <view class="step-line"></view>
+          <view class="step"><text class="step-num">3</text><text class="step-label">开始养</text></view>
+        </view>
         <text class="emoji">🌱</text>
-        <text class="title">花园空空如也</text>
-        <text class="desc">添加第一棵植物，开启养花之旅~</text>
-        <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
+        <text class="title">第二步：添加你的第一棵植物</text>
+        <text class="desc">可以用 AI 拍照识别，也可以从数据库选择</text>
+        <view class="guide-btns">
+          <view class="btn-primary" bindtap="goAddPlant">+ 添加植物</view>
+          <view class="btn-secondary" bindtap="goIdentify">📷 AI 拍照识花</view>
+        </view>
+        <view class="guide-tips">
+          <text class="guide-tip">💡 不知道养什么？试试绿萝、多肉、薄荷，超好养！</text>
+        </view>
       </view>
 
       <!-- 搜索/筛选无结果 -->

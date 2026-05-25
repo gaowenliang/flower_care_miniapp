@@ -229,3 +229,29 @@
 .water-btn-icon { font-size: 36rpx; }
 .water-btn-text { font-size: 28rpx; font-weight: 600; color: #fff; margin-top: 4rpx; }
 .water-btn-hint { font-size: 20rpx; color: rgba(255,255,255,0.7); margin-top: 2rpx; }
+/* 新用户引导 */
+.empty-state.onboarding { padding: 20rpx 32rpx 40rpx; }
+.onboarding-steps {
+  display: flex; align-items: center; justify-content: center;
+  margin: 20rpx 0 32rpx; gap: 0;
+}
+.step { display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.step-num {
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: #F0F2F0; color: #B0BEC5; font-size: 24rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.step.active .step-num { background: #4CAF50; color: #fff; }
+.step.done .step-num { background: #E8F5E9; color: #4CAF50; }
+.step-label { font-size: 22rpx; color: #B0BEC5; }
+.step.active .step-label { color: #4CAF50; font-weight: 600; }
+.step.done .step-label { color: #4CAF50; }
+.step-line { width: 50rpx; height: 4rpx; background: #E8E8E8; margin: 0 6rpx; margin-bottom: 28rpx; }
+.step-line.done { background: #C8E6C9; }
+.guide-btns { display: flex; gap: 16rpx; margin-top: 16rpx; }
+.btn-secondary {
+  padding: 18rpx 32rpx; border-radius: 44rpx; font-size: 28rpx; font-weight: 600;
+  background: #F7F9F7; color: #4CAF50; border: 2rpx solid #C8E6C9;
+}
+.guide-tips { margin-top: 24rpx; }
+.guide-tip { font-size: 24rpx; color: #B0BEC5; line-height: 1.6; }
