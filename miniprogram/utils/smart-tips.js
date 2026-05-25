@@ -106,23 +106,9 @@ function fetchWeather(city) {
 }
 
 function fetchWeatherDirect(city) {
-  const amapKey = 'de9c6192fc5bc7a1e4dfa319f6c26ee8'
-  // 前端 fallback 只处理 adcode，其他格式直接用上海
-  let adcode = city || '310000'
-  if (!/^\d{6}$/.test(adcode)) adcode = '310000'
-  return new Promise((resolve) => {
-    wx.request({
-      url: `https://restapi.amap.com/v3/weather/weatherInfo?key=${amapKey}&city=${adcode}&extensions=base`,
-      success: (res) => {
-        if (res.data && res.data.lives && res.data.lives[0]) {
-          resolve(res.data.lives[0])
-        } else {
-          resolve(null)
-        }
-      },
-      fail: () => resolve(null)
-    })
-  })
+  // 前端不暴露 API Key，降级为 null（纯季节建议）
+  // 云函数 resolveAdcode 已支持经纬度/城市名/adcode 全格式
+  return Promise.resolve(null)
 }
 
 /**

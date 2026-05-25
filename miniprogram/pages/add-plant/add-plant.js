@@ -242,31 +242,14 @@ Page({
     this.setData({ customLocation: e.currentTarget.dataset.value })
   },
 
-  onCustomWaterDaysInput(e) {
-    this.setData({ customWaterDays: Math.max(1, parseInt(e.detail.value) || 1) })
+  // 通用：养护周期调整
+  adjustDays(e) {
+    const { field, delta } = e.currentTarget.dataset
+    this.setData({ [field]: Math.max(1, this.data[field] + parseInt(delta)) })
   },
-
-  adjustCustomWaterDays(e) {
-    const delta = parseInt(e.currentTarget.dataset.delta)
-    this.setData({ customWaterDays: Math.max(1, this.data.customWaterDays + delta) })
-  },
-
-  onCustomFertilizeDaysInput(e) {
-    this.setData({ customFertilizeDays: Math.max(1, parseInt(e.detail.value) || 1) })
-  },
-
-  adjustCustomFertilizeDays(e) {
-    const delta = parseInt(e.currentTarget.dataset.delta)
-    this.setData({ customFertilizeDays: Math.max(1, this.data.customFertilizeDays + delta) })
-  },
-
-  onCustomPruneDaysInput(e) {
-    this.setData({ customPruneDays: Math.max(1, parseInt(e.detail.value) || 1) })
-  },
-
-  adjustCustomPruneDays(e) {
-    const delta = parseInt(e.currentTarget.dataset.delta)
-    this.setData({ customPruneDays: Math.max(1, this.data.customPruneDays + delta) })
+  onDaysInput(e) {
+    const { field } = e.currentTarget.dataset
+    this.setData({ [field]: Math.max(1, parseInt(e.detail.value) || 1) })
   },
 
 
@@ -400,36 +383,12 @@ Page({
   },
 
   onWaterDaysInput(e) {
-    const val = parseInt(e.detail.value) || 1
-    this.setData({ waterDays: Math.max(1, val) })
+    this.setData({ waterDays: Math.max(1, parseInt(e.detail.value) || 1) })
   },
 
   adjustWaterDays(e) {
     const delta = parseInt(e.currentTarget.dataset.delta)
-    const newVal = Math.max(1, this.data.waterDays + delta)
-    this.setData({ waterDays: newVal })
-  },
-
-  onFertilizeDaysInput(e) {
-    const val = parseInt(e.detail.value) || 1
-    this.setData({ fertilizeDays: Math.max(1, val) })
-  },
-
-  adjustFertilizeDays(e) {
-    const delta = parseInt(e.currentTarget.dataset.delta)
-    const newVal = Math.max(1, this.data.fertilizeDays + delta)
-    this.setData({ fertilizeDays: newVal })
-  },
-
-  onPruneDaysInput(e) {
-    const val = parseInt(e.detail.value) || 1
-    this.setData({ pruneDays: Math.max(1, val) })
-  },
-
-  adjustPruneDays(e) {
-    const delta = parseInt(e.currentTarget.dataset.delta)
-    const newVal = Math.max(1, this.data.pruneDays + delta)
-    this.setData({ pruneDays: newVal })
+    this.setData({ waterDays: Math.max(1, this.data.waterDays + delta) })
   },
 
 

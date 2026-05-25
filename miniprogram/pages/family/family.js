@@ -171,16 +171,43 @@ Page({
 
   editNickname() {
     this.setData({ showSettings: false })
-    wx.showModal({ title: '修改我的昵称', editable: true, placeholderText: '输入你在家庭中的昵称',
-      success: async (res) => { if (res.confirm && res.content && res.content.trim()) { const r = await family.manage('updateProfile', { nickname: res.content.trim() }); if (r.success) { wx.showToast({ title: '已修改', icon: 'none' }); await this.loadFamilyInfo() } } }
+    wx.showModal({
+      title: '修改我的昵称',
+      editable: true,
+      placeholderText: '输入你在家庭中的昵称',
+      success: async (res) => {
+        if (!res.confirm) return
+        const nickname = (res.content || '').trim()
+        if (!nickname) return
+        const r = await family.manage('updateProfile', { nickname })
+        if (r.success) {
+          wx.showToast({ title: '已修改', icon: 'none' })
+          await this.loadFamilyInfo()
+        }
+      }
     })
   },
 
   renameFamily() {
     this.setData({ showSettings: false })
     const currentName = this.data.familyInfo.name || ''
-    wx.showModal({ title: '修改家庭名称', editable: true, placeholderText: '输入新名称', content: currentName,
-      success: async (res) => { if (res.confirm && res.content && res.content.trim()) { const r = await family.manage('renameFamily', { name: res.content.trim() }); if (r.success) { wx.showToast({ title: '已修改', icon: 'none' }); await this.loadFamilyInfo() } else { wx.showToast({ title: r.error || '修改失败', icon: 'none' }) } } }
+    wx.showModal({
+      title: '修改家庭名称',
+      editable: true,
+      placeholderText: '输入新名称',
+      content: currentName,
+      success: async (res) => {
+        if (!res.confirm) return
+        const name = (res.content || '').trim()
+        if (!name) return
+        const r = await family.manage('renameFamily', { name })
+        if (r.success) {
+          wx.showToast({ title: '已修改', icon: 'none' })
+          await this.loadFamilyInfo()
+        } else {
+          wx.showToast({ title: r.error || '修改失败', icon: 'none' })
+        }
+      }
     })
   },
 
