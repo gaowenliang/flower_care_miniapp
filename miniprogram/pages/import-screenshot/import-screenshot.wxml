@@ -74,14 +74,14 @@
         <text class="modal-title">选择植物</text>
       </view>
       <view class="plant-list">
-        <view class="plant-item {{item._id === selectedPlant?._id ? 'selected' : ''}}"
+        <view class="plant-item {{item._id === selectedPlant._id ? 'selected' : ''}}"
               wx:for="{{plants}}"
               wx:key="_id"
               bindtap="selectPlant"
               data-plant="{{item}}">
           <text class="plant-emoji">{{item.emoji}}</text>
           <text class="plant-name">{{item.nickname}}</text>
-          <text class="plant-check" wx:if="{{item._id === selectedPlant?._id}}">✓</text>
+          <text class="plant-check" wx:if="{{item._id === selectedPlant._id}}">✓</text>
         </view>
       </view>
     </view>
