@@ -22,6 +22,10 @@ Page({
     importing: false,
     importRecords: [],
     importChecked: {},
+    importMembers: [],
+    selectedImportMember: '',
+    importPlants: [],
+    selectedImportPlant: null,
     monthPad: '01' 
   },
 
@@ -193,49 +197,42 @@ Page({
   },
 
   // ========== 导入功能 ==========
-  startImport() {
-    const that = this
+  async startImport() {
     wx.chooseMedia({
       count: 9, mediaType: ['image'], sizeType: ['compressed'],
       success: async (res) => {
-        that.setData({ importing: true })
+        this.setData({ importing: true })
         try {
-          // 压缩并转base64
-          const images = []
+          // 上传到云存储
+          const fileIDs = []
           for (const file of res.tempFiles) {
-            const b64 = await that._imageToBase64(file.tempFilePath)
-            if (b64) images.push(b64)
+            const uploadRes = await wx.cloud.uploadFile({ cloudPath: `import/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`, filePath: file.tempFilePath })
+            if (uploadRes.fileID) fileIDs.push(uploadRes.fileID)
           }
-          if (images.length === 0) {
-            wx.showToast({ title: '图片处理失败', icon: 'none' }); that.setData({ importing: false }); return
+          if (fileIDs.length === 0) {
+            wx.showToast({ title: '图片上传失败', icon: 'none' }); this.setData({ importing: false }); return
           }
-          // 调云函数
-          const result = await wx.cloud.callFunction({ name: 'importScreenshot', data: { images } })
+          const result = await wx.cloud.callFunction({ name: 'importScreenshot', data: { fileIDs } })
           if (result.result && result.result.success && result.result.records.length > 0) {
             const checked = {}
             result.result.records.forEach((r, i) => { checked[i] = true })
-            that.setData({ showImportModal: true, importRecords: result.result.records, importChecked: checked, importing: false })
+            // 获取家庭成员列表
+            const familyInfo = family.getCachedFamily()
+            const members = (familyInfo && familyInfo.members) || []
+            const currentUser = members.find(m => m.role === 'admin') || members[0] || {}
+            // 获取植物列表
+            const plants = family.getCachedPlants() || []
+            this.setData({ showImportModal: true, importRecords: result.result.records, importChecked: checked, importing: false, importMembers: members, selectedImportMember: currentUser.openid || '', importPlants: plants, selectedImportPlant: plants[0] || null })
           } else {
-            wx.showToast({ title: (result.result && result.result.error) || '未识别到养护记录，请确认截图内容', icon: 'none', duration: 3000 })
-            that.setData({ importing: false })
+            wx.showToast({ title: (result.result && result.result.error) || '未识别到养护记录', icon: 'none', duration: 3000 })
+            this.setData({ importing: false })
           }
         } catch (e) {
           console.error('导入失败:', e)
-          wx.showToast({ title: '识别失败: ' + (e.errMsg || ''), icon: 'none' })
-          that.setData({ importing: false })
+          wx.showToast({ title: '识别失败', icon: 'none' })
+          this.setData({ importing: false })
         }
       }
-    })
-  },
-
-  _imageToBase64(filePath) {
-    return new Promise((resolve) => {
-      wx.getFileSystemManager().readFile({
-        filePath,
-        encoding: 'base64',
-        success: (res) => resolve(res.data),
-        fail: () => resolve(null)
-      })
     })
   },
 
@@ -246,51 +243,57 @@ Page({
 
   hideImportModal() { this.setData({ showImportModal: false }) },
 
+  selectImportMember(e) {
+    this.setData({ selectedImportMember: e.currentTarget.dataset.openid })
+  },
+
+  selectImportPlant(e) {
+    const plant = this.data.importPlants.find(p => p._id === e.currentTarget.dataset.id)
+    this.setData({ selectedImportPlant: plant || null })
+  },
+
   async confirmImport() {
     const records = this.data.importRecords.filter((r, i) => this.data.importChecked[i])
     if (records.length === 0) { wx.showToast({ title: '请选择要导入的记录', icon: 'none' }); return }
 
+    // 需要选植物和成员
+    if (!this.data.selectedImportPlant) { wx.showToast({ title: '请选择植物', icon: 'none' }); return }
+
     wx.showLoading({ title: '导入中...' })
-    let imported = 0
+    try {
+      const importRecords = records.map(r => ({
+        type: r.actionType || 'water',
+        typeName: r.action,
+        date: r.date ? new Date(r.date.replace(/\//g, '-')).getTime() : Date.now(),
+        note: r.note || ''
+      }))
 
-    for (const r of records) {
-      try {
-        // 查找或创建植物
-        const plants = await family.getPlants(false)
-        let plant = plants.find(p => (p.nickname || p.name) === r.plantName || p.name === r.plantName)
-
-        if (!plant) {
-          // 创建植物
-          const addResult = await family.addPlant({
-            plantId: 'import_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-            name: r.plantName, latin: '', family: '', genus: '',
-            emoji: '🌱', category: '导入', nickname: r.plantName,
-            location: '阳台', waterDays: 7
-          })
-          if (addResult.success) {
-            const freshPlants = await family.getPlants(true)
-            plant = freshPlants.find(p => (p.nickname || p.name) === r.plantName)
+      const result = await wx.cloud.callFunction({
+        name: 'familyData',
+        data: {
+          action: 'batchImportRecords',
+          data: {
+            plantId: this.data.selectedImportPlant._id,
+            records: importRecords
           }
         }
+      })
 
-        if (plant) {
-          // 添加养护记录
-          await family.addRecord({
-            plantId: plant._id,
-            type: r.actionType || 'water',
-            typeName: r.action,
-            date: r.date ? new Date(r.date.replace(/\//g, '-')).getTime() : Date.now()
-          })
-          imported++
-        }
-      } catch (e) {
-        console.error('导入单条失败:', r, e)
+      wx.hideLoading()
+      const res = result.result || {}
+      if (res.success) {
+        this.setData({ showImportModal: false })
+        wx.showToast({ title: `导入${res.imported || 0}条，跳过${res.skipped || 0}条重复`, icon: 'none', duration: 3000 })
+        this.buildCalendar()
+      } else {
+        wx.showToast({ title: res.error || '导入失败', icon: 'none' })
       }
+    } catch (e) {
+      wx.hideLoading()
+      wx.showToast({ title: '导入失败', icon: 'none' })
+      console.error('批量导入失败:', e)
     }
+  },
 
-    wx.hideLoading()
-    this.setData({ showImportModal: false })
-    wx.showToast({ title: `成功导入${imported}条记录`, icon: 'none', duration: 2000 })
-    this.buildCalendar()
-  }
+  preventBubble() {}
 })

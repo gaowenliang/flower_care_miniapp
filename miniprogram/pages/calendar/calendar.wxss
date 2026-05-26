@@ -102,3 +102,11 @@
 
 .section-subtitle { font-size: 24rpx; color: #999; margin-bottom: 16rpx; }
 .day-task-who { font-size: 22rpx; color: #FF9800; background: #FFF3E0; padding: 4rpx 12rpx; border-radius: 16rpx; margin-left: auto; flex-shrink: 0; }
+
+/* 导入弹窗 - 成员/植物选择 */
+.import-section { margin: 16rpx 0; }
+.import-label { font-size: 26rpx; color: #666; margin-bottom: 12rpx; display: block; }
+.import-plant-tags, .import-member-tags { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.import-plant-tag, .import-member-tag { padding: 10rpx 20rpx; border-radius: 24rpx; font-size: 24rpx; background: #f0f0f0; color: #333; }
+.import-plant-tag.active { background: #4CAF50; color: #fff; }
+.import-member-tag.active { background: #FF9800; color: #fff; }

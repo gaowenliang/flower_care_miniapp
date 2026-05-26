@@ -99,15 +99,29 @@
 
   <!-- 导入确认弹窗 -->
   <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="hideImportModal">
-    <view class="modal-content import-modal" catchtap="">
+    <view class="modal-content import-modal" catchtap="preventBubble">
       <view class="modal-title">📥 导入养护记录</view>
-      <text class="import-hint">已从截图中识别到以下记录，请确认导入：</text>
+      <!-- 选择植物 -->
+      <view class="import-section" wx:if="{{importPlants.length > 0}}">
+        <text class="import-label">🌿 选择植物</text>
+        <view class="import-plant-tags">
+          <view class="import-plant-tag {{selectedImportPlant._id === item._id ? 'active' : ''}}" wx:for="{{importPlants}}" wx:key="_id" bindtap="selectImportPlant" data-id="{{item._id}}">{{item.emoji}} {{item.nickname}}</view>
+        </view>
+      </view>
+      <!-- 选择操作成员 -->
+      <view class="import-section" wx:if="{{importMembers.length > 0}}">
+        <text class="import-label">👤 操作人</text>
+        <view class="import-member-tags">
+          <view class="import-member-tag {{selectedImportMember === item.openid ? 'active' : ''}}" wx:for="{{importMembers}}" wx:key="openid" bindtap="selectImportMember" data-openid="{{item.openid}}">{{item.nickname}}</view>
+        </view>
+      </view>
+      <text class="import-hint">已识别到 {{importRecords.length}} 条记录：</text>
       <view class="import-list">
         <view class="import-item {{importChecked[index] ? 'checked' : ''}}" wx:for="{{importRecords}}" wx:key="index" bindtap="toggleImportItem" data-idx="{{index}}">
           <text class="import-check">{{importChecked[index] ? '✅' : '⬜'}}</text>
           <view class="import-info">
-            <text class="import-plant">{{item.plantName}}</text>
-            <text class="import-action">{{item.action}} {{item.date}}</text>
+            <text class="import-action">{{item.action}}</text>
+            <text class="import-date">{{item.date}}</text>
           </view>
         </view>
       </view>
