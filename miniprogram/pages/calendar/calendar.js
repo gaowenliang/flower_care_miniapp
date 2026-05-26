@@ -229,7 +229,8 @@ Page({
           }
         } catch (e) {
           console.error('导入失败:', e)
-          wx.showToast({ title: '识别失败', icon: 'none' })
+          const msg = (e && e.errMsg) || (e && e.message) || '未知错误'
+          wx.showToast({ title: '失败: ' + msg, icon: 'none', duration: 3000 })
           this.setData({ importing: false })
         }
       }
