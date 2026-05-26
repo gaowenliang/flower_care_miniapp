@@ -33,10 +33,11 @@ Page({
 
   onShow() {
     this.setData({ isFamilyMode: family.isInFamily() })
-    this.buildCalendar()
     if (this.data.isFamilyMode) {
+      family.getRecords('', 100).then(() => this.buildCalendar()).catch(() => this.buildCalendar())
       this.loadFamilyPhotoTimeline()
     } else {
+      this.buildCalendar()
       this.loadPhotoTimeline()
     }
     setTimeout(() => this.setData({ loading: false }), 300)
