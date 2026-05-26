@@ -145,7 +145,7 @@
     <view class="section-title" style="padding:4px 0"><text>📈 维护花费趋势</text></view>
     <view style="display:flex;align-items:flex-end;height:100rpx;gap:8rpx;margin-top:12rpx">
       <view wx:for="{{monthlyCost}}" wx:key="month" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4rpx">
-        <text style="font-size:18rpx;color:#FF9800" wx:if="{{item.cost > 0}}">¥{{item.cost}}</text>
+        <text style="font-size:18rpx;color:#FF9800" wx:if="{{item.cost > 0}}">¥{{item.costStr}}</text>
         <view style="width:100%;height:{{item.height}};background:#FFF3E0;border-radius:6rpx 6rpx 0 0;min-height:8rpx"></view>
         <text style="font-size:18rpx;color:#B0BEC5">{{item.month}}</text>
       </view>
@@ -161,7 +161,7 @@
         <text class="cost-record-note">{{item.note || item.typeName}}</text>
       </view>
       <view class="cost-record-right">
-        <text class="cost-record-amount">¥{{item.cost}}</text>
+        <text class="cost-record-amount">¥{{item.costStr}}</text>
         <text class="cost-record-date">{{item.dateStr}}</text>
       </view>
     </view>

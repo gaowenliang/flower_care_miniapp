@@ -432,12 +432,12 @@ async function getReport(openid, { period }) {
   return {
     success: true, period, totalRecords: records.length, typeStats,
     costStats: {
-      totalPurchase: Math.round(totalPurchaseCost * 100) / 100,
-      totalMaintenance: Math.round(totalMaintenanceCost * 100) / 100,
-      totalAll: Math.round((totalPurchaseCost + totalMaintenanceCost) * 100) / 100,
+      totalPurchase: Math.round(totalPurchaseCost * 100 / 100).toFixed(2),
+      totalMaintenance: Math.round(totalMaintenanceCost * 100 / 100).toFixed(2),
+      totalAll: Math.round((totalPurchaseCost + totalMaintenanceCost) * 100 / 100).toFixed(2),
       memberCosts: Object.entries(memberCosts).map(([openid, cost]) => ({
-        openid, nickname: (memberMap[openid] || {}).nickname || '未知', cost: Math.round(cost * 100) / 100
-      })).sort((a, b) => b.cost - a.cost),
+        openid, nickname: (memberMap[openid] || {}).nickname || '未知', cost: cost.toFixed(2)
+      })).sort((a, b) => parseFloat(b.cost) - parseFloat(a.cost)),
       categoryCostList
     },
     memberStats: Object.values(memberStats).sort((a, b) => b.total - a.total).map(s => ({ ...s, nickname: (memberMap[s.openid] || {}).nickname || '未知' }))
