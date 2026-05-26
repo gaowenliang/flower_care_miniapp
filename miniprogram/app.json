@@ -9,7 +9,8 @@
     "pages/identify/identify",
     "pages/diagnose/diagnose",
     "pages/family/family",
-    "pages/room-manage/room-manage"
+    "pages/room-manage/room-manage",
+    "pages/import-screenshot/import-screenshot"
   ],
   "window": {
     "backgroundTextStyle": "light",

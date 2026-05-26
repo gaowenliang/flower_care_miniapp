@@ -145,6 +145,10 @@
 
   <!-- 养护记录 -->
   <view class="tab-content" wx:if="{{activeTab === 'record'}}">
+    <view class="record-header">
+      <text class="record-title">养护记录</text>
+      <text class="import-btn" bindtap="goImportScreenshot">📥 导入记录</text>
+    </view>
     <view class="card" wx:if="{{records.length > 0}}">
       <view class="record-item" wx:for="{{records}}" wx:key="id">
         <view class="record-dot"></view>

@@ -84,6 +84,7 @@ exports.main = async (event) => {
     case 'getRecords': return await getRecords(event, familyId)
     case 'addRecord': return await addRecord(event, OPENID, familyId)
     case 'deleteRecord': return await deleteRecord(event, OPENID, familyId)
+    case 'batchImportRecords': return await batchImportRecords(event, OPENID, familyId)
     case 'getDashboard': return await getDashboard(familyId)
     default: return { success: false, error: '未知操作' }
   }
@@ -518,5 +519,95 @@ async function getDashboard(familyId) {
         id: t._id
       }
     })
+  }
+}
+
+/**
+ * 批量导入养护记录（带查重防刷分）
+ * 接收：{ records: [{type, typeName, date, note}], plantId }
+ * 返回：{ success: true, imported: N, skipped: M }
+ */
+async function batchImportRecords(event, openid, familyId) {
+  const { records, plantId } = event
+  if (!records || !Array.isArray(records) || records.length === 0) {
+    return { success: false, error: '缺少记录数据' }
+  }
+  if (!plantId) {
+    return { success: false, error: '缺少植物 ID' }
+  }
+
+  // 校验 plantId 归属该家庭
+  try {
+    const plantRes = await db.collection('family_plants').doc(plantId).get()
+    if (!plantRes.data || plantRes.data.familyId !== familyId) {
+      return { success: false, error: '植物不存在或无权限' }
+    }
+  } catch (e) {
+    return { success: false, error: '植物不存在' }
+  }
+
+  // 获取当前用户昵称
+  const memberRes = await db.collection('family_members').where({ openid, familyId }).limit(1).get()
+  const nickname = memberRes.data.length > 0 ? memberRes.data[0].nickname : ''
+
+  // 查出该 plantId 已有记录（用于去重）
+  const existing = await fetchAll('family_records', { familyId, plantId })
+  // 去重 key: type_日期（按天计算）
+  const existKeys = new Set(existing.map(r => `${r.type}_${Math.floor(r.date / 86400000)}`))
+
+  // 过滤重复记录（包括批量内重复）
+  const toInsert = []
+  const skipped = []
+  for (const r of records) {
+    const dateTs = r.date // 已经是毫秒时间戳
+    const dayKey = Math.floor(dateTs / 86400000)
+    const key = `${r.type}_${dayKey}`
+    
+    if (existKeys.has(key)) {
+      skipped.push(r)
+      continue
+    }
+    existKeys.add(key) // 防止批量内重复
+    
+    toInsert.push({
+      familyId,
+      plantId,
+      userPlantId: plantId,
+      type: r.type || 'custom',
+      typeName: r.typeName || '养护',
+      date: dateTs,
+      note: r.note || '',
+      createdBy: openid,
+      creatorNickname: nickname,
+      createdAt: Date.now()
+    })
+  }
+
+  // 批量插入
+  if (toInsert.length > 0) {
+    const batch = db.batch()
+    for (const rec of toInsert) {
+      batch.collection('family_records').add({ data: rec })
+    }
+    await batch.commit()
+  }
+
+  // 每条记录都加分
+  for (const rec of toInsert) {
+    await addPointsToMember(openid, rec.type)
+  }
+
+  // 汇总写一条动态
+  if (toInsert.length > 0) {
+    const plantName = await getPlantName(plantId)
+    const actionNames = [...new Set(toInsert.map(r => r.typeName))]
+    const content = `从截图导入了 ${toInsert.length} 条养护记录到「${plantName}」：${actionNames.join('、')}`
+    await logActivity(familyId, openid, 'import', content)
+  }
+
+  return {
+    success: true,
+    imported: toInsert.length,
+    skipped: skipped.length
   }
 }

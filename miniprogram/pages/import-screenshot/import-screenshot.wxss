@@ -1,0 +1,363 @@
+/* pages/import-screenshot/import-screenshot.wxss */
+.container {
+  padding: 24rpx;
+  padding-bottom: 160rpx;
+  background: #F7F9F7;
+  min-height: 100vh;
+}
+
+.section {
+  margin-bottom: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.card {
+  background: #FFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05);
+}
+
+/* 图片选择器 */
+.image-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+  border: 2rpx dashed #4CAF50;
+  border-radius: 12rpx;
+  background: #F9FFF9;
+}
+
+.image-picker-btn {
+  font-size: 60rpx;
+  color: #4CAF50;
+  margin-bottom: 12rpx;
+}
+
+.image-picker-text {
+  font-size: 28rpx;
+  color: #4CAF50;
+}
+
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.thumbnail-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+}
+
+.thumbnail-delete {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: rgba(0,0,0,0.6);
+  color: #FFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+/* 解析按钮 */
+.parse-section {
+  margin: 24rpx 0;
+}
+
+.parse-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: #FFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.parse-btn::after {
+  border: none;
+}
+
+/* 解析结果列表 */
+.record-list {
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.record-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-item.selected .record-check {
+  color: #4CAF50;
+}
+
+.record-check {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+  color: #DDD;
+}
+
+.record-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.record-main {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.record-date {
+  font-size: 28rpx;
+  color: #666;
+  background: #F5F5F5;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.record-action {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.record-note {
+  font-size: 26rpx;
+  color: #888;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.record-plant {
+  font-size: 26rpx;
+  color: #4CAF50;
+  display: block;
+}
+
+.record-delete {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #999;
+}
+
+.selected-count {
+  text-align: center;
+  font-size: 26rpx;
+  color: #4CAF50;
+  margin-top: 16rpx;
+}
+
+/* 底部固定栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #FFF;
+  border-top: 1rpx solid #F0F0F0;
+  gap: 24rpx;
+}
+
+.plant-picker {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  background: #F7F9F7;
+  border-radius: 44rpx;
+}
+
+.plant-picker-label {
+  font-size: 26rpx;
+  color: #999;
+  margin-right: 12rpx;
+}
+
+.plant-picker-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.plant-picker-arrow {
+  font-size: 32rpx;
+  color: #CCC;
+}
+
+.import-btn {
+  min-width: 200rpx;
+  height: 88rpx;
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: #FFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.import-btn::after {
+  border: none;
+}
+
+/* 植物选择器弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 100%;
+  background: #FFF;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 24rpx;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  text-align: center;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+  margin-bottom: 24rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.plant-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.plant-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+  background: #F9F9F9;
+}
+
+.plant-item.selected {
+  background: #F0FFF0;
+}
+
+.plant-emoji {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+}
+
+.plant-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.plant-check {
+  font-size: 36rpx;
+  color: #4CAF50;
+}
+
+/* Loading */
+.loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 4rpx solid rgba(255,255,255,0.3);
+  border-top-color: #FFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #FFF;
+}

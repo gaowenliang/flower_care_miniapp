@@ -481,6 +481,11 @@ Page({
     wx.navigateTo({ url: '/pages/diagnose/diagnose' })
   },
 
+  // 跳转截图导入
+  goImportScreenshot() {
+    wx.navigateTo({ url: '/pages/import-screenshot/import-screenshot' })
+  },
+
   retroCard() {
     const MAX_RETRO_PER_MONTH = 3
     const isFamilyMode = this.data.isFamilyMode

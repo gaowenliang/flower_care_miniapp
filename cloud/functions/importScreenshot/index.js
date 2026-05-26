@@ -1,5 +1,5 @@
 // cloud/functions/importScreenshot/index.js
-// 从其他APP截图中识别植物养护信息 — OCR + AI 解析
+// 从其他 APP 截图中识别植物养护信息 — OCR + AI 解析
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -62,20 +62,20 @@ async function aiParseRecords(ocrText) {
     return regexParseRecords(ocrText)
   }
 
-  const prompt = `你是一个植物养护记录解析器。用户上传了一张其他植物养护App的截图，OCR识别出了以下文本。
+  const prompt = `你是一个植物养护记录解析器。用户上传了一张其他植物养护 App 的截图，OCR 识别出了以下文本。
 
-请从中提取所有植物养护记录，返回JSON数组格式。每条记录包含：
+请从中提取所有植物养护记录，返回 JSON 数组格式。每条记录包含：
 - plantName: 植物名称（string）
 - action: 养护动作（浇水/施肥/修剪/换盆/除虫/喷药/松土/扦插/播种，string）
 - actionType: 动作类型代码（water/fertilize/prune/repot/pest/spray/loosen/cutting/sow，string）
-- date: 日期，格式 YYYY-MM-DD（string，如果只有月日则年份用2026）
+- date: 日期，格式 YYYY-MM-DD（string，如果只有月日则年份用 2026）
 
-OCR文本：
+OCR 文本：
 ---
 ${ocrText}
 ---
 
-只返回JSON数组，不要其他文字。如果没有识别到养护记录，返回空数组 []。`
+只返回 JSON 数组，不要其他文字。如果没有识别到养护记录，返回空数组 []。`
 
   return new Promise((resolve) => {
     const postData = JSON.stringify({
@@ -103,22 +103,22 @@ ${ocrText}
         try {
           const json = JSON.parse(data)
           const content = json.choices[0].message.content.trim()
-          // 提取JSON数组
+          // 提取 JSON 数组
           const jsonMatch = content.match(/\[[\s\S]*\]/)
           if (jsonMatch) {
             resolve(JSON.parse(jsonMatch[0]))
           } else {
-            console.warn('[importScreenshot] AI返回格式异常:', content)
+            console.warn('[importScreenshot] AI 返回格式异常:', content)
             resolve(regexParseRecords(ocrText))
           }
         } catch (e) {
-          console.error('[importScreenshot] AI解析失败:', e)
+          console.error('[importScreenshot] AI 解析失败:', e)
           resolve(regexParseRecords(ocrText))
         }
       })
     })
     req.on('error', (e) => {
-      console.error('[importScreenshot] AI请求失败:', e)
+      console.error('[importScreenshot] AI 请求失败:', e)
       resolve(regexParseRecords(ocrText))
     })
     req.write(postData)
@@ -202,33 +202,37 @@ function regexParseRecords(text) {
 }
 
 exports.main = async (event) => {
-  const { images } = event
-  if (!images || images.length === 0) {
+  const { fileIDs } = event
+  if (!fileIDs || fileIDs.length === 0) {
     return { success: false, error: '请提供截图' }
   }
   if (!BAIDU_API_KEY) {
-    return { success: false, error: '百度OCR未配置，请在云函数环境变量中设置 BAIDU_API_KEY 和 BAIDU_SECRET_KEY' }
+    return { success: false, error: '百度 OCR 未配置，请在云函数环境变量中设置 BAIDU_API_KEY 和 BAIDU_SECRET_KEY' }
   }
 
   const allOcrText = []
-  for (let i = 0; i < images.length; i++) {
-    const img = images[i]
-    if (img.length > 4 * 1024 * 1024) {
-      console.warn(`[importScreenshot] 图片${i}超过4MB，跳过`)
+  for (let i = 0; i < fileIDs.length; i++) {
+    const fileID = fileIDs[i]
+    // 从云存储下载文件
+    const downloadRes = await cloud.downloadFile({ fileID })
+    const base64 = downloadRes.fileContent.toString('base64')
+    
+    if (base64.length > 4 * 1024 * 1024 * 4 / 3) {
+      console.warn(`[importScreenshot] 图片${i}超过 4MB，跳过`)
       continue
     }
-    const ocrResult = await ocrImage(img)
+    const ocrResult = await ocrImage(base64)
     if (!ocrResult || !ocrResult.words_result) {
-      console.warn(`[importScreenshot] 图片${i} OCR失败`, ocrResult)
+      console.warn(`[importScreenshot] 图片${i} OCR 失败`, ocrResult)
       continue
     }
     const pageText = ocrResult.words_result.map(w => w.words).join('\n')
     allOcrText.push(pageText)
-    console.log(`[importScreenshot] 图片${i} OCR结果:\n`, pageText)
+    console.log(`[importScreenshot] 图片${i} OCR 结果:\n`, pageText)
   }
 
   if (allOcrText.length === 0) {
-    return { success: false, error: 'OCR识别失败，请确认图片清晰' }
+    return { success: false, error: 'OCR 识别失败，请确认图片清晰' }
   }
 
   // AI 解析（优先）+ 正则兜底

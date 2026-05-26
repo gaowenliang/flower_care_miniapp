@@ -1,0 +1,97 @@
+<!-- pages/import-screenshot/import-screenshot.wxml -->
+<view class="container">
+  <!-- 选择图片区域 -->
+  <view class="section card">
+    <view class="section-header">
+      <text class="section-title">📸 选择截图</text>
+      <text class="section-hint">最多 9 张</text>
+    </view>
+    <view class="image-picker" bindtap="chooseImage">
+      <view class="image-picker-btn">+</view>
+      <text class="image-picker-text">选择截图</text>
+    </view>
+    <!-- 已选图片缩略图 -->
+    <view class="thumbnail-grid" wx:if="{{selectedImages.length > 0}}">
+      <view class="thumbnail-item" wx:for="{{selectedImages}}" wx:key="*this">
+        <image class="thumbnail-img" src="{{item}}" mode="aspectFill" />
+        <view class="thumbnail-delete" bindtap="removeImage" data-idx="{{index}}">×</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 解析按钮 -->
+  <view class="parse-section" wx:if="{{selectedImages.length > 0 && !parsedRecords.length}}">
+    <button class="parse-btn" bindtap="parseImages" loading="{{parsing}}">
+      {{parsing ? '解析中...' : '开始解析'}}
+    </button>
+  </view>
+
+  <!-- 解析结果列表 -->
+  <view class="section card" wx:if="{{parsedRecords.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">📋 解析结果</text>
+      <text class="section-hint">已识别 {{parsedRecords.length}} 条</text>
+    </view>
+    <view class="record-list">
+      <view class="record-item {{item.selected ? 'selected' : ''}}" 
+            wx:for="{{parsedRecords}}" 
+            wx:key="*this"
+            bindtap="toggleRecord" 
+            data-idx="{{index}}">
+        <view class="record-check">{{item.selected ? '✅' : '⬜'}}</view>
+        <view class="record-content">
+          <view class="record-main">
+            <text class="record-date">{{item.date}}</text>
+            <text class="record-action">{{item.action}}</text>
+          </view>
+          <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
+          <text class="record-plant" wx:if="{{item.plantMatch}}">🌿 {{item.plantMatch}}</text>
+        </view>
+        <view class="record-delete" bindtap="deleteRecord" data-idx="{{index}}">×</view>
+      </view>
+    </view>
+    <view class="selected-count" wx:if="{{selectedCount > 0}}">
+      已选择 {{selectedCount}} 条
+    </view>
+  </view>
+
+  <!-- 底部固定栏 -->
+  <view class="bottom-bar" wx:if="{{parsedRecords.length > 0 && selectedCount > 0}}">
+    <view class="plant-picker" bindtap="showPlantPicker">
+      <text class="plant-picker-label">选择植物</text>
+      <text class="plant-picker-value">{{selectedPlant ? selectedPlant.nickname : '未选择'}}</text>
+      <text class="plant-picker-arrow">›</text>
+    </view>
+    <view class="import-btn" bindtap="confirmImport" loading="{{importing}}">
+      导入 {{selectedCount}} 条
+    </view>
+  </view>
+
+  <!-- 植物选择器 -->
+  <view class="modal-mask" wx:if="{{showPlantPicker}}" bindtap="hidePlantPicker">
+    <view class="modal-content plant-picker-modal" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">选择植物</text>
+      </view>
+      <view class="plant-list">
+        <view class="plant-item {{item._id === selectedPlant?._id ? 'selected' : ''}}"
+              wx:for="{{plants}}"
+              wx:key="_id"
+              bindtap="selectPlant"
+              data-plant="{{item}}">
+          <text class="plant-emoji">{{item.emoji}}</text>
+          <text class="plant-name">{{item.nickname}}</text>
+          <text class="plant-check" wx:if="{{item._id === selectedPlant?._id}}">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Loading -->
+  <view class="loading-mask" wx:if="{{parsing || importing}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">{{parsing ? '正在解析截图...' : '正在导入...'}}</text>
+    </view>
+  </view>
+</view>
