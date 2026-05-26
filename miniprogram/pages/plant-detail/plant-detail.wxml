@@ -276,7 +276,7 @@
 
   <!-- 施肥类型弹窗 -->
   <view class="modal-mask" wx:if="{{showFertilizeModal}}" bindtap="cancelFertilize">
-    <view class="modal-content fertilize-modal" catchtap>
+    <view class="modal-content fertilize-modal" catchtap="preventBubble">
       <text class="modal-title">🌱 选择肥料类型</text>
       <view class="fert-tags">
         <view class="fert-tag {{fertilizeInput === item ? 'active' : ''}}" wx:for="{{fertilizeTypes}}" wx:key="*this" bindtap="selectFertilizeType" data-type="{{item}}">{{item}}</view>
@@ -293,7 +293,7 @@
 
   <!-- 换房间弹窗 -->
   <view class="modal-mask" wx:if="{{showRoomModal}}" bindtap="cancelRoom">
-    <view class="modal-content room-modal" catchtap>
+    <view class="modal-content room-modal" catchtap="preventBubble">
       <text class="modal-title">📍 选择房间</text>
       <view class="room-tags">
         <view class="room-tag {{selectedRoom === item ? 'active' : ''}}" wx:for="{{roomList}}" wx:key="*this" bindtap="selectRoom" data-room="{{item}}">{{item}}</view>
@@ -310,7 +310,7 @@
 
   <!-- 价格弹窗 -->
   <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
-    <view class="modal-content price-modal" catchtap>
+    <view class="modal-content price-modal" catchtap="preventBubble">
       <text class="modal-title">💰 购入信息</text>
       <view class="price-field">
         <text class="price-field-label">价格</text>
