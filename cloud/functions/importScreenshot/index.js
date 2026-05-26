@@ -1,11 +1,10 @@
 // cloud/functions/importScreenshot/index.js
-// 从其他 APP 截图中识别植物养护信息 — OCR + AI 解析
+// 从其他 APP 截图中识别植物养护信息 — 纯 OCR + 正则解析（不依赖 VLM）
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
 const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
-const ZAI_API_KEY = process.env.ZAI_API_KEY || ''
 
 let _tokenCache = { token: null, expiresAt: 0 }
 
@@ -30,7 +29,6 @@ async function getBaiduToken() {
   })
 }
 
-// 百度通用 OCR（高精度版）
 async function ocrImage(base64) {
   const token = await getBaiduToken()
   if (!token) return null
@@ -55,146 +53,150 @@ async function ocrImage(base64) {
   })
 }
 
-// AI 解析 OCR 文本为结构化养护记录
-async function aiParseRecords(ocrText) {
-  if (!ZAI_API_KEY) {
-    console.warn('[importScreenshot] ZAI_API_KEY 未配置，使用正则兜底')
-    return regexParseRecords(ocrText)
-  }
-
-  const prompt = `你是一个植物养护记录解析器。用户上传了一张其他植物养护 App 的截图，OCR 识别出了以下文本。
-
-请从中提取所有植物养护记录，返回 JSON 数组格式。每条记录包含：
-- plantName: 植物名称（string）
-- action: 养护动作（浇水/施肥/修剪/换盆/除虫/喷药/松土/扦插/播种，string）
-- actionType: 动作类型代码（water/fertilize/prune/repot/pest/spray/loosen/cutting/sow，string）
-- date: 日期，格式 YYYY-MM-DD（string，如果只有月日则年份用 2026）
-
-OCR 文本：
----
-${ocrText}
----
-
-只返回 JSON 数组，不要其他文字。如果没有识别到养护记录，返回空数组 []。`
-
-  return new Promise((resolve) => {
-    const postData = JSON.stringify({
-      model: 'glm-4-flash',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1,
-      max_tokens: 2000
-    })
-
-    const options = {
-      hostname: 'open.bigmodel.cn',
-      path: '/api/paas/v4/chat/completions',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ZAI_API_KEY}`,
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    }
-
-    const req = https.request(options, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data)
-          const content = json.choices[0].message.content.trim()
-          // 提取 JSON 数组
-          const jsonMatch = content.match(/\[[\s\S]*\]/)
-          if (jsonMatch) {
-            resolve(JSON.parse(jsonMatch[0]))
-          } else {
-            console.warn('[importScreenshot] AI 返回格式异常:', content)
-            resolve(regexParseRecords(ocrText))
-          }
-        } catch (e) {
-          console.error('[importScreenshot] AI 解析失败:', e)
-          resolve(regexParseRecords(ocrText))
-        }
-      })
-    })
-    req.on('error', (e) => {
-      console.error('[importScreenshot] AI 请求失败:', e)
-      resolve(regexParseRecords(ocrText))
-    })
-    req.write(postData)
-    req.end()
-  })
+// 动作关键词映射
+const ACTION_MAP = {
+  '浇水': 'water', '施肥': 'fertilize', '修剪': 'prune',
+  '换盆': 'repot', '除虫': 'pest', '喷药': 'spray',
+  '松土': 'loosen', '扦插': 'cutting', '播种': 'sow'
 }
+const ACTION_KEYWORDS = Object.keys(ACTION_MAP)
 
-// 正则兜底解析
-function regexParseRecords(text) {
+/**
+ * 纯正则解析 OCR 文本为结构化养护记录
+ * 
+ * 适配截图格式（列表式）：
+ *   月日          ← 如 "5月24" 或 "12月03"
+ *   N天前         ← 如 "2天前" 或 "3个月前"（可选）
+ *   浇水          ← 动作关键词，可能有前缀乱码如 "D浇水" "(延迟1天)"
+ * 
+ * 也适配日历网格格式：
+ *   "植物名 2026年3月 浇水 3/12 3/20 ..."
+ */
+function parseRecords(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   const records = []
 
-  const actionKeywords = ['浇水', '施肥', '修剪', '换盆', '除虫', '喷药', '松土', '扦插', '播种']
-  const actionMap = {
-    '浇水': 'water', '施肥': 'fertilize', '修剪': 'prune',
-    '换盆': 'repot', '除虫': 'pest', '喷药': 'spray', '松土': 'loosen', '扦插': 'cutting', '播种': 'sow'
+  // ---- 策略1: 列表格式（大部分截图） ----
+  // 格式: 月日行 → 可选"N天前"行 → 动作行(含"浇水"等关键词)
+  // 需要跨年份：遇到 "2025" / "2026" 等独立年份行时切换年份
+  let currentYear = new Date().getFullYear()
+
+  // 先扫描年份标记
+  const yearLines = new Set()
+  for (let i = 0; i < lines.length; i++) {
+    if (/^(20\d{2})$/.test(lines[i])) {
+      yearLines.add(i)
+    }
   }
 
-  let currentPlant = null
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    const dateMatch = line.match(/(\d{4})[年/\-.](\d{1,2})[月/\-.](\d{1,2})[日号]?/) ||
-                      line.match(/(\d{1,2})[月/\-.](\d{1,2})[日号]?/)
-    let foundAction = null
-    for (const kw of actionKeywords) {
-      if (line.includes(kw)) { foundAction = kw; break }
+
+    // 年份标记行
+    if (/^(20\d{2})$/.test(line)) {
+      currentYear = parseInt(line)
+      continue
     }
 
-    const isDate = /^\d{4}[年/\-.]\d{1,2}[月/\-.]\d{1,2}/.test(line) || /^\d{1,2}[月/\-.]\d{1,2}/.test(line)
-    const isAction = actionKeywords.some(kw => line === kw)
-    const isNumber = /^\d+$/.test(line)
+    // 检测月日行: "5月24" "12月03" "2月25" 等
+    const monthDayMatch = line.match(/^(\d{1,2})月(\d{1,2})$/)
+    if (monthDayMatch) {
+      const month = parseInt(monthDayMatch[1])
+      const day = parseInt(monthDayMatch[2])
+      if (month < 1 || month > 12 || day < 1 || day > 31) continue
 
-    if (!isDate && !isAction && !isNumber && line.length >= 2 && line.length <= 10) {
-      if (/^[\u4e00-\u9fa5]+$/.test(line) && !foundAction) {
-        currentPlant = line
-      }
-    }
+      // 向下找动作关键词（最多看3行）
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        const nextLine = lines[j]
+        // 如果遇到新的月日行，停止
+        if (/^\d{1,2}月\d{1,2}$/.test(nextLine)) break
+        if (/^(20\d{2})$/.test(nextLine)) break
 
-    if (foundAction || dateMatch) {
-      let date = null
-      if (dateMatch) {
-        const y = dateMatch[1] && dateMatch[1].length === 4 ? parseInt(dateMatch[1]) : new Date().getFullYear()
-        const m = parseInt(dateMatch[2] || dateMatch[1])
-        const d = parseInt(dateMatch[3] || dateMatch[2])
-        if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-          date = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+        // 在行中找动作关键词
+        for (const kw of ACTION_KEYWORDS) {
+          if (nextLine.includes(kw)) {
+            // 提取备注（如"延迟1天"）
+            let note = ''
+            const delayMatch = nextLine.match(/延迟(\d+天)/)
+            if (delayMatch) note = '延迟' + delayMatch[1]
+
+            const date = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+            records.push({
+              plantName: '', // 植物名由前端让用户选择
+              action: kw,
+              actionType: ACTION_MAP[kw],
+              date,
+              note
+            })
+            break // 一行只匹配一个动作
+          }
         }
-      }
-      if (currentPlant && foundAction) {
-        records.push({
-          plantName: currentPlant, action: foundAction,
-          actionType: actionMap[foundAction] || 'water', date: date || '', raw: line
-        })
       }
     }
   }
 
-  // 如果按行没结果，尝试整体解析
-  if (records.length === 0) {
-    const fullText = text.replace(/\n/g, ' ')
-    const pattern = /([\u4e00-\u9fa5]{2,8})\s*(浇水|施肥|修剪|换盆|除虫|喷药)\s*(\d{4}[年/\-.]\d{1,2}[月/\-.]\d{1,2}|\d{1,2}[月/\-.]\d{1,2})/g
-    let m
-    while ((m = pattern.exec(fullText)) !== null) {
-      const dateStr = m[3]
-      const dp = dateStr.match(/(\d{4})[年/\-.](\d{1,2})[月/\-.](\d{1,2})/) || dateStr.match(/(\d{1,2})[月/\-.](\d{1,2})/)
-      let date = ''
-      if (dp) {
-        const y = dp[1] && dp[1].length === 4 ? dp[1] : new Date().getFullYear()
-        const mm = dp[1] && dp[1].length !== 4 ? dp[1] : dp[2]
-        const dd = dp[3] || dp[2]
-        date = `${y}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`
-      }
+  if (records.length > 0) return records
+
+  // ---- 策略2: 紧凑格式 "月日 动作" 在同一行 ----
+  // 如 "5月24浇水" "2月25浇水 (延迟1天)"
+  for (const line of lines) {
+    const compactMatch = line.match(/(\d{1,2})月(\d{1,2})(浇水|施肥|修剪|换盆|除虫|喷药)/)
+    if (compactMatch) {
+      const month = parseInt(compactMatch[1])
+      const day = parseInt(compactMatch[2])
+      const kw = compactMatch[3]
+      let note = ''
+      const delayMatch = line.match(/延迟(\d+天)/)
+      if (delayMatch) note = '延迟' + delayMatch[1]
+
       records.push({
-        plantName: m[1], action: m[2],
-        actionType: actionMap[m[2]] || 'water', date, raw: m[0]
+        plantName: '',
+        action: kw,
+        actionType: ACTION_MAP[kw],
+        date: `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+        note
       })
+    }
+  }
+
+  if (records.length > 0) return records
+
+  // ---- 策略3: 日历网格格式 ----
+  // "植物名 2026年3月 浇水 3/12 3/20 ..."
+  let plantName = ''
+  for (const line of lines) {
+    // 提取植物名（纯中文2-8字，不含动作关键词）
+    if (/^[\u4e00-\u9fa5]{2,8}$/.test(line)) {
+      const hasAction = ACTION_KEYWORDS.some(kw => line.includes(kw))
+      if (!hasAction) plantName = line
+    }
+
+    // "2026年3月" 格式提取年月
+    const yearMonthMatch = line.match(/(20\d{2})年(\d{1,2})月/)
+    if (yearMonthMatch) {
+      const y = parseInt(yearMonthMatch[1])
+      const m = parseInt(yearMonthMatch[2])
+      // 在这一行及后续找日期+动作
+      const remaining = line + ' ' + lines.slice(lines.indexOf(line) + 1, lines.indexOf(line) + 20).join(' ')
+      for (const kw of ACTION_KEYWORDS) {
+        if (remaining.includes(kw)) {
+          // 找这个动作后的所有日期
+          const afterAction = remaining.split(kw).pop()
+          const dateMatches = [...afterAction.matchAll(/(\d{1,2})\/(\d{1,2})/g)]
+          for (const dm of dateMatches) {
+            const d = parseInt(dm[2])
+            if (d >= 1 && d <= 31) {
+              records.push({
+                plantName,
+                action: kw,
+                actionType: ACTION_MAP[kw],
+                date: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+                note: ''
+              })
+            }
+          }
+        }
+      }
     }
   }
 
@@ -213,39 +215,44 @@ exports.main = async (event) => {
   const allOcrText = []
   for (let i = 0; i < fileIDs.length; i++) {
     const fileID = fileIDs[i]
-    // 从云存储下载文件
-    const downloadRes = await cloud.downloadFile({ fileID })
-    const base64 = downloadRes.fileContent.toString('base64')
-    
-    if (base64.length > 4 * 1024 * 1024 * 4 / 3) {
-      console.warn(`[importScreenshot] 图片${i}超过 4MB，跳过`)
-      continue
+    try {
+      const downloadRes = await cloud.downloadFile({ fileID })
+      const base64 = downloadRes.fileContent.toString('base64')
+
+      if (base64.length > 8 * 1024 * 1024) {
+        console.warn(`[importScreenshot] 图片${i}超过限制，跳过`)
+        continue
+      }
+      const ocrResult = await ocrImage(base64)
+      if (!ocrResult || !ocrResult.words_result) {
+        console.warn(`[importScreenshot] 图片${i} OCR 失败`)
+        continue
+      }
+      const pageText = ocrResult.words_result.map(w => w.words).join('\n')
+      allOcrText.push(pageText)
+    } catch (e) {
+      console.error(`[importScreenshot] 处理图片${i}失败:`, e.message)
     }
-    const ocrResult = await ocrImage(base64)
-    if (!ocrResult || !ocrResult.words_result) {
-      console.warn(`[importScreenshot] 图片${i} OCR 失败`, ocrResult)
-      continue
-    }
-    const pageText = ocrResult.words_result.map(w => w.words).join('\n')
-    allOcrText.push(pageText)
-    console.log(`[importScreenshot] 图片${i} OCR 结果:\n`, pageText)
   }
 
   if (allOcrText.length === 0) {
     return { success: false, error: 'OCR 识别失败，请确认图片清晰' }
   }
 
-  // AI 解析（优先）+ 正则兜底
-  const fullText = allOcrText.join('\n---\n')
-  let records = await aiParseRecords(fullText)
+  // 纯正则解析
+  const fullText = allOcrText.join('\n')
+  let records = parseRecords(fullText)
 
   // 去重
   const unique = []
   const seen = new Set()
   for (const r of records) {
-    const key = `${r.plantName}_${r.action}_${r.date}`
-    if (!seen.has(key) && r.plantName && r.action) { seen.add(key); unique.push(r) }
+    const key = `${r.action}_${r.date}`
+    if (!seen.has(key) && r.action && r.date) { seen.add(key); unique.push(r) }
   }
+
+  // 按日期排序（旧→新）
+  unique.sort((a, b) => a.date.localeCompare(b.date))
 
   return {
     success: true,
