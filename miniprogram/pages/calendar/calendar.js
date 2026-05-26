@@ -13,6 +13,8 @@ Page({
     selectedTasks: [],
     today: '',
     taskMap: {},
+    recordMap: {},
+    selectedRecords: [],
     photoTimeline: [],
     loading: true,
     // 导入相关
@@ -84,15 +86,31 @@ Page({
       })
     })
 
+    // 家庭模式：加载已完成记录到 recordMap
+    let recordMap = {}
+    if (isFamilyMode) {
+      const allRecords = family.getCachedRecords() || []
+      allRecords.forEach(r => {
+        const dateStr = util.formatDate(r.date)
+        if (!recordMap[dateStr]) recordMap[dateStr] = []
+        const plant = garden.find(p => p.id === (r.userPlantId || r.plantId))
+        recordMap[dateStr].push({
+          id: r._id, type: r.type, typeName: r.typeName, note: r.note || '',
+          date: r.date, plantName: plant ? plant.nickname : '未知', plantEmoji: plant ? plant.emoji : '🌱',
+          creatorNickname: r.creatorNickname || ''
+        })
+      })
+    }
+
     const days = []
     for (let i = 0; i < firstDay; i++) days.push({ day: '', empty: true })
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
       const tasksForDay = taskMap[dateStr] || []
-      days.push({ day: d, date: dateStr, isToday: dateStr === this.data.today, hasTask: tasksForDay.length > 0, taskCount: tasksForDay.length })
+      days.push({ day: d, date: dateStr, isToday: dateStr === this.data.today, hasTask: tasksForDay.length > 0, hasRecord: (recordMap[dateStr] || []).length > 0, taskCount: tasksForDay.length })
     }
 
-    this.setData({ days, taskMap })
+    this.setData({ days, taskMap, recordMap })
   },
 
   prevMonth() {
@@ -123,7 +141,8 @@ Page({
     if (!date) return
     this.setData({
       selectedDate: date,
-      selectedTasks: this.data.taskMap[date] || []
+      selectedTasks: this.data.taskMap[date] || [],
+      selectedRecords: this.data.recordMap[date] || []
     })
   },
 

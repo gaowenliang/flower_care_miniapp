@@ -32,7 +32,7 @@
         <text class="week-day" wx:for="{{weekDays}}" wx:key="*this">{{item}}</text>
       </view>
       <view class="days-grid">
-        <view class="day-cell {{item.isToday ? 'today' : ''}} {{item.hasTask ? 'has-task' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.empty ? 'empty' : ''}}" 
+        <view class="day-cell {{item.isToday ? 'today' : ''}} {{item.hasTask || item.hasRecord ? 'has-task' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.empty ? 'empty' : ''}}" 
               wx:for="{{days}}" wx:key="index"
               bindtap="selectDate" data-date="{{item.date}}">
           <text class="day-num">{{item.day}}</text>
@@ -43,12 +43,26 @@
       </view>
     </view>
 
-    <!-- 选中日期的任务 -->
+    <!-- 选中日期 -->
     <view class="day-tasks" wx:if="{{selectedDate}}">
       <view class="section-title">
-        <text>📋 {{selectedDate}} 的养护任务</text>
+        <text>📋 {{selectedDate}}</text>
       </view>
+      <!-- 已完成记录 -->
+      <view class="card" wx:if="{{selectedRecords.length > 0}}">
+        <view class="section-subtitle"><text>✅ 养护记录</text></view>
+        <view class="day-task-item" wx:for="{{selectedRecords}}" wx:key="id">
+          <text class="day-task-emoji">{{item.plantEmoji}}</text>
+          <view class="day-task-info">
+            <text class="day-task-name">{{item.plantName}}</text>
+            <text class="day-task-type">{{item.typeName}} {{item.note ? '(' + item.note + ')' : ''}}</text>
+          </view>
+          <text class="day-task-who" wx:if="{{item.creatorNickname}}">{{item.creatorNickname}}</text>
+        </view>
+      </view>
+      <!-- 待完成任务 -->
       <view class="card" wx:if="{{selectedTasks.length > 0}}">
+        <view class="section-subtitle"><text>📌 待完成</text></view>
         <view class="day-task-item" wx:for="{{selectedTasks}}" wx:key="id">
           <text class="day-task-emoji">{{item.plantEmoji}}</text>
           <view class="day-task-info">
@@ -57,8 +71,8 @@
           </view>
         </view>
       </view>
-      <view class="empty-hint" wx:else>
-        <text>这一天没有养护任务，好好休息~</text>
+      <view class="empty-hint" wx:if="{{selectedTasks.length === 0 && selectedRecords.length === 0}}">
+        <text>这一天没有养护记录，好好休息~</text>
       </view>
     </view>
 

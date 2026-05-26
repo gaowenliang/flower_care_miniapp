@@ -99,3 +99,6 @@
 .import-info { flex: 1; }
 .import-plant { display: block; font-size: 28rpx; font-weight: 600; color: #2D3436; }
 .import-action { display: block; font-size: 24rpx; color: #757575; margin-top: 2rpx; }
+
+.section-subtitle { font-size: 24rpx; color: #999; margin-bottom: 16rpx; }
+.day-task-who { font-size: 22rpx; color: #FF9800; background: #FFF3E0; padding: 4rpx 12rpx; border-radius: 16rpx; margin-left: auto; flex-shrink: 0; }
