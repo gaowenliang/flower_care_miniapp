@@ -8,7 +8,6 @@ function getExifDate(filePath) {
   return new Promise((resolve) => {
     wx.getFileSystemManager().readFile({
       filePath,
-      // 只读前 64KB，EXIF 头部在这个范围内
       length: 65536,
       success: (res) => {
         try {
@@ -32,11 +31,9 @@ function parseExifDate(buffer) {
   let offset = 2
   while (offset < view.byteLength - 4) {
     const marker = view.getUint16(offset)
-    // APP1 (EXIF)
     if (marker === 0xFFE1) {
       return parseExifBlock(view, offset + 4)
     }
-    // 其他 marker 跳过
     if ((marker & 0xFF00) !== 0xFF00) break
     const segLen = view.getUint16(offset + 2)
     offset += 2 + segLen
@@ -50,61 +47,93 @@ function parseExifBlock(view, offset) {
   let sig = ''
   for (let i = 0; i < 4; i++) sig += String.fromCharCode(view.getUint8(offset + i))
   if (sig !== 'Exif') return null
-  offset += 6
+  offset += 6  // 现在 offset 指向 TIFF header 起始（绝对偏移）
 
-  // TIFF header
+  // TIFF header: byte order(2) + magic(2) + IFD0 offset(4)
   if (offset + 8 > view.byteLength) return null
-  const byteOrder = view.getUint16(offset)
+  const tiffStart = offset  // TIFF header 的绝对位置
+  const byteOrder = view.getUint16(tiffStart)
   const littleEndian = byteOrder === 0x4949 // 'II'
-  // const magic = getU16(view, offset + 2, littleEndian) // 42
-  const ifd0Offset = getU32(view, offset + 4, littleEndian)
-  offset += ifd0Offset
+  const ifd0Offset = getU32(view, tiffStart + 4, littleEndian)
 
-  // IFD0
-  const exifOffset = findTag(view, offset, littleEndian, 0x8769) // ExifIFD offset
-  if (exifOffset === null) return null
+  // IFD0 的绝对位置 = tiffStart + 相对偏移
+  const ifd0Abs = tiffStart + ifd0Offset
+  if (ifd0Abs + 2 > view.byteLength) return null
 
-  // ExifIFD 中找日期标签
-  // 0x9003 = DateTimeOriginal, 0x9004 = DateTimeDigitized
-  const dateTag = findTag(view, exifOffset, littleEndian, 0x9003) || findTag(view, exifOffset, littleEndian, 0x9004)
-  if (dateTag === null) return null
+  // 在 IFD0 中找 ExifIFD 指针 (tag 0x8769)
+  const exifIFDOffset = findIFDOffset(view, ifd0Abs, littleEndian, 0x8769)
+  if (exifIFDOffset === null) return null
 
-  return dateTag
+  // ExifIFD 的绝对位置
+  const exifIFDAbs = tiffStart + exifIFDOffset
+  if (exifIFDAbs + 2 > view.byteLength) return null
+
+  // 在 ExifIFD 中找日期标签 (tag 0x9003 DateTimeOriginal)
+  const dateStr = findStringTag(view, exifIFDAbs, tiffStart, littleEndian, 0x9003)
+    || findStringTag(view, exifIFDAbs, tiffStart, littleEndian, 0x9004)
+  if (!dateStr) return null
+
+  return convertExifDate(dateStr)
 }
 
-function findTag(view, ifdOffset, littleEndian, targetTag) {
-  const baseOffset = ifdOffset
-  if (baseOffset + 2 > view.byteLength) return null
-  const count = getU16(view, baseOffset, littleEndian)
-
+/**
+ * 在 IFD 中查找一个 LONG 类型的偏移值（如 ExifIFDPointer）
+ * 返回相对于 TIFF header 的偏移量，失败返回 null
+ */
+function findIFDOffset(view, ifdAbs, littleEndian, targetTag) {
+  if (ifdAbs + 2 > view.byteLength) return null
+  const count = getU16(view, ifdAbs, littleEndian)
   for (let i = 0; i < count; i++) {
-    const entryOffset = baseOffset + 2 + i * 12
+    const entryOffset = ifdAbs + 2 + i * 12
     if (entryOffset + 12 > view.byteLength) break
     const tag = getU16(view, entryOffset, littleEndian)
     if (tag === targetTag) {
-      const type = getU16(view, entryOffset + 2, littleEndian)
-      const numValues = getU32(view, entryOffset + 4, littleEndian)
-      // ASCII string (type=2)
-      if (type === 2 && numValues > 0) {
-        const valueOffset = numValues <= 4 ? entryOffset + 8 : getU32(view, entryOffset + 8, littleEndian)
-        let str = ''
-        for (let j = 0; j < numValues && valueOffset + j < view.byteLength; j++) {
-          const ch = view.getUint8(valueOffset + j)
-          if (ch === 0) break
-          str += String.fromCharCode(ch)
-        }
-        // EXIF date format: "2026:05:25 14:30:00"
-        return convertExifDate(str)
-      }
-      // 如果值偏移指向 IFD（tag 0x8769）
+      // 返回 LONG 值（相对于 TIFF header 的偏移）
       return getU32(view, entryOffset + 8, littleEndian)
     }
   }
   return null
 }
 
+/**
+ * 在 IFD 中查找一个 ASCII 字符串标签
+ * tiffStart: TIFF header 绝对位置（用于计算字符串值的绝对偏移）
+ * 返回字符串值，失败返回 null
+ */
+function findStringTag(view, ifdAbs, tiffStart, littleEndian, targetTag) {
+  if (ifdAbs + 2 > view.byteLength) return null
+  const count = getU16(view, ifdAbs, littleEndian)
+  for (let i = 0; i < count; i++) {
+    const entryOffset = ifdAbs + 2 + i * 12
+    if (entryOffset + 12 > view.byteLength) break
+    const tag = getU16(view, entryOffset, littleEndian)
+    if (tag === targetTag) {
+      const type = getU16(view, entryOffset + 2, littleEndian)
+      const numValues = getU32(view, entryOffset + 4, littleEndian)
+      if (type === 2 && numValues > 0) {
+        // ASCII string：<=4字节存在 entry 内，>4字节存储的是相对于 TIFF header 的偏移
+        let valueAbs
+        if (numValues <= 4) {
+          valueAbs = entryOffset + 8
+        } else {
+          const relOffset = getU32(view, entryOffset + 8, littleEndian)
+          valueAbs = tiffStart + relOffset
+        }
+        let str = ''
+        for (let j = 0; j < numValues && valueAbs + j < view.byteLength; j++) {
+          const ch = view.getUint8(valueAbs + j)
+          if (ch === 0) break
+          str += String.fromCharCode(ch)
+        }
+        return str
+      }
+      return null
+    }
+  }
+  return null
+}
+
 function convertExifDate(str) {
-  // "2026:05:25 14:30:00" → "2026-05-25T14:30:00"
   const match = str.match(/(\d{4}):(\d{2}):(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/)
   if (!match) return null
   return `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}`
