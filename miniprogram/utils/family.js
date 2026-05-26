@@ -310,7 +310,7 @@ function getCachedTasks(plantId) {
 /**
  * 完成任务 — 乐观写
  */
-function completeTask(taskId) {
+function completeTask(taskId, note) {
   const cached = _readCache(FAMILY_TASKS_KEY)
   const tasks = cached ? cached.tasks || [] : []
   const task = tasks.find(t => t._id === taskId)
@@ -333,14 +333,14 @@ function completeTask(taskId) {
       plantId: task.plantId || task.userPlantId,
       userPlantId: task.userPlantId,
       type: task.type, typeName: task.typeName,
-      date: now, note: '',
+      date: now, note: note || '',
       createdBy: '', creatorNickname: myNickname, createdAt: now
     })
     _saveCache(FAMILY_RECORDS_KEY, cachedRec)
   }
 
   enqueueWrite(async () => {
-    const result = await fdata('completeTask', { taskId })
+    const result = await fdata('completeTask', { taskId, note })
     if (result.success) {
       getTasks('', true).catch(() => {})
       getRecords('', 100, true).catch(() => {})

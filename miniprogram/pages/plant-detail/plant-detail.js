@@ -27,7 +27,12 @@ Page({
     // 家庭模式
     isFamilyMode: false,
     isAdoptedByMe: false,
-    adopterNames: []
+    adopterNames: [],
+    // 施肥类型弹窗
+    showFertilizeModal: false,
+    pendingFertilizeTaskId: '',
+    fertilizeInput: '',
+    fertilizeTypes: ['通用肥', '氮肥', '磷肥', '钾肥', '有机肥', '缓释肥', '液肥', '复合肥', '自定义']
   },
 
   onLoad(options) {
@@ -183,8 +188,42 @@ Page({
     const taskId = e.currentTarget.dataset.id
     const task = this.data.tasks.find(t => (t.id || t._id) === taskId)
 
+    // 施肥类型选择
+    if (task && task.type === 'fertilize') {
+      this.setData({ showFertilizeModal: true, pendingFertilizeTaskId: taskId })
+      return
+    }
+
+    await this._doCompleteTask(taskId)
+  },
+
+  // 施肥快捷选择
+  selectFertilizeType(e) {
+    const type = e.currentTarget.dataset.type
+    this.setData({ fertilizeInput: type === '自定义' ? '' : type })
+  },
+
+  onFertilizeInput(e) {
+    this.setData({ fertilizeInput: e.detail.value })
+  },
+
+  async confirmFertilize() {
+    const { pendingFertilizeTaskId, fertilizeInput } = this.data
+    const note = fertilizeInput ? `施肥(${fertilizeInput})` : '施肥'
+    this.setData({ showFertilizeModal: false, fertilizeInput: '' })
+
+    await this._doCompleteTask(pendingFertilizeTaskId, note)
+  },
+
+  cancelFertilize() {
+    this.setData({ showFertilizeModal: false, fertilizeInput: '', pendingFertilizeTaskId: '' })
+  },
+
+  async _doCompleteTask(taskId, note) {
+    const task = this.data.tasks.find(t => (t.id || t._id) === taskId)
+
     if (this.data.isFamilyMode) {
-      const result = await family.completeTask(taskId)
+      const result = await family.completeTask(taskId, note)
       if (!result.success) {
         wx.showToast({ title: result.error || '操作失败', icon: 'none' }); return
       }
@@ -196,6 +235,14 @@ Page({
 
     // 个人模式
     storage.completeTask(taskId)
+    // 追加带肥料类型的记录
+    if (note) {
+      const records = storage.getRecords()
+      if (records.length > 0 && records[0].userPlantId === this.data.userPlant.id) {
+        records[0].note = note
+        try { wx.setStorageSync('careRecords', records) } catch (e) {}
+      }
+    }
     this.loadTasks()
     this.loadRecords()
     this.loadHealthScore()

@@ -273,4 +273,21 @@
       </view>
     </view>
   </view>
+
+  <!-- 施肥类型弹窗 -->
+  <view class="modal-mask" wx:if="{{showFertilizeModal}}" bindtap="cancelFertilize">
+    <view class="modal-content fertilize-modal" catchtap>
+      <text class="modal-title">🌱 选择肥料类型</text>
+      <view class="fert-tags">
+        <view class="fert-tag {{fertilizeInput === item ? 'active' : ''}}" wx:for="{{fertilizeTypes}}" wx:key="*this" bindtap="selectFertilizeType" data-type="{{item}}">{{item}}</view>
+      </view>
+      <view class="fert-input-row" wx:if="{{fertilizeInput === '' || fertilizeTypes.indexOf(fertilizeInput) === fertilizeTypes.length - 1}}">
+        <input class="fert-input" placeholder="输入肥料名称" value="{{fertilizeInput}}" bindinput="onFertilizeInput" />
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelFertilize">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmFertilize">确认</view>
+      </view>
+    </view>
+  </view>
 </view>

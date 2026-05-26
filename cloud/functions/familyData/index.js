@@ -278,7 +278,7 @@ async function addTask(event, openid, familyId) {
  * 完成任务（加分+记录）
  */
 async function completeTask(event, openid, familyId) {
-  const { taskId } = event
+  const { taskId, note } = event
   if (!taskId) return { success: false, error: '缺少任务ID' }
 
   const taskRes = await db.collection('family_tasks').doc(taskId).get()
@@ -301,7 +301,7 @@ async function completeTask(event, openid, familyId) {
       type: task.type,
       typeName: task.typeName,
       date: now,
-      note: '',
+      note: note || '',
       createdBy: openid,
       creatorNickname: '',
       createdAt: now
