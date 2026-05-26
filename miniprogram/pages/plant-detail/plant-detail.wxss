@@ -307,3 +307,20 @@
 .fert-tag.active { background: #4CAF50; color: #fff; }
 .fert-input-row { padding: 16rpx 0; }
 .fert-input { width: 100%; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+
+/* 房间弹窗 */
+.room-modal { max-height: 70vh; }
+.room-tags { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 20rpx 0; }
+.room-tag { padding: 12rpx 28rpx; border-radius: 32rpx; font-size: 26rpx; background: #f0f0f0; color: #333; }
+.room-tag.active { background: #4CAF50; color: #fff; }
+.room-input-row { padding: 16rpx 0; }
+.room-input { width: 100%; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+
+/* 价格弹窗 */
+.price-modal { max-height: 70vh; }
+.price-field { display: flex; align-items: center; margin: 16rpx 0; }
+.price-field-label { font-size: 28rpx; color: #666; width: 80rpx; flex-shrink: 0; }
+.price-field-input { flex: 1; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+.source-tags { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 12rpx 0; }
+.source-tag { padding: 10rpx 24rpx; border-radius: 32rpx; font-size: 24rpx; background: #f0f0f0; color: #333; }
+.source-tag.active { background: #FF9800; color: #fff; }

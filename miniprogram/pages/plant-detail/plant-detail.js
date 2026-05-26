@@ -32,7 +32,16 @@ Page({
     showFertilizeModal: false,
     pendingFertilizeTaskId: '',
     fertilizeInput: '',
-    fertilizeTypes: ['通用肥', '氮肥', '磷肥', '钾肥', '有机肥', '缓释肥', '液肥', '复合肥', '自定义']
+    fertilizeTypes: ['通用肥', '氮肥', '磷肥', '钾肥', '有机肥', '缓释肥', '液肥', '复合肥', '自定义'],
+    // 房间弹窗
+    showRoomModal: false,
+    roomList: [],
+    selectedRoom: '',
+    customRoomInput: '',
+    // 价格弹窗
+    showPriceModal: false,
+    priceInput: '',
+    sourceInput: ''
   },
 
   onLoad(options) {
@@ -724,56 +733,73 @@ Page({
 
   // 编辑位置
   editLocation() {
+    if (this.data.loading) return
     const rooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
     try {
       const custom = wx.getStorageSync('customRooms') || []
       custom.forEach(r => { if (!rooms.includes(r)) rooms.push(r) })
     } catch (e) {}
-    wx.showActionSheet({
-      itemList: rooms,
-      success: async (res) => {
-        const room = rooms[res.tapIndex]
-        if (this.data.isFamilyMode) {
-          await family.updatePlant(this.data.userPlant._id, { location: room })
-        } else {
-          storage.updatePlant(this.data.userPlant.id, { location: room })
-        }
-        this.setData({ 'userPlant.location': room })
-        wx.showToast({ title: '已修改', icon: 'none' })
-      }
-    })
+    this.setData({ showRoomModal: true, roomList: rooms, selectedRoom: this.data.userPlant.location || rooms[0] })
+  },
+
+  selectRoom(e) {
+    this.setData({ selectedRoom: e.currentTarget.dataset.room })
+  },
+
+  onRoomInput(e) {
+    this.setData({ customRoomInput: e.detail.value })
+  },
+
+  async confirmRoom() {
+    const room = this.data.customRoomInput || this.data.selectedRoom
+    if (!room) return
+    this.setData({ showRoomModal: false, customRoomInput: '' })
+    if (this.data.isFamilyMode) {
+      await family.updatePlant(this.data.userPlant._id, { location: room })
+    } else {
+      storage.updatePlant(this.data.userPlant.id, { location: room })
+    }
+    this.setData({ 'userPlant.location': room })
+    wx.showToast({ title: '已修改', icon: 'none' })
+  },
+
+  cancelRoom() {
+    this.setData({ showRoomModal: false, customRoomInput: '' })
   },
 
   editPrice() {
-    const current = this.data.userPlant.purchasePrice || ''
-    const currentSource = this.data.userPlant.purchaseSource || ''
-    wx.showModal({
-      title: '💰 购入信息',
-      editable: true,
-      placeholderText: '输入价格，如 29.9',
-      content: current ? String(current) : '',
-      success: async (res) => {
-        if (!res.confirm) return
-        const price = Math.round((parseFloat(res.content) || 0) * 100) / 100
-        if (price < 0) { wx.showToast({ title: '价格不能为负数', icon: 'none' }); return }
-        // 价格设好后，问渠道
-        if (price > 0 && !currentSource) {
-          wx.showActionSheet({
-            itemList: ['花店', '网购', '花市', '亲友赠', '其他'],
-            success: async (sheetRes) => {
-              const sources = ['花店', '网购', '花市', '亲友赠', '其他']
-              const source = sources[sheetRes.tapIndex]
-              await this._savePrice(price, source)
-            },
-            fail: async () => {
-              await this._savePrice(price, '')
-            }
-          })
-        } else {
-          await this._savePrice(price, currentSource)
-        }
-      }
+    if (this.data.loading) return
+    this.setData({
+      showPriceModal: true,
+      priceInput: this.data.userPlant.purchasePrice ? String(this.data.userPlant.purchasePrice) : '',
+      sourceInput: this.data.userPlant.purchaseSource || ''
     })
+  },
+
+  onPriceInput(e) { this.setData({ priceInput: e.detail.value }) },
+  onSourceInput(e) { this.setData({ sourceInput: e.detail.value }) },
+
+  selectSource(e) {
+    this.setData({ sourceInput: e.currentTarget.dataset.source })
+  },
+
+  async confirmPrice() {
+    const price = Math.round((parseFloat(this.data.priceInput) || 0) * 100) / 100
+    const source = this.data.sourceInput
+    this.setData({ showPriceModal: false })
+    const updates = { purchasePrice: price }
+    if (source) updates.purchaseSource = source
+    if (this.data.isFamilyMode) {
+      await family.updatePlant(this.data.userPlant._id, updates)
+    } else {
+      storage.updatePlant(this.data.userPlant.id, updates)
+    }
+    this.setData({ 'userPlant.purchasePrice': price, 'userPlant.purchaseSource': source })
+    wx.showToast({ title: price > 0 ? '已设置' : '已清除', icon: 'none' })
+  },
+
+  cancelPrice() {
+    this.setData({ showPriceModal: false })
   },
 
   async _savePrice(price, source) {

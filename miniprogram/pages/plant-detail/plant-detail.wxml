@@ -290,4 +290,43 @@
       </view>
     </view>
   </view>
+
+  <!-- 换房间弹窗 -->
+  <view class="modal-mask" wx:if="{{showRoomModal}}" bindtap="cancelRoom">
+    <view class="modal-content room-modal" catchtap>
+      <text class="modal-title">📍 选择房间</text>
+      <view class="room-tags">
+        <view class="room-tag {{selectedRoom === item ? 'active' : ''}}" wx:for="{{roomList}}" wx:key="*this" bindtap="selectRoom" data-room="{{item}}">{{item}}</view>
+      </view>
+      <view class="room-input-row">
+        <input class="room-input" placeholder="自定义房间名" value="{{customRoomInput}}" bindinput="onRoomInput" />
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelRoom">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmRoom">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 价格弹窗 -->
+  <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
+    <view class="modal-content price-modal" catchtap>
+      <text class="modal-title">💰 购入信息</text>
+      <view class="price-field">
+        <text class="price-field-label">价格</text>
+        <input class="price-field-input" type="digit" placeholder="输入价格，如 29.9" value="{{priceInput}}" bindinput="onPriceInput" />
+      </view>
+      <view class="price-field">
+        <text class="price-field-label">渠道</text>
+        <input class="price-field-input" placeholder="购买渠道" value="{{sourceInput}}" bindinput="onSourceInput" />
+      </view>
+      <view class="source-tags">
+        <view class="source-tag {{sourceInput === item ? 'active' : ''}}" wx:for="{{['花店', '网购', '花市', '亲友赠', '其他']}}" wx:key="*this" bindtap="selectSource" data-source="{{item}}">{{item}}</view>
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelPrice">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmPrice">确认</view>
+      </view>
+    </view>
+  </view>
 </view>
