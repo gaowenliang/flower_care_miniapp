@@ -286,6 +286,10 @@ Page({
       if (res.success) {
         this.setData({ showImportModal: false })
         wx.showToast({ title: `导入${res.imported || 0}条，跳过${res.skipped || 0}条重复`, icon: 'none', duration: 3000 })
+        // 刷新缓存再重建日历
+        if (this.data.isFamilyMode) {
+          await family.getRecords('', 100, true) // forceRefresh
+        }
         this.buildCalendar()
       } else {
         wx.showToast({ title: res.error || '导入失败', icon: 'none' })
