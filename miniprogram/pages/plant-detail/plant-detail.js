@@ -809,14 +809,16 @@ Page({
 
   // ========== 到家日期 ==========
   _formatArrivalDate(plant) {
-    const ts = plant.purchaseDate || plant.addedAt
+    const ts = plant.addedAt
     if (!ts) return '未设置'
     const d = new Date(ts)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const days = Math.floor((Date.now() - ts) / 86400000)
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return `${dateStr}（${days}天）`
   },
 
   editArrivalDate() {
-    const ts = this.data.userPlant.purchaseDate || this.data.userPlant.addedAt
+    const ts = this.data.userPlant.addedAt
     const d = ts ? new Date(ts) : new Date()
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const today = new Date()
@@ -832,16 +834,18 @@ Page({
     const dateStr = this.data.arrivalDateInput
     if (!dateStr) return
     const ts = new Date(dateStr + 'T00:00:00').getTime()
+    if (isNaN(ts)) { wx.showToast({ title: '日期无效', icon: 'none' }); return }
     this.setData({ showArrivalDateModal: false })
 
     if (this.data.isFamilyMode) {
-      await family.updatePlant(this.data.userPlant._id, { purchaseDate: ts })
+      await family.updatePlant(this.data.userPlant._id, { addedAt: ts })
     } else {
-      storage.updatePlant(this.data.userPlant.id, { purchaseDate: ts })
+      const plant = storage.getGarden().find(p => p.id === this.data.userPlant.id)
+      if (plant) { plant.addedAt = ts; storage.saveGarden() }
     }
     this.setData({
-      'userPlant.purchaseDate': ts,
-      arrivalDateText: this._formatArrivalDate({ purchaseDate: ts })
+      'userPlant.addedAt': ts,
+      arrivalDateText: this._formatArrivalDate({ addedAt: ts })
     })
     wx.showToast({ title: '已更新', icon: 'none' })
   },
