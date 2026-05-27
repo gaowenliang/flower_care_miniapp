@@ -318,26 +318,6 @@
 
   <!-- 价格弹窗 -->
   <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
-
-  <!-- 到家日期弹窗 -->
-  <view class="modal-mask" wx:if="{{showArrivalDateModal}}" bindtap="cancelArrivalDate">
-    <view class="modal-content price-modal" catchtap="preventBubble">
-      <text class="modal-title">📅 到家日期</text>
-      <view class="price-field">
-        <text class="price-field-label">日期</text>
-        <picker mode="date" value="{{arrivalDateInput}}" start="2020-01-01" end="{{todayStr}}" bindchange="onArrivalDateChange">
-          <view class="date-picker-value">{{arrivalDateInput || '选择日期'}}</view>
-        </picker>
-      </view>
-      <view class="modal-btns-lg">
-        <view class="btn-lg cancel" bindtap="cancelArrivalDate">取消</view>
-        <view class="btn-lg confirm" bindtap="confirmArrivalDate">确认</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 价格弹窗(保留) -->
-  <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
     <view class="modal-content price-modal" catchtap="preventBubble">
       <text class="modal-title">💰 购入信息</text>
       <view class="price-field">
@@ -354,6 +334,23 @@
       <view class="modal-btns-lg">
         <view class="btn-lg cancel" bindtap="cancelPrice">取消</view>
         <view class="btn-lg confirm" bindtap="confirmPrice">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 到家日期弹窗 -->
+  <view class="modal-mask" wx:if="{{showArrivalDateModal}}" bindtap="cancelArrivalDate">
+    <view class="modal-content price-modal" catchtap="preventBubble">
+      <text class="modal-title">📅 到家日期</text>
+      <view class="price-field">
+        <text class="price-field-label">日期</text>
+        <picker mode="date" value="{{arrivalDateInput}}" start="2020-01-01" end="{{todayStr}}" bindchange="onArrivalDateChange">
+          <view class="date-picker-value">{{arrivalDateInput || '选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelArrivalDate">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmArrivalDate">确认</view>
       </view>
     </view>
   </view>
