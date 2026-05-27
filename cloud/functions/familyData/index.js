@@ -528,13 +528,16 @@ async function getDashboard(familyId) {
  * 返回：{ success: true, imported: N, skipped: M }
  */
 async function batchImportRecords(event, openid, familyId) {
-  const { records, plantId } = event
+  const { records, plantId, createdBy } = event
   if (!records || !Array.isArray(records) || records.length === 0) {
     return { success: false, error: '缺少记录数据' }
   }
   if (!plantId) {
     return { success: false, error: '缺少植物 ID' }
   }
+
+  // 实际操作人（如果前端传了 createdBy 就用前端的，否则用当前用户）
+  const operatorOpenid = createdBy || openid
 
   // 校验 plantId 归属该家庭
   try {
@@ -546,66 +549,87 @@ async function batchImportRecords(event, openid, familyId) {
     return { success: false, error: '植物不存在' }
   }
 
-  // 获取当前用户昵称
-  const memberRes = await db.collection('family_members').where({ openid, familyId }).limit(1).get()
+  // 获取操作人昵称
+  const memberRes = await db.collection('family_members').where({ openid: operatorOpenid, familyId }).limit(1).get()
   const nickname = memberRes.data.length > 0 ? memberRes.data[0].nickname : ''
 
-  // 查出该 plantId 已有记录（用于去重）
+  // 查出该 plantId 已有记录（用于覆盖）
   const existing = await fetchAll('family_records', { familyId, plantId })
-  // 去重 key: type_日期（按天计算）
-  const existKeys = new Set(existing.map(r => `${r.type}_${Math.floor(r.date / 86400000)}`))
+  // 用 map 存已有记录，key = type_日期天
+  const existMap = new Map()
+  existing.forEach(r => {
+    const key = `${r.type}_${Math.floor(r.date / 86400000)}`
+    existMap.set(key, r)
+  })
 
-  // 过滤重复记录（包括批量内重复）
   const toInsert = []
-  const skipped = []
+  const toUpdate = []
+  const seenKeys = new Set()
+
   for (const r of records) {
-    const dateTs = r.date // 已经是毫秒时间戳
+    const dateTs = r.date
     const dayKey = Math.floor(dateTs / 86400000)
     const key = `${r.type}_${dayKey}`
-    
-    if (existKeys.has(key)) {
-      skipped.push(r)
-      continue
-    }
-    existKeys.add(key) // 防止批量内重复
-    
-    toInsert.push({
-      familyId,
-      plantId,
-      userPlantId: plantId,
+
+    if (seenKeys.has(key)) continue // 批量内去重
+    seenKeys.add(key)
+
+    const rec = {
       type: r.type || 'custom',
       typeName: r.typeName || '养护',
       date: dateTs,
       note: r.note || '',
-      createdBy: openid,
+      createdBy: operatorOpenid,
       creatorNickname: nickname,
       createdAt: Date.now()
-    })
+    }
+
+    if (existMap.has(key)) {
+      // 重复记录 → 覆盖更新
+      const old = existMap.get(key)
+      toUpdate.push({ id: old._id, data: rec })
+    } else {
+      toInsert.push({
+        ...rec,
+        familyId,
+        plantId,
+        userPlantId: plantId
+      })
+    }
   }
 
-  // 逐条插入（wx-server-sdk ~2.6 不支持 db.batch）
+  // 插入新记录
   if (toInsert.length > 0) {
     await Promise.all(toInsert.map(rec =>
       db.collection('family_records').add({ data: rec })
     ))
   }
 
-  // 加分并行
+  // 覆盖旧记录
+  if (toUpdate.length > 0) {
+    await Promise.all(toUpdate.map(u =>
+      db.collection('family_records').doc(u.id).update({ data: u.data })
+    ))
+  }
+
+  // 加分并行（只给新插入的加，覆盖的不重复加）
   if (toInsert.length > 0) {
-    await Promise.all(toInsert.map(rec => addPointsToMember(openid, rec.type).catch(() => {})))
+    await Promise.all(toInsert.map(rec => addPointsToMember(operatorOpenid, rec.type).catch(() => {})))
   }
 
   // 汇总写一条动态
-  if (toInsert.length > 0) {
+  const totalCount = toInsert.length + toUpdate.length
+  if (totalCount > 0) {
     const plantName = await getPlantName(plantId)
-    const actionNames = [...new Set(toInsert.map(r => r.typeName))]
-    const content = `从截图导入了 ${toInsert.length} 条养护记录到「${plantName}」：${actionNames.join('、')}`
+    const actionNames = [...new Set([...toInsert, ...toUpdate].map(r => r.typeName))]
+    const content = `从截图导入了 ${totalCount} 条养护记录到「${plantName}」：${actionNames.join('、')}`
     await logActivity(familyId, openid, 'import', content)
   }
 
   return {
     success: true,
     imported: toInsert.length,
-    skipped: skipped.length
+    updated: toUpdate.length,
+    total: totalCount
   }
 }

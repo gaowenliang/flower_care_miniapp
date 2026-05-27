@@ -277,7 +277,8 @@ Page({
         data: {
           action: 'batchImportRecords',
           plantId: this.data.selectedImportPlant._id,
-          records: importRecords
+          records: importRecords,
+          createdBy: this.data.selectedImportMember || ''
         }
       })
 
@@ -285,7 +286,7 @@ Page({
       const res = result.result || {}
       if (res.success) {
         this.setData({ showImportModal: false })
-        wx.showToast({ title: `导入${res.imported || 0}条，跳过${res.skipped || 0}条重复`, icon: 'none', duration: 3000 })
+        wx.showToast({ title: `导入${res.total || 0}条（新增${res.imported || 0}，更新${res.updated || 0}）`, icon: 'none', duration: 3000 })
         // 刷新缓存再重建日历
         if (this.data.isFamilyMode) {
           await family.getRecords('', 100, true) // forceRefresh
