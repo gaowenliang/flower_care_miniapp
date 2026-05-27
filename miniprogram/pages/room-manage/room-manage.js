@@ -28,10 +28,13 @@ Page({
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
     const roomEnvs = wx.getStorageSync('roomEnvs') || {}
+    // 被重命名的预设房间，不再显示原名
+    const renamedFrom = wx.getStorageSync('renamedPresets') || {}
+    const hiddenPresets = new Set(Object.keys(renamedFrom))
 
-    const rooms = [...PRESET_ROOMS, ...customRooms.filter(r => !PRESET_ROOMS.includes(r))].map(name => {
+    const rooms = [...PRESET_ROOMS.filter(r => !hiddenPresets.has(r)), ...customRooms.filter(r => !PRESET_ROOMS.includes(r) || hiddenPresets.has(r))].map(name => {
       const env = roomEnvs[name] || null
-      return { name, isPreset: PRESET_ROOMS.includes(name), env }
+      return { name, isPreset: false, env }
     })
     this.setData({ rooms })
   },
@@ -62,13 +65,17 @@ Page({
     // 更新自定义房间列表
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
-    const isCustom = customRooms.includes(oldName)
-    if (isCustom) {
-      customRooms = customRooms.map(r => r === oldName ? newName : r)
+    const isPreset = PRESET_ROOMS.includes(oldName)
+    if (isPreset) {
+      // 预设房间改名：隐藏原名，加新名到自定义
+      let renamedPresets = wx.getStorageSync('renamedPresets') || {}
+      renamedPresets[oldName] = newName
+      try { wx.setStorageSync('renamedPresets', renamedPresets) } catch (e) {}
+      if (!customRooms.includes(newName)) customRooms.push(newName)
       try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
     } else {
-      // 预设房间改名：加入自定义列表，原预设仍保留
-      customRooms.push(newName)
+      const idx = customRooms.indexOf(oldName)
+      if (idx >= 0) customRooms[idx] = newName
       try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
     }
 
@@ -124,6 +131,14 @@ Page({
         try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
         customRooms = customRooms.filter(r => r !== name)
         try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+
+        // 清理重命名映射
+        let renamedPresets = wx.getStorageSync('renamedPresets') || {}
+        // 如果删除的是改名后的房间，恢复原预设
+        for (const [old, renamed] of Object.entries(renamedPresets)) {
+          if (renamed === name) { delete renamedPresets[old]; break }
+        }
+        try { wx.setStorageSync('renamedPresets', renamedPresets) } catch (e) {}
 
         // 删环境参数
         const roomEnvs = wx.getStorageSync('roomEnvs') || {}
