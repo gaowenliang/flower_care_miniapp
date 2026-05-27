@@ -57,6 +57,9 @@
           <view class="task-btn" bindtap="completeTask" data-id="{{item.id}}">
             <text>✅ 完成</text>
           </view>
+          <view class="task-btn postpone-btn" bindtap="postponeTask" data-id="{{item.id}}" data-idx="{{index}}">
+            <text>⏰ 推迟</text>
+          </view>
         </view>
       </view>
     </view>

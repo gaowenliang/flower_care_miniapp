@@ -126,9 +126,11 @@
 .task-btn {
   background: #E8F5E9; color: #4CAF50; padding: 10rpx 28rpx;
   border-radius: 44rpx; font-size: 24rpx; font-weight: 600;
-  transition: all 0.2s;
+  transition: all 0.2s; margin-left: 12rpx;
 }
 .task-btn:active { background: #C8E6C9; transform: scale(0.95); }
+.postpone-btn { background: #FFF3E0; color: #FF9800; }
+.postpone-btn:active { background: #FFE0B2; }
 
 /* 花园矩阵网格 */
 .garden-grid {

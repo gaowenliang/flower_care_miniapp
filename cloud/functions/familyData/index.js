@@ -357,7 +357,7 @@ async function updateTask(event, openid, familyId) {
   const taskRes = await db.collection('family_tasks').doc(taskId).get()
   if (!taskRes.data || taskRes.data.familyId !== familyId) return { success: false, error: '任务不存在' }
 
-  const allowed = ['intervalDays', 'enabled', 'typeName']
+  const allowed = ['intervalDays', 'enabled', 'typeName', 'nextDate']
   const safe = {}
   for (const key of allowed) {
     if (updates[key] !== undefined) safe[key] = updates[key]

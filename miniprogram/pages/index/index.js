@@ -489,6 +489,61 @@ Page({
     }, 280)
   },
 
+  // ========== 推迟任务 ==========
+  async postponeTask(e) {
+    const taskId = e.currentTarget.dataset.id
+    const idx = e.currentTarget.dataset.idx
+    const task = this.data.todayTasks[idx]
+    if (!task) return
+
+    if (this.data.isFamilyMode) {
+      const newNextDate = Date.now() + 86400000
+      const result = await family.updateTask(taskId, { nextDate: newNextDate })
+      if (result.success) {
+        // 写日志记录
+        try {
+          await wx.cloud.callFunction({
+            name: 'familyData',
+            data: {
+              action: 'addRecord',
+              data: {
+                plantId: task.plantId,
+                type: 'postpone',
+                typeName: '推迟',
+                note: `${task.typeName}推迟至明天`
+              }
+            }
+          })
+        } catch (e) { /* 日志失败不影响主流程 */ }
+        wx.showToast({ title: '已推迟到明天', icon: 'none' })
+        await this.loadFamilyData()
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' })
+      }
+    } else {
+      // 个人模式
+      const tasks = storage.getTasks()
+      const t = tasks.find(t => t.id === taskId)
+      if (t) {
+        t.nextDate = Date.now() + 86400000
+        try { wx.setStorageSync(storage.KEYS.TASKS, tasks) } catch (e) {}
+        // 写日志
+        const records = storage.getRecords()
+        records.unshift({
+          id: 'postpone_' + Date.now(),
+          userPlantId: task.plantId || task.userPlantId,
+          type: 'postpone',
+          typeName: '推迟',
+          date: Date.now(),
+          note: `${task.typeName}推迟至明天`
+        })
+        try { wx.setStorageSync(storage.KEYS.RECORDS, records) } catch (e) {}
+      }
+      wx.showToast({ title: '已推迟到明天', icon: 'none' })
+      this.onShow()
+    }
+  },
+
   async completeAllTasks() {
     const tasks = this.data.todayTasks
     if (tasks.length === 0) return
