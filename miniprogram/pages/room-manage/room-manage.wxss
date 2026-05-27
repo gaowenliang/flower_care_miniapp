@@ -17,7 +17,8 @@
 .room-actions { display: flex; gap: 12rpx; flex-shrink: 0; }
 .action-btn { font-size: 24rpx; padding: 8rpx 12rpx; border-radius: 12rpx; }
 .env-btn { background: #E8F5E9; }
-.del-btn { background: #FFF3E0; }
+.rename-btn { background: #E3F2FD; }
+.del-btn { background: #FFEBEE; }
 
 .add-room-btn {
   text-align: center; padding: 28rpx; margin-top: 24rpx;

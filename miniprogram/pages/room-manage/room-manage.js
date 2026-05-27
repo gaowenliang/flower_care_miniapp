@@ -8,6 +8,9 @@ Page({
     rooms: [],
     showAddModal: false,
     newRoomName: '',
+    showRenameModal: false,
+    renameInput: '',
+    renameOldName: '',
     editingRoom: null,
     showEnvModal: false,
     // 当前选中文字
@@ -37,6 +40,59 @@ Page({
   hideAdd() { this.setData({ showAddModal: false }) },
   onNameInput(e) { this.setData({ newRoomName: e.detail.value }) },
 
+  // ========== 重命名 ==========
+  showRename(e) {
+    const name = e.currentTarget.dataset.name
+    this.setData({ showRenameModal: true, renameInput: name, renameOldName: name })
+  },
+  hideRename() { this.setData({ showRenameModal: false }) },
+  onRenameInput(e) { this.setData({ renameInput: e.detail.value }) },
+
+  confirmRename() {
+    const newName = this.data.renameInput.trim()
+    const oldName = this.data.renameOldName
+    if (!newName) { wx.showToast({ title: '请输入名称', icon: 'none' }); return }
+    if (newName.length > 6) { wx.showToast({ title: '最多6个字', icon: 'none' }); return }
+    if (newName === oldName) { this.setData({ showRenameModal: false }); return }
+
+    // 检查重名
+    const allNames = this.data.rooms.map(r => r.name)
+    if (allNames.includes(newName)) { wx.showToast({ title: '该房间已存在', icon: 'none' }); return }
+
+    // 更新自定义房间列表
+    let customRooms = []
+    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    const isCustom = customRooms.includes(oldName)
+    if (isCustom) {
+      customRooms = customRooms.map(r => r === oldName ? newName : r)
+      try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+    } else {
+      // 预设房间改名：加入自定义列表，原预设仍保留
+      customRooms.push(newName)
+      try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+    }
+
+    // 迁移环境参数
+    const roomEnvs = wx.getStorageSync('roomEnvs') || {}
+    if (roomEnvs[oldName]) {
+      roomEnvs[newName] = roomEnvs[oldName]
+      delete roomEnvs[oldName]
+      try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
+    }
+
+    // 更新该房间下的植物
+    const garden = storage.getGarden()
+    let changed = 0
+    garden.forEach(p => {
+      if (p.location === oldName) { p.location = newName; changed++ }
+    })
+    if (changed > 0) storage.saveGarden(garden)
+
+    this.setData({ showRenameModal: false })
+    this.loadRooms()
+    wx.showToast({ title: changed > 0 ? `已改名，${changed}棵植物已迁移` : '已改名', icon: 'none' })
+  },
+
   confirmAdd() {
     const name = this.data.newRoomName.trim()
     if (!name) { wx.showToast({ title: '请输入房间名', icon: 'none' }); return }
@@ -55,16 +111,32 @@ Page({
 
   deleteRoom(e) {
     const name = e.currentTarget.dataset.name
+    const isPreset = e.currentTarget.dataset.preset
     wx.showModal({
       title: '删除房间',
-      content: `确定删除「${name}」？该房间下的植物不会被删除。`,
+      content: `确定删除「${name}」？该房间下的植物将移到「阳台」。`,
       confirmColor: '#e53935',
       success: (res) => {
         if (!res.confirm) return
+
+        // 从自定义列表删除
         let customRooms = []
         try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
         customRooms = customRooms.filter(r => r !== name)
         try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+
+        // 删环境参数
+        const roomEnvs = wx.getStorageSync('roomEnvs') || {}
+        delete roomEnvs[name]
+        try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
+
+        // 该房间的植物移到阳台
+        const garden = storage.getGarden()
+        garden.forEach(p => {
+          if (p.location === name) p.location = '阳台'
+        })
+        storage.saveGarden(garden)
+
         this.loadRooms()
         wx.showToast({ title: '已删除', icon: 'none' })
       }

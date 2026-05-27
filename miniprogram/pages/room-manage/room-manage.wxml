@@ -15,14 +15,27 @@
         <text class="room-no-env" wx:else>未设置环境参数</text>
       </view>
       <view class="room-actions">
+        <view class="action-btn rename-btn" bindtap="showRename" data-name="{{item.name}}">✏️</view>
         <view class="action-btn env-btn" bindtap="editEnv" data-name="{{item.name}}">⚙️</view>
-        <view class="action-btn del-btn" wx:if="{{!item.isPreset}}" bindtap="deleteRoom" data-name="{{item.name}}">🗑️</view>
+        <view class="action-btn del-btn" bindtap="deleteRoom" data-name="{{item.name}}" data-preset="{{item.isPreset}}">🗑️</view>
       </view>
     </view>
   </view>
 
   <view class="add-room-btn" bindtap="showAdd">
     <text>+ 添加房间</text>
+  </view>
+
+  <!-- 重命名弹窗 -->
+  <view class="modal-mask" wx:if="{{showRenameModal}}" bindtap="hideRename">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">修改房间名</view>
+      <input class="modal-input" placeholder="输入新名称" maxlength="6" value="{{renameInput}}" bindinput="onRenameInput" focus="{{showRenameModal}}" />
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="hideRename">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmRename">确认</view>
+      </view>
+    </view>
   </view>
 
   <!-- 添加弹窗 -->
