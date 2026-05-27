@@ -262,12 +262,15 @@ Page({
 
     wx.showLoading({ title: '导入中...' })
     try {
-      const importRecords = records.map(r => ({
-        type: r.actionType || 'water',
-        typeName: r.action,
-        date: r.date ? new Date(r.date.replace(/\//g, '-')).getTime() : Date.now(),
-        note: r.note || ''
-      }))
+      const importRecords = records.map(r => {
+        const dateValue = r.date ? new Date(r.date.replace(/\//g, '-')).getTime() : Date.now()
+        return {
+          type: r.actionType || 'water',
+          typeName: r.action,
+          date: isNaN(dateValue) ? Date.now() : dateValue,
+          note: r.note || ''
+        }
+      })
 
       const result = await wx.cloud.callFunction({
         name: 'familyData',
@@ -291,7 +294,8 @@ Page({
       }
     } catch (e) {
       wx.hideLoading()
-      wx.showToast({ title: '导入失败', icon: 'none' })
+      const errMsg = (e.errMsg || e.message || '').toString()
+      wx.showToast({ title: errMsg.slice(0, 40) || '导入失败', icon: 'none', duration: 3000 })
       console.error('批量导入失败:', e)
     }
   },
