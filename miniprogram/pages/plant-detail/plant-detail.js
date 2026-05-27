@@ -389,10 +389,10 @@ Page({
             // 家庭模式：停用/启用任务
             // isDead=操作前状态: false=正在标记死亡→停用enabled任务; true=正在复活→启用disabled任务
             const tasks = await family.getTasks(plantId)
-            for (const t of (tasks || [])) {
-              if (!isDead && t.enabled) await family.toggleTask(t._id || t.id) // 停用
-              else if (isDead && !t.enabled) await family.toggleTask(t._id || t.id) // 启用
-            }
+            const togglePromises = (tasks || [])
+              .filter(t => (!isDead && t.enabled) || (isDead && !t.enabled))
+              .map(t => family.toggleTask(t._id || t.id))
+            await Promise.all(togglePromises)
             await family.getPlants(true)
           } catch (e) {
             wx.showToast({ title: '保存失败', icon: 'none' }); return

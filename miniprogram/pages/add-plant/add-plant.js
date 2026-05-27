@@ -183,7 +183,7 @@ Page({
     // 立即上传图片作为头像（避免临时文件过期）
     this._identifyAvatarUrl = ''
     try {
-      this._identifyAvatarUrl = await imageUtil.uploadImage(imagePath)
+      this._identifyAvatarUrl = await imageUtil.uploadSquareAvatar(imagePath)
     } catch (e) { /* 上传失败不阻塞 */ }
     wx.showLoading({ title: '识别中...' })
     try {

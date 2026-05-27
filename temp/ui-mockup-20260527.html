@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今晚需求 UI 交互稿</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f0f2f0; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; padding: 20px; }
+h1 { text-align: center; color: #2D3436; margin-bottom: 8px; font-size: 22px; }
+.subtitle { text-align: center; color: #999; font-size: 14px; margin-bottom: 30px; }
+.features { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 900px; margin: 0 auto; }
+@media (max-width: 700px) { .features { grid-template-columns: 1fr; } }
+.feature-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+.feature-title { font-size: 16px; font-weight: 700; color: #2D3436; margin-bottom: 4px; }
+.feature-tag { display: inline-block; background: #E8F5E9; color: #4CAF50; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 16px; }
+.feature-tag.orange { background: #FFF3E0; color: #FF9800; }
+.feature-tag.red { background: #FFEBEE; color: #E53935; }
+.feature-tag.blue { background: #E3F2FD; color: #1976D2; }
+
+/* 手机模拟 */
+.phone { width: 280px; margin: 0 auto; background: #F7F9F7; border-radius: 20px; border: 2px solid #e0e0e0; overflow: hidden; }
+.phone-header { background: #4CAF50; color: #fff; padding: 8px 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.phone-body { padding: 12px; min-height: 260px; }
+
+/* 植物详情头部 */
+.plant-header { display: flex; gap: 10px; margin-bottom: 12px; }
+.plant-avatar { width: 48px; height: 48px; border-radius: 50%; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.plant-info { flex: 1; }
+.plant-name { font-size: 15px; font-weight: 700; color: #2D3436; }
+.plant-meta { font-size: 11px; color: #999; margin-top: 2px; }
+.info-row { display: flex; align-items: center; padding: 6px 0; font-size: 12px; color: #666; border-bottom: 1px solid #f0f0f0; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #999; margin-right: 6px; }
+.info-value { color: #333; font-weight: 500; flex: 1; }
+.info-edit { color: #ccc; font-size: 14px; }
+
+/* 记录列表 */
+.record-list { margin-top: 8px; }
+.record-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.record-dot { width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; margin-right: 8px; flex-shrink: 0; }
+.record-content { flex: 1; }
+.record-type { font-size: 12px; font-weight: 500; color: #2D3436; }
+.record-time { font-size: 10px; color: #B0BEC5; display: block; margin-top: 2px; }
+.record-delete { background: #e53935; color: #fff; font-size: 11px; padding: 4px 12px; border-radius: 6px; margin-left: 8px; }
+
+/* 今日待办 */
+.task-section { margin-bottom: 12px; }
+.section-title { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #2D3436; margin-bottom: 8px; }
+.badge { background: #FF9800; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+.task-item { display: flex; align-items: center; padding: 10px; background: #fff; border-radius: 10px; margin-bottom: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.task-info { display: flex; align-items: center; flex: 1; gap: 8px; }
+.task-emoji { font-size: 20px; }
+.task-name { font-size: 12px; font-weight: 500; color: #2D3436; }
+.task-overdue { font-size: 10px; color: #e53935; display: block; }
+.task-btns { display: flex; gap: 6px; }
+.btn-complete { background: #E8F5E9; color: #4CAF50; font-size: 11px; padding: 5px 14px; border-radius: 20px; font-weight: 600; }
+.btn-postpone { background: #FFF3E0; color: #FF9800; font-size: 11px; padding: 5px 14px; border-radius: 20px; font-weight: 600; }
+.btn-complete:active, .btn-postpone:active { opacity: 0.7; }
+
+/* 弹窗 */
+.modal-mask { position: relative; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 40px 12px 12px; margin-top: 8px; }
+.modal { background: #fff; border-radius: 12px; padding: 16px; }
+.modal-title { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; }
+.modal-field { margin-bottom: 10px; }
+.modal-label { font-size: 11px; color: #999; margin-bottom: 4px; }
+.modal-input { background: #F7F9F7; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #333; }
+.modal-input.full { display: block; width: 100%; border: 1px solid #e0e0e0; }
+.modal-btns { display: flex; gap: 10px; margin-top: 12px; }
+.modal-cancel { flex: 1; text-align: center; padding: 8px; border-radius: 10px; font-size: 12px; background: #f5f5f5; color: #666; font-weight: 500; }
+.modal-confirm { flex: 2; text-align: center; padding: 8px; border-radius: 10px; font-size: 12px; background: #4CAF50; color: #fff; font-weight: 600; }
+
+/* 导入底部 */
+.bottom-bar { background: #fff; border-top: 1px solid #f0f0f0; padding: 10px 12px; margin: 12px -12px -12px; }
+.bar-plant { display: flex; align-items: center; padding: 8px 12px; background: #F7F9F7; border-radius: 20px; margin-bottom: 8px; font-size: 11px; }
+.bar-plant-label { color: #999; margin-right: 6px; }
+.bar-plant-value { color: #333; font-weight: 500; flex: 1; }
+.bar-plant-arrow { color: #ccc; }
+.bar-btns { display: flex; gap: 10px; }
+.bar-cancel { flex: 1; text-align: center; padding: 10px; border-radius: 20px; background: #f5f5f5; color: #666; font-size: 12px; font-weight: 500; }
+.bar-import { flex: 2; text-align: center; padding: 10px; border-radius: 20px; background: linear-gradient(135deg, #4CAF50, #66BB6A); color: #fff; font-size: 13px; font-weight: 600; }
+
+.desc { font-size: 11px; color: #999; margin-top: 10px; line-height: 1.6; text-align: center; }
+.highlight { border: 2px solid #4CAF50; border-radius: 4px; padding: 0 2px; }
+.highlight-orange { border: 2px solid #FF9800; border-radius: 4px; padding: 0 2px; }
+.highlight-red { border: 2px solid #E53935; border-radius: 4px; padding: 0 2px; }
+.highlight-blue { border: 2px solid #1976D2; border-radius: 4px; padding: 0 2px; }
+</style>
+</head>
+<body>
+<h1>🎨 今晚需求 UI 交互稿</h1>
+<p class="subtitle">2026-05-27 · 4 个需求</p>
+
+<div class="features">
+
+<!-- 需求1: 到家日期 -->
+<div class="feature-card">
+  <div class="feature-title">📅 到家日期编辑</div>
+  <span class="feature-tag">新功能</span>
+  <div class="phone">
+    <div class="phone-header">← 植物详情</div>
+    <div class="phone-body">
+      <div class="plant-header">
+        <div class="plant-avatar">🌿</div>
+        <div class="plant-info">
+          <div class="plant-name">小绿</div>
+          <div class="plant-meta">📍 阳台 · 绿植</div>
+        </div>
+      </div>
+      <!-- 新增的到家日期行 -->
+      <div class="info-row" style="background:#F0FFF0;">
+        <span class="info-label">📅 到家</span>
+        <span class="info-value highlight"><b>2026-03-15（74天）</b></span>
+        <span class="info-edit">✏️</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">💰 购入</span>
+        <span class="info-value">¥29.9 · 网购</span>
+        <span class="info-edit">✏️</span>
+      </div>
+
+      <!-- 弹窗 -->
+      <div class="modal-mask">
+        <div class="modal">
+          <div class="modal-title">📅 到家日期</div>
+          <div class="modal-field">
+            <div class="modal-label">日期</div>
+            <div class="modal-input full" style="color:#4CAF50;font-weight:500;">2026-03-15</div>
+          </div>
+          <div class="modal-btns">
+            <div class="modal-cancel">取消</div>
+            <div class="modal-confirm">确认</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="desc">点击「到家日期」行 → 弹出日期选择器<br>显示养了多少天（如 <b>74天</b>）</p>
+</div>
+
+<!-- 需求2: 删除记录 -->
+<div class="feature-card">
+  <div class="feature-title">🗑️ 删除养护记录</div>
+  <span class="feature-tag red">新功能</span>
+  <div class="phone">
+    <div class="phone-header">← 植物详情</div>
+    <div class="phone-body">
+      <div style="font-size:12px;font-weight:600;color:#2D3436;margin-bottom:6px;">养护记录</div>
+      <div class="record-list">
+        <div class="record-item">
+          <div class="record-dot"></div>
+          <div class="record-content">
+            <span class="record-type">💧 浇水</span>
+            <span class="record-time">3小时前 · 05-28</span>
+          </div>
+        </div>
+        <div class="record-item" style="background:#FFF8F8;border-radius:6px;">
+          <div class="record-dot"></div>
+          <div class="record-content">
+            <span class="record-type">🧪 施肥</span>
+            <span class="record-time">2天前 · 05-26</span>
+          </div>
+          <div class="record-delete highlight-red">删除</div>
+        </div>
+        <div class="record-item">
+          <div class="record-dot"></div>
+          <div class="record-content">
+            <span class="record-type">💧 浇水</span>
+            <span class="record-time">5天前 · 05-23</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;background:#fff;border-radius:8px;padding:8px;font-size:11px;text-align:center;color:#999;">
+        ↑ 点击记录展开/收起删除按钮
+      </div>
+    </div>
+  </div>
+  <p class="desc">点击某条记录 → 展开红色「删除」按钮<br>再次点击确认 → 记录删除</p>
+</div>
+
+<!-- 需求3: 推迟按钮 -->
+<div class="feature-card">
+  <div class="feature-title">⏰ 推迟待办任务</div>
+  <span class="feature-tag orange">新功能</span>
+  <div class="phone">
+    <div class="phone-header">🏡 我的花园</div>
+    <div class="phone-body">
+      <div class="task-section">
+        <div class="section-title">🔔 今日待办 <span class="badge">3</span> <span style="flex:1"></span><span style="color:#4CAF50;font-size:11px;">✨ 一键完成</span></div>
+        <div class="task-item">
+          <div class="task-info">
+            <span class="task-emoji">🌿</span>
+            <div>
+              <span class="task-name">小绿 · 浇水</span>
+              <span class="task-overdue">逾期2天!</span>
+            </div>
+          </div>
+          <div class="task-btns">
+            <span class="btn-complete">✅ 完成</span>
+            <span class="btn-postpone highlight-orange">⏰ 推迟</span>
+          </div>
+        </div>
+        <div class="task-item">
+          <div class="task-info">
+            <span class="task-emoji">🌸</span>
+            <div>
+              <span class="task-name">花花 · 施肥</span>
+              <span class="task-overdue">今天</span>
+            </div>
+          </div>
+          <div class="task-btns">
+            <span class="btn-complete">✅ 完成</span>
+            <span class="btn-postpone highlight-orange">⏰ 推迟</span>
+          </div>
+        </div>
+        <div class="task-item">
+          <div class="task-info">
+            <span class="task-emoji">🌵</span>
+            <div>
+              <span class="task-name">仙人球 · 浇水</span>
+              <span class="task-overdue">今天</span>
+            </div>
+          </div>
+          <div class="task-btns">
+            <span class="btn-complete">✅ 完成</span>
+            <span class="btn-postpone highlight-orange">⏰ 推迟</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="desc">每条待办新增橙色「⏰ 推迟」按钮<br>推迟后任务移到明天 + 写入日志</p>
+</div>
+
+<!-- 需求4: 导入按钮优化 -->
+<div class="feature-card">
+  <div class="feature-title">📥 截图导入按钮优化</div>
+  <span class="feature-tag blue">UI优化</span>
+  <div class="phone">
+    <div class="phone-header">← 截图导入</div>
+    <div class="phone-body">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;">📋 解析结果 <span style="color:#999;font-weight:400;">已识别 5 条</span></div>
+      <div style="background:#fff;border-radius:8px;padding:8px;margin-bottom:6px;font-size:11px;color:#333;">
+        ✅ 05-24 &nbsp;浇水<br>
+        ✅ 05-20 &nbsp;浇水<br>
+        ✅ 05-16 &nbsp;施肥<br>
+        <span style="color:#999">已选择 3 条</span>
+      </div>
+
+      <!-- 优化后的底部 -->
+      <div class="bottom-bar">
+        <div class="bar-plant">
+          <span class="bar-plant-label">导入到</span>
+          <span class="bar-plant-value">🌿 小绿</span>
+          <span class="bar-plant-arrow">›</span>
+        </div>
+        <div class="bar-btns">
+          <div class="bar-cancel highlight-blue">取消</div>
+          <div class="bar-import highlight-blue">确认导入 3 条</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="desc">上下两行布局：植物选择 + 按钮分离<br>取消灰色 / 导入绿色，间距大不误触</p>
+</div>
+
+</div>
+
+<div style="text-align:center;margin-top:30px;color:#bbb;font-size:12px;">
+  虚线高亮 = 本次新增/改动的区域 · 右侧为实际交互效果
+</div>
+</body>
+</html>

@@ -38,7 +38,7 @@
           <text style="font-size:22rpx;color:#78909C">{{inFamily ? '已加入家庭' : '创建或加入家庭'}}</text>
         </view>
       </view>
-      <text class="setting-arrow">🔍</text>
+      <text class="setting-arrow">{{inFamily ? '👥 管理' : '🔍 发现'}}</text>
     </view>
   </view>
 
