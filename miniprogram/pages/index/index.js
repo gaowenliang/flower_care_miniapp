@@ -496,6 +496,11 @@ Page({
     const task = this.data.todayTasks[idx]
     if (!task) return
 
+    // 乐观更新：先立即隐藏
+    const newTasks = [...this.data.todayTasks]
+    newTasks.splice(idx, 1)
+    this.setData({ todayTasks: newTasks })
+
     if (this.data.isFamilyMode) {
       const newNextDate = Date.now() + 86400000
       const result = await family.updateTask(taskId, { nextDate: newNextDate })
@@ -516,10 +521,10 @@ Page({
           })
         } catch (e) { /* 日志失败不影响主流程 */ }
         wx.showToast({ title: '已推迟到明天', icon: 'none' })
-        // 从列表移除，不重新加载（第二天才显示）
-        const updated = this.data.todayTasks.filter((_, i) => i !== idx)
-        this.setData({ todayTasks: updated })
       } else {
+        // 失败了恢复
+        newTasks.splice(idx, 0, task)
+        this.setData({ todayTasks: newTasks })
         wx.showToast({ title: result.error || '操作失败', icon: 'none' })
       }
     } else {
@@ -542,8 +547,6 @@ Page({
         try { wx.setStorageSync(storage.KEYS.RECORDS, records) } catch (e) {}
       }
       wx.showToast({ title: '已推迟到明天', icon: 'none' })
-      const updated = this.data.todayTasks.filter((_, i) => i !== idx)
-      this.setData({ todayTasks: updated })
     }
   },
 
