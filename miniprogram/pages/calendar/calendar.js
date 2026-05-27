@@ -293,7 +293,7 @@ Page({
     } catch (e) {
       wx.hideLoading()
       const errMsg = (e.errMsg || e.message || '').toString()
-      wx.showToast({ title: errMsg.slice(0, 40) || '导入失败', icon: 'none', duration: 3000 })
+      wx.showModal({ title: '导入失败', content: errMsg || '未知错误', showCancel: false })
       console.error('批量导入失败:', e)
     }
   },
