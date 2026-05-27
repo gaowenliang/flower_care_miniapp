@@ -1,59 +1,16 @@
 // cloud/functions/importScreenshot/index.js
 // 从其他 APP 截图中识别植物养护信息 — 纯 OCR + 正则解析（不依赖 VLM）
 const cloud = require('wx-server-sdk')
+const https = require('https')
+const querystring = require('querystring')
+
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
-const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
+// P2: 环境变量缺失直接报错，不用空串 fallback
+const BAIDU_API_KEY = process.env.BAIDU_API_KEY
+const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY
 
-let _tokenCache = { token: null, expiresAt: 0 }
-
-async function getBaiduToken() {
-  if (_tokenCache.token && Date.now() < _tokenCache.expiresAt) return _tokenCache.token
-  const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
-  return new Promise((resolve) => {
-    const https = require('https')
-    https.get(url, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data)
-          if (json.access_token) {
-            _tokenCache = { token: json.access_token, expiresAt: Date.now() + 29 * 86400000 }
-            resolve(json.access_token)
-          } else resolve(null)
-        } catch (e) { resolve(null) }
-      })
-    }).on('error', () => resolve(null))
-  })
-}
-
-async function ocrImage(base64) {
-  const token = await getBaiduToken()
-  if (!token) return null
-  const querystring = require('querystring')
-  const postData = querystring.stringify({ image: base64, detect_language: 'true' })
-  return new Promise((resolve) => {
-    const https = require('https')
-    const options = {
-      hostname: 'aip.baidubce.com',
-      path: `/rest/2.0/ocr/v1/accurate_basic?access_token=${token}`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(postData) }
-    }
-    const req = https.request(options, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => { try { resolve(JSON.parse(data)) } catch (e) { resolve(null) } })
-    })
-    req.on('error', () => resolve(null))
-    req.write(postData)
-    req.end()
-  })
-}
-
-// 动作关键词映射
+// 模块级常量（P2: 避免每次调用重建）
 const ACTION_MAP = {
   '浇水': 'water', '施肥': 'fertilize', '修剪': 'prune',
   '换盆': 'repot', '除虫': 'pest', '喷药': 'spray',
@@ -61,34 +18,95 @@ const ACTION_MAP = {
 }
 const ACTION_KEYWORDS = Object.keys(ACTION_MAP)
 
+// P0: token 缓存
+let _tokenCache = { token: null, expiresAt: 0 }
+
+// P1: 带 reject 和超时的 Promise 包装
+function httpGet(url, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      req.destroy()
+      reject(new Error('请求超时'))
+    }, timeoutMs)
+    const req = https.get(url, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => {
+        clearTimeout(timer)
+        try { resolve(JSON.parse(data)) } catch (e) { reject(new Error('JSON解析失败: ' + data.slice(0, 200))) }
+      })
+    })
+    req.on('error', (e) => { clearTimeout(timer); reject(e) })
+  })
+}
+
+function httpPost(hostname, path, body, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      req.destroy()
+      reject(new Error('请求超时'))
+    }, timeoutMs)
+    const options = {
+      hostname,
+      path,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
+    }
+    const req = https.request(options, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => {
+        clearTimeout(timer)
+        try { resolve(JSON.parse(data)) } catch (e) { reject(new Error('JSON解析失败: ' + data.slice(0, 200))) }
+      })
+    })
+    req.on('error', (e) => { clearTimeout(timer); reject(e) })
+    req.write(body)
+    req.end()
+  })
+}
+
+async function getBaiduToken() {
+  if (_tokenCache.token && Date.now() < _tokenCache.expiresAt) return _tokenCache.token
+
+  const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
+  const json = await httpGet(url, 8000)
+
+  if (!json.access_token) {
+    throw new Error('百度 Token 获取失败: ' + (json.error_description || JSON.stringify(json).slice(0, 200)))
+  }
+  _tokenCache = { token: json.access_token, expiresAt: Date.now() + 29 * 86400000 }
+  return json.access_token
+}
+
+async function ocrImage(base64) {
+  const token = await getBaiduToken()
+  const postData = querystring.stringify({ image: base64, detect_language: 'true' })
+  const result = await httpPost(
+    'aip.baidubce.com',
+    `/rest/2.0/ocr/v1/accurate_basic?access_token=${token}`,
+    postData,
+    15000
+  )
+
+  if (result.error_code) {
+    throw new Error('百度 OCR 错误: ' + result.error_msg)
+  }
+  if (!result.words_result || result.words_result.length === 0) {
+    return null // 正常：图片确实没文字
+  }
+  return result.words_result.map(w => w.words).join('\n')
+}
+
 /**
  * 纯正则解析 OCR 文本为结构化养护记录
- * 
- * 适配截图格式（列表式）：
- *   月日          ← 如 "5月24" 或 "12月03"
- *   N天前         ← 如 "2天前" 或 "3个月前"（可选）
- *   浇水          ← 动作关键词，可能有前缀乱码如 "D浇水" "(延迟1天)"
- * 
- * 也适配日历网格格式：
- *   "植物名 2026年3月 浇水 3/12 3/20 ..."
  */
 function parseRecords(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   const records = []
-
-  // ---- 策略1: 列表格式（大部分截图） ----
-  // 格式: 月日行 → 可选"N天前"行 → 动作行(含"浇水"等关键词)
-  // 需要跨年份：遇到 "2025" / "2026" 等独立年份行时切换年份
   let currentYear = new Date().getFullYear()
 
-  // 先扫描年份标记
-  const yearLines = new Set()
-  for (let i = 0; i < lines.length; i++) {
-    if (/^(20\d{2})$/.test(lines[i])) {
-      yearLines.add(i)
-    }
-  }
-
+  // ---- 策略1: 列表格式（大部分截图） ----
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
@@ -98,7 +116,7 @@ function parseRecords(text) {
       continue
     }
 
-    // 检测月日行: "5月24" "12月03" "2月25" 等
+    // 检测月日行: "5月24" "12月03"
     const monthDayMatch = line.match(/^(\d{1,2})月(\d{1,2})$/)
     if (monthDayMatch) {
       const month = parseInt(monthDayMatch[1])
@@ -108,27 +126,18 @@ function parseRecords(text) {
       // 向下找动作关键词（最多看3行）
       for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
         const nextLine = lines[j]
-        // 如果遇到新的月日行，停止
         if (/^\d{1,2}月\d{1,2}$/.test(nextLine)) break
         if (/^(20\d{2})$/.test(nextLine)) break
 
-        // 在行中找动作关键词
         for (const kw of ACTION_KEYWORDS) {
           if (nextLine.includes(kw)) {
-            // 提取备注（如"延迟1天"）
             let note = ''
             const delayMatch = nextLine.match(/延迟(\d+天)/)
             if (delayMatch) note = '延迟' + delayMatch[1]
 
             const date = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-            records.push({
-              plantName: '', // 植物名由前端让用户选择
-              action: kw,
-              actionType: ACTION_MAP[kw],
-              date,
-              note
-            })
-            break // 一行只匹配一个动作
+            records.push({ plantName: '', action: kw, actionType: ACTION_MAP[kw], date, note })
+            break
           }
         }
       }
@@ -137,8 +146,7 @@ function parseRecords(text) {
 
   if (records.length > 0) return records
 
-  // ---- 策略2: 紧凑格式 "月日 动作" 在同一行 ----
-  // 如 "5月24浇水" "2月25浇水 (延迟1天)"
+  // ---- 策略2: 紧凑格式 "月日动作" 在同一行 ----
   for (const line of lines) {
     const compactMatch = line.match(/(\d{1,2})月(\d{1,2})(浇水|施肥|修剪|换盆|除虫|喷药)/)
     if (compactMatch) {
@@ -150,9 +158,7 @@ function parseRecords(text) {
       if (delayMatch) note = '延迟' + delayMatch[1]
 
       records.push({
-        plantName: '',
-        action: kw,
-        actionType: ACTION_MAP[kw],
+        plantName: '', action: kw, actionType: ACTION_MAP[kw],
         date: `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
         note
       })
@@ -162,34 +168,27 @@ function parseRecords(text) {
   if (records.length > 0) return records
 
   // ---- 策略3: 日历网格格式 ----
-  // "植物名 2026年3月 浇水 3/12 3/20 ..."
   let plantName = ''
-  for (const line of lines) {
-    // 提取植物名（纯中文2-8字，不含动作关键词）
-    if (/^[\u4e00-\u9fa5]{2,8}$/.test(line)) {
-      const hasAction = ACTION_KEYWORDS.some(kw => line.includes(kw))
-      if (!hasAction) plantName = line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (/^[\u4e00-\u9fa5]{2,8}$/.test(line) && !ACTION_KEYWORDS.some(kw => line.includes(kw))) {
+      plantName = line
     }
 
-    // "2026年3月" 格式提取年月
     const yearMonthMatch = line.match(/(20\d{2})年(\d{1,2})月/)
     if (yearMonthMatch) {
       const y = parseInt(yearMonthMatch[1])
       const m = parseInt(yearMonthMatch[2])
-      // 在这一行及后续找日期+动作
-      const remaining = line + ' ' + lines.slice(lines.indexOf(line) + 1, lines.indexOf(line) + 20).join(' ')
+      const remaining = line + ' ' + lines.slice(i + 1, i + 20).join(' ')
       for (const kw of ACTION_KEYWORDS) {
         if (remaining.includes(kw)) {
-          // 找这个动作后的所有日期
           const afterAction = remaining.split(kw).pop()
           const dateMatches = [...afterAction.matchAll(/(\d{1,2})\/(\d{1,2})/g)]
           for (const dm of dateMatches) {
             const d = parseInt(dm[2])
             if (d >= 1 && d <= 31) {
               records.push({
-                plantName,
-                action: kw,
-                actionType: ACTION_MAP[kw],
+                plantName, action: kw, actionType: ACTION_MAP[kw],
                 date: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
                 note: ''
               })
@@ -205,14 +204,23 @@ function parseRecords(text) {
 
 exports.main = async (event) => {
   const { fileIDs } = event
-  if (!fileIDs || fileIDs.length === 0) {
+
+  // 输入校验
+  if (!fileIDs || !Array.isArray(fileIDs) || fileIDs.length === 0) {
     return { success: false, error: '请提供截图' }
   }
-  if (!BAIDU_API_KEY) {
+  if (fileIDs.length > 9) {
+    return { success: false, error: '最多支持 9 张截图' }
+  }
+
+  // P0: 环境变量检查（提前报错）
+  if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) {
     return { success: false, error: '百度 OCR 未配置，请在云函数环境变量中设置 BAIDU_API_KEY 和 BAIDU_SECRET_KEY' }
   }
 
   const allOcrText = []
+  const errors = []
+
   for (let i = 0; i < fileIDs.length; i++) {
     const fileID = fileIDs[i]
     try {
@@ -220,23 +228,27 @@ exports.main = async (event) => {
       const base64 = downloadRes.fileContent.toString('base64')
 
       if (base64.length > 8 * 1024 * 1024) {
-        console.warn(`[importScreenshot] 图片${i}超过限制，跳过`)
+        errors.push(`图片${i + 1}超过8MB限制`)
         continue
       }
-      const ocrResult = await ocrImage(base64)
-      if (!ocrResult || !ocrResult.words_result) {
-        console.warn(`[importScreenshot] 图片${i} OCR 失败`)
+
+      const pageText = await ocrImage(base64)
+      if (!pageText) {
+        errors.push(`图片${i + 1}未识别到文字`)
         continue
       }
-      const pageText = ocrResult.words_result.map(w => w.words).join('\n')
       allOcrText.push(pageText)
     } catch (e) {
       console.error(`[importScreenshot] 处理图片${i}失败:`, e.message)
+      errors.push(`图片${i + 1}: ${e.message}`)
     }
   }
 
   if (allOcrText.length === 0) {
-    return { success: false, error: 'OCR 识别失败，请确认图片清晰' }
+    return {
+      success: false,
+      error: errors.length > 0 ? errors.join('；') : 'OCR 识别失败，请确认图片清晰'
+    }
   }
 
   // 纯正则解析
@@ -257,7 +269,7 @@ exports.main = async (event) => {
   return {
     success: true,
     total: unique.length,
-    records: unique,
-    debug_ocr_text: allOcrText
+    records: unique
+    // P2: 生产环境不返回 debug_ocr_text
   }
 }
