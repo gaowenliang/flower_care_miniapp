@@ -41,7 +41,12 @@ Page({
     // 价格弹窗
     showPriceModal: false,
     priceInput: '',
-    sourceInput: ''
+    sourceInput: '',
+    // 到家日期
+    showArrivalDateModal: false,
+    arrivalDateInput: '',
+    todayStr: '',
+    arrivalDateText: ''
   },
 
   onLoad(options) {
@@ -115,7 +120,7 @@ Page({
     } else {
       plantInfo = { ...plantInfo, family: userPlant.family || plantInfo.family || '', genus: userPlant.genus || plantInfo.genus || '', latin: userPlant.latin || plantInfo.latin || '' }
     }
-    this.setData({ userPlant, plantInfo })
+    this.setData({ userPlant, plantInfo, arrivalDateText: this._formatArrivalDate(userPlant) })
     this.loadTasks()
     this.loadRecords()
     this.loadSmartTips()
@@ -800,6 +805,84 @@ Page({
 
   cancelPrice() {
     this.setData({ showPriceModal: false })
+  },
+
+  // ========== 到家日期 ==========
+  _formatArrivalDate(plant) {
+    const ts = plant.purchaseDate || plant.addedAt
+    if (!ts) return '未设置'
+    const d = new Date(ts)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  },
+
+  editArrivalDate() {
+    const ts = this.data.userPlant.purchaseDate || this.data.userPlant.addedAt
+    const d = ts ? new Date(ts) : new Date()
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const today = new Date()
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    this.setData({ showArrivalDateModal: true, arrivalDateInput: dateStr, todayStr })
+  },
+
+  onArrivalDateChange(e) {
+    this.setData({ arrivalDateInput: e.detail.value })
+  },
+
+  async confirmArrivalDate() {
+    const dateStr = this.data.arrivalDateInput
+    if (!dateStr) return
+    const ts = new Date(dateStr + 'T00:00:00').getTime()
+    this.setData({ showArrivalDateModal: false })
+
+    if (this.data.isFamilyMode) {
+      await family.updatePlant(this.data.userPlant._id, { purchaseDate: ts })
+    } else {
+      storage.updatePlant(this.data.userPlant.id, { purchaseDate: ts })
+    }
+    this.setData({
+      'userPlant.purchaseDate': ts,
+      arrivalDateText: this._formatArrivalDate({ purchaseDate: ts })
+    })
+    wx.showToast({ title: '已更新', icon: 'none' })
+  },
+
+  cancelArrivalDate() {
+    this.setData({ showArrivalDateModal: false })
+  },
+
+  // ========== 删除记录 ==========
+  toggleRecordMenu(e) {
+    const idx = e.currentTarget.dataset.idx
+    const records = this.data.records
+    records.forEach((r, i) => { r.showMenu = (i === idx) ? !r.showMenu : false })
+    this.setData({ records })
+  },
+
+  async deleteRecord(e) {
+    const { id, idx } = e.currentTarget.dataset
+    const record = this.data.records[idx]
+    if (!record) return
+
+    wx.showModal({
+      title: '删除记录',
+      content: `确定删除「${record.typeName}」记录？`,
+      confirmColor: '#e53935',
+      success: async (res) => {
+        if (!res.confirm) return
+        if (this.data.isFamilyMode) {
+          const result = await family.deleteRecord(id)
+          if (!result.success) {
+            wx.showToast({ title: result.error || '删除失败', icon: 'none' })
+            return
+          }
+        } else {
+          storage.deleteRecord(id)
+        }
+        const records = this.data.records.filter((_, i) => i !== idx)
+        this.setData({ records })
+        wx.showToast({ title: '已删除', icon: 'none' })
+      }
+    })
   },
 
   async _savePrice(price, source) {

@@ -141,6 +141,13 @@
 .record-item {
   display: flex; padding: 14rpx 0;
   border-bottom: 1rpx solid #F0F2F0; position: relative;
+  align-items: flex-start;
+}
+.record-delete-btn {
+  background: #e53935; color: #fff; font-size: 24rpx;
+  padding: 8rpx 20rpx; border-radius: 8rpx;
+  margin-left: 16rpx; flex-shrink: 0;
+  align-self: center;
 }
 .record-item:last-child { border-bottom: none; }
 .record-dot {
@@ -324,3 +331,11 @@
 .source-tags { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 12rpx 0; }
 .source-tag { padding: 10rpx 24rpx; border-radius: 32rpx; font-size: 24rpx; background: #f0f0f0; color: #333; }
 .source-tag.active { background: #FF9800; color: #fff; }
+
+/* 到家日期选择器 */
+.date-picker-value {
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #333;
+  border-bottom: 1rpx solid #eee;
+}

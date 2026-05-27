@@ -38,6 +38,13 @@
           <text class="edit-icon-sm">›</text>
         </view>
         <!-- 价格信息 -->
+        <!-- 到家日期 -->
+        <view class="header-price-row" bindtap="editArrivalDate">
+          <text class="price-label">📅 到家</text>
+          <text class="price-value">{{arrivalDateText}}</text>
+          <text class="edit-icon-sm">✏️</text>
+        </view>
+        <!-- 价格信息 -->
         <view class="header-price-row" wx:if="{{userPlant.purchasePrice > 0}}">
           <text class="price-label">💰 购入</text>
           <text class="price-value">¥{{userPlant.purchasePrice}}</text>
@@ -152,12 +159,13 @@
     <view class="card" wx:if="{{records.length > 0}}">
       <view class="record-item" wx:for="{{records}}" wx:key="id">
         <view class="record-dot"></view>
-        <view class="record-content">
+        <view class="record-content" bindtap="toggleRecordMenu" data-idx="{{index}}">
           <text class="record-type">{{item.typeName}}</text>
           <text class="record-creator" wx:if="{{isFamilyMode && item.creatorNickname}}">by {{item.creatorNickname}}</text>
           <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
           <text class="record-time">{{item.timeAgo}} · {{item.dateText}}</text>
         </view>
+        <view class="record-delete-btn" wx:if="{{item.showMenu}}" bindtap="deleteRecord" data-id="{{item.id}}" data-idx="{{index}}">删除</view>
       </view>
     </view>
     <view class="card empty-hint" wx:else>
@@ -309,6 +317,26 @@
   </view>
 
   <!-- 价格弹窗 -->
+  <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
+
+  <!-- 到家日期弹窗 -->
+  <view class="modal-mask" wx:if="{{showArrivalDateModal}}" bindtap="cancelArrivalDate">
+    <view class="modal-content price-modal" catchtap="preventBubble">
+      <text class="modal-title">📅 到家日期</text>
+      <view class="price-field">
+        <text class="price-field-label">日期</text>
+        <picker mode="date" value="{{arrivalDateInput}}" start="2020-01-01" end="{{todayStr}}" bindchange="onArrivalDateChange">
+          <view class="date-picker-value">{{arrivalDateInput || '选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelArrivalDate">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmArrivalDate">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 价格弹窗(保留) -->
   <view class="modal-mask" wx:if="{{showPriceModal}}" bindtap="cancelPrice">
     <view class="modal-content price-modal" catchtap="preventBubble">
       <text class="modal-title">💰 购入信息</text>
