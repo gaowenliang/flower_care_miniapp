@@ -1,35 +1,52 @@
 // cloud/functions/diagnosePlant/index.js
-// 云函数：AI 植物病虫害诊断（复用百度植物识别API，从百科描述中提取病害信息）
 const cloud = require('wx-server-sdk')
+const https = require('https')
+const querystring = require('querystring')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const BAIDU_API_KEY = process.env.BAIDU_API_KEY || ''
-const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY || ''
+const BAIDU_API_KEY = process.env.BAIDU_API_KEY
+const BAIDU_SECRET_KEY = process.env.BAIDU_SECRET_KEY
 
 let _tokenCache = { token: null, expiresAt: 0 }
+
+function httpGet(url, timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { req.destroy(); reject(new Error('请求超时')) }, timeoutMs)
+    const req = https.get(url, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => { clearTimeout(timer); try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
+    })
+    req.on('error', (e) => { clearTimeout(timer); reject(e) })
+  })
+}
+
+function httpPost(hostname, path, body, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { req.destroy(); reject(new Error('请求超时')) }, timeoutMs)
+    const req = https.request({
+      hostname, path, method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
+    }, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => { clearTimeout(timer); try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
+    })
+    req.on('error', (e) => { clearTimeout(timer); reject(e) })
+    req.write(body)
+    req.end()
+  })
+}
 
 async function getBaiduToken() {
   if (_tokenCache.token && Date.now() < _tokenCache.expiresAt) return _tokenCache.token
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
-  return new Promise((resolve) => {
-    const https = require('https')
-    https.get(url, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data)
-          if (json.access_token) {
-            _tokenCache = { token: json.access_token, expiresAt: Date.now() + 29 * 86400000 }
-            resolve(json.access_token)
-          } else resolve(null)
-        } catch (e) { resolve(null) }
-      })
-    }).on('error', () => resolve(null))
-  })
+  const json = await httpGet(url, 8000)
+  if (!json.access_token) throw new Error('百度 Token 获取失败: ' + (json.error_description || JSON.stringify(json).slice(0, 200)))
+  _tokenCache = { token: json.access_token, expiresAt: Date.now() + 29 * 86400000 }
+  return json.access_token
 }
 
-// 从百科描述中检测病害关键词
 function detectDisease(name, description) {
   const diseaseKeywords = {
     '黄': { name: '黄叶病', causes: '浇水过多、缺肥、光照不足或根系受损', solutions: ['检查排水是否通畅，避免积水', '适当补充氮肥', '移至光照充足处', '检查根系是否腐烂'] },
@@ -44,96 +61,54 @@ function detectDisease(name, description) {
     '斑点': { name: '叶斑病', causes: '真菌感染，高温多湿环境易发', solutions: ['摘除病叶', '喷洒代森锰锌', '避免叶面浇水', '保持通风'] },
     '霉': { name: '灰霉病', causes: '真菌感染，低温高湿环境', solutions: ['清除病部', '喷洒腐霉利', '降低湿度', '增加通风'] }
   }
-
   const text = (name + ' ' + (description || '')).toLowerCase()
   const found = []
-
   for (const [keyword, info] of Object.entries(diseaseKeywords)) {
-    if (text.includes(keyword)) {
-      found.push({ ...info, severity: 'medium' })
-    }
+    if (text.includes(keyword)) found.push({ ...info, severity: 'medium' })
   }
-
-  // 如果没有精确匹配，根据植物名给通用建议
   if (found.length === 0 && description) {
     found.push({
-      name: '疑似病害',
-      causes: '需要更清晰的照片或症状描述来精确诊断',
+      name: '疑似病害', causes: '需要更清晰的照片或症状描述来精确诊断',
       solutions: ['隔离病株避免传染', '改善通风和光照', '控制浇水避免过湿', '观察几天看是否恶化，必要时咨询园艺师'],
       severity: 'low'
     })
   }
-
   return found
 }
 
 exports.main = async (event) => {
   const { imageData } = event
   if (!imageData) return { success: false, error: '缺少图片数据' }
-  if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) return { success: false, error: 'API未配置' }
+  if (!BAIDU_API_KEY || !BAIDU_SECRET_KEY) return { success: false, error: 'API未配置，请设置环境变量 BAIDU_API_KEY 和 BAIDU_SECRET_KEY' }
 
   try {
     const token = await getBaiduToken()
-    if (!token) return { success: false, error: '获取token失败' }
-
-    const querystring = require('querystring')
     const postData = querystring.stringify({ image: imageData, baike_num: 3 })
-
-    const result = await new Promise((resolve, reject) => {
-      const https = require('https')
-      const req = https.request({
-        hostname: 'aip.baidubce.com',
-        path: `/rest/2.0/image-classify/v1/plant_disease?access_token=${token}`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(postData) }
-      }, (res) => {
-        let data = ''
-        res.on('data', chunk => data += chunk)
-        res.on('end', () => { try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
-      })
-      req.on('error', reject)
-      req.write(postData)
-      req.end()
-    })
+    const result = await httpPost('aip.baidubce.com', `/rest/2.0/image-classify/v1/plant_disease?access_token=${token}`, postData)
 
     if (result.error_code) {
       return { success: false, error: '识别失败: ' + (result.error_msg || result.error_code) }
     }
 
     if (result.result && result.result.length > 0) {
-      // 从识别结果中提取病害信息
       const diseases = []
       for (const r of result.result) {
         const desc = (r.baike_info && r.baike_info.description) || ''
         const name = r.name || ''
-        const detected = detectDisease(name, desc)
-        for (const d of detected) {
-          diseases.push({
-            ...d,
-            name: d.name || name,
-            score: r.score ? (r.score * 100).toFixed(1) : 0
-          })
+        for (const d of detectDisease(name, desc)) {
+          diseases.push({ ...d, name: d.name || name, score: r.score ? (r.score * 100).toFixed(1) : 0 })
         }
       }
-
-      // 去重
       const unique = []
       const seen = new Set()
       for (const d of diseases) {
-        if (!seen.has(d.name)) {
-          seen.add(d.name)
-          unique.push(d)
-        }
+        if (!seen.has(d.name)) { seen.add(d.name); unique.push(d) }
       }
-
-      if (unique.length > 0) {
-        return { success: true, diseases: unique.slice(0, 3) }
-      }
+      if (unique.length > 0) return { success: true, diseases: unique.slice(0, 3) }
     }
-
     return { success: false, error: '未识别到病害，可以试试文字描述症状' }
   } catch (err) {
     console.error('病虫害诊断失败:', err)
-    return { success: false, error: '诊断服务异常' }
+    return { success: false, error: err.message || '诊断服务异常' }
   }
 }

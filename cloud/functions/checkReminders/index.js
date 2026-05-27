@@ -1,25 +1,41 @@
 // cloud/functions/checkReminders/index.js
-// 云函数：定时检查养护提醒（带鉴权）
+// 云函数：定时检查养护提醒
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+const _ = db.command
 
-exports.main = async (event, context) => {
+// 分页取全
+async function fetchAll(collection, query) {
+  const all = []; let offset = 0
+  while (true) {
+    const batch = await db.collection(collection).where(query).skip(offset).limit(100).get()
+    all.push(...batch.data)
+    if (batch.data.length < 100) break
+    offset += 100
+    if (offset >= 5000) break
+  }
+  return all
+}
+
+exports.main = async (event) => {
+  const templateId = process.env.TEMPLATE_ID
+  if (!templateId) {
+    return { success: false, error: 'TEMPLATE_ID 环境变量未配置，请在云开发控制台设置' }
+  }
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const todayTime = today.getTime()
   const tomorrowTime = todayTime + 86400000
 
   try {
-    // 查询所有到期任务
-    const { data: tasks } = await db.collection('care_tasks')
-      .where({
-        enabled: true,
-        nextDate: db.command.lte(tomorrowTime)
-      })
-      .limit(100)
-      .get()
+    // 分页查询所有到期任务（不再 limit 100 丢弃）
+    const tasks = await fetchAll('care_tasks', {
+      enabled: true,
+      nextDate: _.lte(tomorrowTime)
+    })
 
     const results = []
 
@@ -31,11 +47,6 @@ exports.main = async (event, context) => {
       if (!plant || plant.length === 0) continue
 
       try {
-        const templateId = process.env.TEMPLATE_ID || ''
-        if (!templateId || templateId.startsWith('YOUR_')) {
-          console.warn('checkReminders: 模板ID未配置，跳过发送')
-          continue
-        }
         await cloud.openapi.subscribeMessage.send({
           touser: plant[0]._openid,
           templateId,
