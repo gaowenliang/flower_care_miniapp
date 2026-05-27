@@ -200,17 +200,19 @@
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
-  align-items: center;
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: #FFF;
   border-top: 1rpx solid #F0F0F0;
-  gap: 24rpx;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+}
+
+.bottom-bar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .plant-picker {
-  flex: 1;
   display: flex;
   align-items: center;
   padding: 20rpx 24rpx;
@@ -236,8 +238,31 @@
   color: #CCC;
 }
 
+.bottom-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  background: #F5F5F5;
+  color: #666;
+  font-size: 30rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancel-btn::after {
+  border: none;
+}
+
 .import-btn {
-  min-width: 200rpx;
+  flex: 2;
   height: 88rpx;
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
   color: #FFF;

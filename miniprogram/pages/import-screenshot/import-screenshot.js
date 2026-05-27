@@ -169,6 +169,11 @@ Page({
     })
   },
 
+  // ========== 返回 ==========
+  goBack() {
+    wx.navigateBack({ delta: 1 })
+  },
+
   // ========== 选择植物 ==========
   showPlantPicker() {
     this.setData({ showPlantPicker: true })
@@ -239,7 +244,11 @@ Page({
 
     } catch (e) {
       console.error('导入失败:', e)
-      wx.showToast({ title: '导入失败，请重试', icon: 'none' })
+      const errMsg = (e.errMsg || e.message || '').toString()
+      const showMsg = errMsg.includes('不在家庭中') ? '请先加入家庭'
+        : errMsg.includes('植物不存在') ? '植物不存在，请重新选择'
+        : errMsg.length > 0 ? errMsg.slice(0, 40) : '导入失败，请重试'
+      wx.showToast({ title: showMsg, icon: 'none', duration: 3000 })
     } finally {
       this.setData({ importing: false })
     }

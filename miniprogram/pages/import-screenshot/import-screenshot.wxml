@@ -57,13 +57,16 @@
 
   <!-- 底部固定栏 -->
   <view class="bottom-bar" wx:if="{{parsedRecords.length > 0 && selectedCount > 0}}">
-    <view class="plant-picker" bindtap="showPlantPicker">
-      <text class="plant-picker-label">选择植物</text>
-      <text class="plant-picker-value">{{selectedPlant ? selectedPlant.nickname : '未选择'}}</text>
-      <text class="plant-picker-arrow">›</text>
-    </view>
-    <view class="import-btn" bindtap="confirmImport" loading="{{importing}}">
-      导入 {{selectedCount}} 条
+    <view class="bottom-bar-inner">
+      <view class="plant-picker" bindtap="showPlantPicker">
+        <text class="plant-picker-label">导入到</text>
+        <text class="plant-picker-value">{{selectedPlant ? selectedPlant.nickname : '请选择植物'}}</text>
+        <text class="plant-picker-arrow">›</text>
+      </view>
+      <view class="bottom-btns">
+        <view class="cancel-btn" bindtap="goBack">取消</view>
+        <view class="import-btn" bindtap="confirmImport">确认导入 {{selectedCount}} 条</view>
+      </view>
     </view>
   </view>
 

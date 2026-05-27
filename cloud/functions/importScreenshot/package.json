@@ -3,5 +3,7 @@
   "version": "2.0.0",
   "description": "从APP截图导入植物养护记录 - OCR + AI解析",
   "main": "index.js",
-  "dependencies": {}
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
 }
