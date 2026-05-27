@@ -40,8 +40,8 @@
 }
 .header-info { flex: 1; display: flex; flex-direction: column; text-align: left; }
 .header-name { font-size: 36rpx; font-weight: 700; color: #2D3436; }
-.header-species { font-size: 22rpx; color: #B0BEC5; font-style: italic; margin-top: 4rpx; }
-.header-location { font-size: 24rpx; color: #90A4AE; margin-top: 8rpx; }
+.header-species { font-size: 22rpx; color: #81C784; font-style: italic; margin-top: 4rpx; }
+.header-location { font-size: 24rpx; color: #A5D6A7; margin-top: 8rpx; }
 
 .header-actions { display: flex; justify-content: center; gap: 14rpx; flex-wrap: wrap; }
 .action-btn {
@@ -249,7 +249,7 @@
 
 /* 学名行 + 放大镜 */
 .species-row { display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
-.species-tag { font-size: 20rpx; background: #E8F5E9; color: #2E7D32; padding: 2rpx 10rpx; border-radius: 6rpx; }
+.species-tag { font-size: 20rpx; background: #F1F8E9; color: #558B2F; padding: 2rpx 10rpx; border-radius: 6rpx; }
 .search-icon { font-size: 28rpx; opacity: 0.6; padding: 4rpx 8rpx; }
 .search-icon:active { opacity: 1; }
 
@@ -339,3 +339,8 @@
   color: #333;
   border-bottom: 1rpx solid #eee;
 }
+
+/* 到家日期 */
+.arrival-date-row { padding: 4rpx 0 !important; }
+.arrival-label { font-size: 20rpx; margin-right: 6rpx; }
+.arrival-date-text { font-size: 22rpx; color: #81C784; flex: 1; }

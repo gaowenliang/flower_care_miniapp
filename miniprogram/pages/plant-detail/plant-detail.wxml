@@ -39,9 +39,9 @@
         </view>
         <!-- 价格信息 -->
         <!-- 到家日期 -->
-        <view class="header-price-row" bindtap="editArrivalDate">
-          <text class="price-label">📅 到家</text>
-          <text class="price-value">{{arrivalDateText}}</text>
+        <view class="header-price-row arrival-date-row" bindtap="editArrivalDate">
+          <text class="arrival-label">📅</text>
+          <text class="arrival-date-text">{{arrivalDateText}}</text>
           <text class="edit-icon-sm">✏️</text>
         </view>
         <!-- 价格信息 -->
@@ -123,8 +123,8 @@
 
   <!-- Tab -->
   <view class="tabs">
-    <view class="tab {{activeTab === 'care' ? 'active' : ''}}" bindtap="switchTab" data-tab="care">养护指南</view>
     <view class="tab {{activeTab === 'record' ? 'active' : ''}}" bindtap="switchTab" data-tab="record">养护记录</view>
+    <view class="tab {{activeTab === 'care' ? 'active' : ''}}" bindtap="switchTab" data-tab="care">养护指南</view>
     <view class="tab {{activeTab === 'tips' ? 'active' : ''}}" bindtap="switchTab" data-tab="tips">小贴士</view>
   </view>
 

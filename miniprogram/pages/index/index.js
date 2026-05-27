@@ -516,7 +516,9 @@ Page({
           })
         } catch (e) { /* 日志失败不影响主流程 */ }
         wx.showToast({ title: '已推迟到明天', icon: 'none' })
-        await this.loadFamilyData()
+        // 从列表移除，不重新加载（第二天才显示）
+        const updated = this.data.todayTasks.filter((_, i) => i !== idx)
+        this.setData({ todayTasks: updated })
       } else {
         wx.showToast({ title: result.error || '操作失败', icon: 'none' })
       }
@@ -540,7 +542,8 @@ Page({
         try { wx.setStorageSync(storage.KEYS.RECORDS, records) } catch (e) {}
       }
       wx.showToast({ title: '已推迟到明天', icon: 'none' })
-      this.onShow()
+      const updated = this.data.todayTasks.filter((_, i) => i !== idx)
+      this.setData({ todayTasks: updated })
     }
   },
 

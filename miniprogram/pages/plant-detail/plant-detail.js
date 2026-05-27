@@ -15,7 +15,7 @@ Page({
     plantInfo: null,
     tasks: [],
     records: [],
-    activeTab: 'care',
+    activeTab: 'record',
     showAddTask: false,
     newTaskType: 'water',
     newTaskInterval: 7,
