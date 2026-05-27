@@ -583,17 +583,11 @@ async function batchImportRecords(event, openid, familyId) {
     })
   }
 
-  // 批量插入（分批，每批最多50条）
+  // 逐条插入（wx-server-sdk ~2.6 不支持 db.batch）
   if (toInsert.length > 0) {
-    const BATCH_SIZE = 50
-    for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
-      const chunk = toInsert.slice(i, i + BATCH_SIZE)
-      const batch = db.batch()
-      for (const rec of chunk) {
-        batch.collection('family_records').add({ data: rec })
-      }
-      await batch.commit()
-    }
+    await Promise.all(toInsert.map(rec =>
+      db.collection('family_records').add({ data: rec })
+    ))
   }
 
   // 加分并行
