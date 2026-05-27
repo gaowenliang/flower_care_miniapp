@@ -1,6 +1,6 @@
 // cloud/functions/getWeather/index.js
 const cloud = require('wx-server-sdk')
-const http = require('http')
+const https = require('https')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const AMAP_KEY = process.env.AMAP_KEY
@@ -8,7 +8,7 @@ const AMAP_KEY = process.env.AMAP_KEY
 function httpGet(url, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => { req.destroy(); reject(new Error('请求超时')) }, timeoutMs)
-    const req = http.get(url, (res) => {
+    const req = https.get(url, (res) => {
       let data = ''
       res.on('data', chunk => data += chunk)
       res.on('end', () => { clearTimeout(timer); try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
