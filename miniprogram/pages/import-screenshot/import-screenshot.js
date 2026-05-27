@@ -217,10 +217,8 @@ Page({
         name: 'familyData',
         data: {
           action: 'batchImportRecords',
-          data: {
-            records,
-            plantId: this.data.selectedPlant._id
-          }
+          records,
+          plantId: this.data.selectedPlant._id
         }
       })
 
