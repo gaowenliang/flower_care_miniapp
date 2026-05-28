@@ -101,6 +101,7 @@ Page({
       }
 
       // 处理解析结果
+      console.log('[importScreenshot] 云函数返回:', JSON.stringify(result).slice(0, 2000))
       const records = result.records.map(r => {
         // 尝试匹配植物
         const plantMatch = this.matchPlant(r.plantName)
@@ -114,7 +115,9 @@ Page({
 
       this.setData({
         parsedRecords: records,
-        selectedCount: records.length
+        selectedCount: records.length,
+        debugText: result._version || '旧版本',
+        debugOcr: result.debug_ocr_text ? result.debug_ocr_text.slice(0, 500) : '无OCR文本'
       })
 
       // 删除云存储文件（清理临时文件）
