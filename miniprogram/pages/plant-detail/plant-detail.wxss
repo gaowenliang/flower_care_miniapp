@@ -144,10 +144,13 @@
   align-items: flex-start;
 }
 .record-delete-btn {
-  background: #e53935; color: #fff; font-size: 24rpx;
-  padding: 8rpx 20rpx; border-radius: 8rpx;
+  background: #e53935; color: #fff; font-size: 26rpx;
+  padding: 14rpx 28rpx; border-radius: 12rpx;
   margin-left: 16rpx; flex-shrink: 0;
-  align-self: center;
+  align-self: center; font-weight: 500;
+}
+.record-item.menu-active {
+  background: #FFF5F5;
 }
 .record-item:last-child { border-bottom: none; }
 .record-dot {

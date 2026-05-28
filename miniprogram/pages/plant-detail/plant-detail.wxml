@@ -157,9 +157,9 @@
       <text class="import-btn" bindtap="goImportScreenshot">📥 导入记录</text>
     </view>
     <view class="card" wx:if="{{records.length > 0}}">
-      <view class="record-item" wx:for="{{records}}" wx:key="id">
+      <view class="record-item {{item.showMenu ? 'menu-active' : ''}}" wx:for="{{records}}" wx:key="id">
         <view class="record-dot"></view>
-        <view class="record-content" bindtap="toggleRecordMenu" data-idx="{{index}}">
+        <view class="record-content" catchtap="toggleRecordMenu" data-idx="{{index}}">
           <text class="record-type">{{item.typeName}}</text>
           <text class="record-creator" wx:if="{{isFamilyMode && item.creatorNickname}}">by {{item.creatorNickname}}</text>
           <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>

@@ -346,7 +346,7 @@ exports.main = async (event) => {
   return {
     success: true,
     total: unique.length,
-    records: unique
-    // P2: 生产环境不返回 debug_ocr_text
+    records: unique,
+    debug_ocr_text: fullText  // 调试用：返回 OCR 原文
   }
 }
