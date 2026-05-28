@@ -100,6 +100,14 @@ async function ocrImage(base64) {
 
 /**
  * 纯正则解析 OCR 文本为结构化养护记录
+ *
+ * 养花助手截图 OCR 格式特征（从实际测试图集确认）：
+ *   - 年份单独一行: "2026" / "2025"
+ *   - 日期行: "5月24" / "12月03"
+ *   - 相对时间行（装饰性，可忽略）: "2天前" / "3个月前" / "1年前"
+ *   - 动作关键词在日期**前面**，持续生效直到遇到新动作
+ *   - 动作可带备注: "浇水 (延迟1天)"
+ *   - 紧凑格式: "浇水 (延迟1天)" 或 "3月15浇水"
  */
 function parseRecords(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
@@ -107,145 +115,134 @@ function parseRecords(text) {
   const now = new Date()
   let currentYear = now.getFullYear()
 
-  // 先扫描全文，找出所有年份标记（优先用最早出现的年份作为起始年份）
-  const yearMarkers = []
+  // ---- 定位数据起始行：跳过头部噪声（tab名、植物名等） ----
+  // 头部特征：第一个年份标记(2026/2025) 或 第一个月日行之前的内容
+  let dataStart = 0
   for (let i = 0; i < lines.length; i++) {
+    if (/^(20\d{2})\s*年?$/.test(lines[i])) { dataStart = i; break }
+    if (/^(\d{1,2})月(\d{1,2})日?$/.test(lines[i])) { dataStart = i; break }
+  }
+
+  // ---- 第一遍：提取结构化事件 ----
+  // 每个事件: { type: 'year'|'action'|'date', value, note, lineIdx }
+  const events = []
+  for (let i = dataStart; i < lines.length; i++) {
     const line = lines[i]
-    // 匹配: "2025" / "2025年" / "2025 年" / "2025年3月" 等
-    const yearMatch = line.match(/^(20\d{2})\s*年?/)
+
+    // 跳过相对时间行
+    if (/^\d+\s*(天|周|个月|年)前$/.test(line)) continue
+
+    // 年份
+    const yearMatch = line.match(/^(20\d{2})\s*年?$/)
     if (yearMatch) {
-      const y = parseInt(yearMatch[1])
-      yearMarkers.push({ index: i, year: y })
+      events.push({ type: 'year', value: parseInt(yearMatch[1]), lineIdx: i })
+      continue
+    }
+    const ymMatch = line.match(/^(20\d{2})\s*年(\d{1,2})月/)
+    if (ymMatch) {
+      events.push({ type: 'year', value: parseInt(ymMatch[1]), lineIdx: i })
+      continue
+    }
+
+    // 动作关键词（可带备注）
+    const actionMatch = line.match(/^(浇水|施肥|修剪|换盆|除虫|喷药|松土|扦插|播种)(?:\s*[(（](.+)[)）])?$/)
+    if (actionMatch) {
+      events.push({ type: 'action', value: actionMatch[1], note: actionMatch[2] || '', lineIdx: i })
+      continue
+    }
+    // 动作+备注变体: "浇水(延迟1天)"
+    for (const kw of ACTION_KEYWORDS) {
+      if (line.startsWith(kw + '(') || line.startsWith(kw + '（') || line.startsWith(kw + ' (')) {
+        const noteMatch = line.match(/[(（](.+)[)）]/)
+        events.push({ type: 'action', value: kw, note: noteMatch ? noteMatch[1] : '', lineIdx: i })
+        break
+      }
+    }
+    if (events.length > 0 && events[events.length - 1].type === 'action' && events[events.length - 1].lineIdx === i) continue
+
+    // 日期
+    const dateMatch = line.match(/^(\d{1,2})月(\d{1,2})日?$/)
+    if (dateMatch) {
+      const month = parseInt(dateMatch[1]); const day = parseInt(dateMatch[2])
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        events.push({ type: 'date', month, day, lineIdx: i })
+      }
+      continue
+    }
+
+    // 紧凑格式: "3月15浇水"
+    const compactMatch = line.match(/^(\d{1,2})月(\d{1,2})日?\s*(浇水|施肥|修剪|换盆|除虫|喷药)/)
+    if (compactMatch) {
+      events.push({ type: 'action', value: compactMatch[3], note: '', lineIdx: i })
+      events.push({ type: 'date', month: parseInt(compactMatch[1]), day: parseInt(compactMatch[2]), lineIdx: i })
+      continue
     }
   }
 
-  // ---- 策略0: 相对时间格式 "X天前/X个月前/X年前 + 动作" ----
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    // 匹配: "3天前" "2周前" "5个月前" "1年前" "几个月前" 等
-    const relTimeMatch = line.match(/(\d+)\s*(天|周|个月|年)前/)
-    if (!relTimeMatch) continue
+  // ---- 第二遍：关联事件生成记录 ----
+  currentYear = now.getFullYear()
+  let currentAction = null
+  // 收集紧邻日期前的动作组（支持同日多动作）
+  let pendingActions = []
 
-    const num = parseInt(relTimeMatch[1])
-    const unit = relTimeMatch[2]
-    let d = new Date(now)
+  for (const evt of events) {
+    if (evt.type === 'year') {
+      currentYear = evt.value
+      pendingActions = []
+    } else if (evt.type === 'action') {
+      // 收集动作关键词（连续出现的多个动作会分配给下一个日期）
+      pendingActions.push({ value: evt.value, note: evt.note })
+      currentAction = evt.value
+    } else if (evt.type === 'date') {
+      const date = `${currentYear}-${String(evt.month).padStart(2, '0')}-${String(evt.day).padStart(2, '0')}`
 
-    switch (unit) {
-      case '天': d.setDate(d.getDate() - num); break
-      case '周': d.setDate(d.getDate() - num * 7); break
-      case '个月': d.setMonth(d.getMonth() - num); break
-      case '年': d.setFullYear(d.getFullYear() - num); break
-    }
-
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-
-    // 在本行或下一行找动作关键词
-    const searchLines = [line]
-    if (i + 1 < lines.length) searchLines.push(lines[i + 1])
-    for (const sl of searchLines) {
-      for (const kw of ACTION_KEYWORDS) {
-        if (sl.includes(kw)) {
-          records.push({ plantName: '', action: kw, actionType: ACTION_MAP[kw], date: dateStr, note: relTimeMatch[0] })
-          break
+      if (pendingActions.length > 0) {
+        // 为每个待分配动作生成记录
+        for (const pa of pendingActions) {
+          records.push({
+            plantName: '', action: pa.value, actionType: ACTION_MAP[pa.value],
+            date, note: pa.note || ''
+          })
         }
+        pendingActions = []
+      } else if (currentAction) {
+        // 没有待分配动作，用上次动作
+        records.push({
+          plantName: '', action: currentAction, actionType: ACTION_MAP[currentAction],
+          date, note: ''
+        })
+      } else {
+        // 没有任何动作信息，默认浇水
+        records.push({
+          plantName: '', action: '浇水', actionType: 'water',
+          date, note: '自动识别'
+        })
       }
     }
   }
 
   if (records.length > 0) return records
 
-  // ---- 策略1: 列表格式（大部分截图） ----
+  // ---- 回退策略: 只找日期行，无动作时默认浇水 ----
+  currentYear = now.getFullYear()
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-
-    // 年份标记行（宽松匹配: "2025" / "2025年" / "2025 年" 等）
     const yearLineMatch = line.match(/^(20\d{2})\s*年?$/)
     if (yearLineMatch) {
       currentYear = parseInt(yearLineMatch[1])
       continue
     }
-    // 带月份的年份行: "2025年3月"
-    const yearMonthLineMatch = line.match(/^(20\d{2})\s*年(\d{1,2})月/)
-    if (yearMonthLineMatch) {
-      currentYear = parseInt(yearMonthLineMatch[1])
-      continue
-    }
-
-    // 检测月日行: "5月24" "12月03" "5月24日"
     const monthDayMatch = line.match(/^(\d{1,2})月(\d{1,2})日?$/)
     if (monthDayMatch) {
       const month = parseInt(monthDayMatch[1])
       const day = parseInt(monthDayMatch[2])
       if (month < 1 || month > 12 || day < 1 || day > 31) continue
-
-      // 向下找动作关键词（最多看3行）
-      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
-        const nextLine = lines[j]
-        if (/^\d{1,2}月\d{1,2}日?$/.test(nextLine)) break
-        if (/^(20\d{2})\s*年?$/.test(nextLine)) break
-
-        for (const kw of ACTION_KEYWORDS) {
-          if (nextLine.includes(kw)) {
-            let note = ''
-            const delayMatch = nextLine.match(/延迟(\d+天)/)
-            if (delayMatch) note = '延迟' + delayMatch[1]
-
-            const date = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-            records.push({ plantName: '', action: kw, actionType: ACTION_MAP[kw], date, note })
-            break
-          }
-        }
-      }
+      const date = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      records.push({ plantName: '', action: '浇水', actionType: 'water', date, note: '' })
     }
   }
 
-  // 策略1结束后，如果没有年份标记但有记录，用启发式修正年份
-  if (records.length > 0) {
-    if (yearMarkers.length === 0) {
-      const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
-      if (earliestMonth > now.getMonth() + 1) {
-        currentYear = now.getFullYear() - 1
-        for (const r of records) {
-          const parts = r.date.split('-')
-          r.date = `${currentYear}-${parts[1]}-${parts[2]}`
-        }
-      }
-    }
-    return records
-  }
-
-  // ---- 策略2: 紧凑格式 "月日动作" 在同一行 ----
-  for (const line of lines) {
-    const compactMatch = line.match(/(\d{1,2})月(\d{1,2})日?(浇水|施肥|修剪|换盆|除虫|喷药)/)
-    if (compactMatch) {
-      const month = parseInt(compactMatch[1])
-      const day = parseInt(compactMatch[2])
-      const kw = compactMatch[3]
-      let note = ''
-      const delayMatch = line.match(/延迟(\d+天)/)
-      if (delayMatch) note = '延迟' + delayMatch[1]
-
-      records.push({
-        plantName: '', action: kw, actionType: ACTION_MAP[kw],
-        date: `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-        note
-      })
-    }
-  }
-
-  if (records.length > 0) {
-    if (yearMarkers.length === 0) {
-      const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
-      if (earliestMonth > now.getMonth() + 1) {
-        currentYear = now.getFullYear() - 1
-        for (const r of records) {
-          const parts = r.date.split('-')
-          r.date = `${currentYear}-${parts[1]}-${parts[2]}`
-        }
-      }
-    }
-    return records
-  }
+  if (records.length > 0) return records
 
   // ---- 策略3: 日历网格格式 ----
   let plantName = ''
