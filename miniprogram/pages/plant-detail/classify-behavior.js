@@ -45,9 +45,15 @@ module.exports = Behavior({
         const latinMatch = p.latin && p.latin.toLowerCase().includes(key.toLowerCase())
         const familyMatch = p.family && p.family.includes(key)
 
-        // 种类匹配（植物名或拉丁名命中）→ 优先显示
+        // 种类匹配（植物名或拉丁名命中）→ 优先显示，携带完整植物信息
         if ((nameMatch || latinMatch) && p.family) {
-          speciesResults.push({ label: `${p.name}（${p.family}）`, family: p.family, priority: 0 })
+          speciesResults.push({
+            label: `${p.name}（${p.family}）`,
+            family: p.family,
+            priority: 0,
+            // 完整植物信息，选中时一并更新
+            _plant: { name: p.name, latin: p.latin || '', family: p.family, genus: p.genus || '', category: p.category || '' }
+          })
         }
 
         // 科名匹配
@@ -68,8 +74,24 @@ module.exports = Behavior({
     },
     selectFamily(e) {
       const item = e.currentTarget.dataset.family
-      const familyName = typeof item === 'string' ? item : item.family
-      this._updatePlantClassify({ family: familyName })
+      if (typeof item === 'string') {
+        // 科名直接设置
+        this._updatePlantClassify({ family: item })
+      } else if (item._plant) {
+        // 种类匹配 — 同时更新名称、拉丁名、科、属
+        const p = item._plant
+        const updates = {}
+        if (p.family) updates.family = p.family
+        if (p.genus) updates.genus = p.genus
+        if (p.latin) updates.latin = p.latin
+        // 如果植物名不同，更新 nickname/name
+        if (p.name && p.name !== this.data.userPlant.name) {
+          updates.name = p.name
+        }
+        this._updatePlantClassify(updates)
+      } else {
+        this._updatePlantClassify({ family: item.family })
+      }
       this.setData({ showClassifySearch: false })
     },
     confirmClassifyInput() {
@@ -163,6 +185,7 @@ module.exports = Behavior({
       if (updates.family) pi.category = updates.family
       if (updates.genus) pi.genus = updates.genus
       if (updates.latin) pi.latin = updates.latin
+      if (updates.name) pi.name = updates.name
       this.setData({ userPlant: up, plantInfo: pi })
 
       const plantId = this.data.userPlant._id || this.data.userPlant.id

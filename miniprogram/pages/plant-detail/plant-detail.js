@@ -457,46 +457,55 @@ Page({
   takePhoto() {
     const exifDate = require('../../utils/exif-date')
     wx.chooseMedia({
-      count: 1,
+      count: 9,
       mediaType: ['image'],
+      sizeType: ['compressed'],
       success: async (res) => {
-        const tempFile = res.tempFiles[0]
-        const photoUrl = await imageUtil.uploadImage(tempFile.tempFilePath)
-        if (!photoUrl) {
-          wx.showToast({ title: '图片上传失败', icon: 'none' }); return
-        }
-        // 确定日期：相机用当前时间，相册尝试读取 EXIF 拍摄日期
-        let photoDate = Date.now()
-        const isCamera = tempFile.sourceType === 'camera' || (res.sourceType && res.sourceType === 'camera')
-        if (!isCamera) {
-          const exifTs = await exifDate.getExifDate(tempFile.tempFilePath)
-          if (exifTs && exifTs > 0) photoDate = exifTs
+        const files = res.tempFiles
+        wx.showLoading({ title: '上传中...' })
+
+        for (let i = 0; i < files.length; i++) {
+          const tempFile = files[i]
+          const photoUrl = await imageUtil.uploadImage(tempFile.tempFilePath)
+          if (!photoUrl) continue
+
+          let photoDate = Date.now() + i
+          const isCamera = tempFile.sourceType === 'camera' || (res.sourceType && res.sourceType === 'camera')
+          if (!isCamera) {
+            const exifTs = await exifDate.getExifDate(tempFile.tempFilePath)
+            if (exifTs && exifTs > 0) photoDate = exifTs + i
+          }
+
+          if (this.data.isFamilyMode) {
+            await family.addRecord({
+              userPlantId: this.data.userPlant._id,
+              plantId: this.data.userPlant._id,
+              type: 'photo',
+              typeName: '拍照记录',
+              note: '',
+              photo: photoUrl,
+              date: photoDate
+            })
+          } else {
+            storage.addRecord({
+              id: util.genId() + '_' + i,
+              userPlantId: this.data.userPlant.id,
+              type: 'photo',
+              typeName: '拍照记录',
+              date: photoDate,
+              note: '',
+              photo: photoUrl
+            })
+          }
         }
 
+        wx.hideLoading()
         if (this.data.isFamilyMode) {
-          await family.addRecord({
-            userPlantId: this.data.userPlant._id,
-            plantId: this.data.userPlant._id,
-            type: 'photo',
-            typeName: '拍照记录',
-            note: '',
-            photo: photoUrl,
-            date: photoDate
-          })
           await this.loadFamilyRecords()
         } else {
-          storage.addRecord({
-            id: util.genId(),
-            userPlantId: this.data.userPlant.id,
-            type: 'photo',
-            typeName: '拍照记录',
-            date: photoDate,
-            note: '',
-            photo: photoUrl
-          })
           this.loadRecords()
         }
-        wx.showToast({ title: '已记录 📷', icon: 'none' })
+        wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
       }
     })
   },
