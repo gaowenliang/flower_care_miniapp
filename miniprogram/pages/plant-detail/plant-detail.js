@@ -464,6 +464,8 @@ Page({
         const files = res.tempFiles
         wx.showLoading({ title: '上传中...' })
 
+        let earliestPhotoDate = Infinity
+
         for (let i = 0; i < files.length; i++) {
           const tempFile = files[i]
           const photoUrl = await imageUtil.uploadImage(tempFile.tempFilePath)
@@ -475,6 +477,7 @@ Page({
             const exifTs = await exifDate.getExifDate(tempFile.tempFilePath)
             if (exifTs && exifTs > 0) photoDate = exifTs + i
           }
+          if (photoDate < earliestPhotoDate) earliestPhotoDate = photoDate
 
           if (this.data.isFamilyMode) {
             await family.addRecord({
@@ -502,8 +505,15 @@ Page({
         wx.hideLoading()
         if (this.data.isFamilyMode) {
           await this.loadFamilyRecords()
+          // 照片日期比 addedAt 更早，更新 addedAt
+          if (earliestPhotoDate < Infinity && earliestPhotoDate < (this.data.userPlant.addedAt || Infinity)) {
+            await family.updatePlant(this.data.userPlant._id, { addedAt: earliestPhotoDate })
+          }
         } else {
           this.loadRecords()
+          if (earliestPhotoDate < Infinity && earliestPhotoDate < (this.data.userPlant.addedAt || Infinity)) {
+            storage.updatePlant(this.data.userPlant.id, { addedAt: earliestPhotoDate })
+          }
         }
         wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
       }

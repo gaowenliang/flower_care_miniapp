@@ -158,6 +158,9 @@ Page({
         const files = res.tempFiles
         wx.showLoading({ title: '上传中...' })
 
+        // 找出最早的照片日期，用于更新 addedAt
+        let earliestPhotoDate = Infinity
+
         if (this.data.isFamilyMode) {
           for (let i = 0; i < files.length; i++) {
             const photoUrl = await imageUtil.uploadImage(files[i].tempFilePath)
@@ -165,6 +168,7 @@ Page({
             let photoDate = Date.now() + i
             const exifTs = await exifDate.getExifDate(files[i].tempFilePath)
             if (exifTs && exifTs > 0) photoDate = exifTs + i
+            if (photoDate < earliestPhotoDate) earliestPhotoDate = photoDate
             await family.addRecord({
               plantId: this.data.userPlant._id,
               type: 'photo',
@@ -176,6 +180,10 @@ Page({
           }
           wx.hideLoading()
           this.loadFamilyJournal()
+          // 如果照片日期比 addedAt 更早，更新 addedAt
+          if (earliestPhotoDate < Infinity && earliestPhotoDate < (this.data.userPlant.addedAt || Infinity)) {
+            await family.updatePlant(this.data.userPlant._id, { addedAt: earliestPhotoDate })
+          }
           wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
           return
         }
@@ -187,6 +195,7 @@ Page({
           let photoDate = Date.now() + index
           const exifTs = await exifDate.getExifDate(file.tempFilePath)
           if (exifTs && exifTs > 0) photoDate = exifTs + index
+          if (photoDate < earliestPhotoDate) earliestPhotoDate = photoDate
           const record = { id: util.genId() + '_' + index, userPlantId: this.data.userPlant.id, type: 'photo', typeName: '拍照记录', date: photoDate, note: '', photo: photoUrl, size: file.size }
           storage.addRecord(record)
           return record
@@ -194,6 +203,10 @@ Page({
         Promise.all(promises).then(() => {
           wx.hideLoading()
           this.loadJournal()
+          // 如果照片日期比 addedAt 更早，更新 addedAt
+          if (earliestPhotoDate < Infinity && earliestPhotoDate < (this.data.userPlant.addedAt || Infinity)) {
+            storage.updatePlant(this.data.userPlant.id, { addedAt: earliestPhotoDate })
+          }
           wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
         })
       }

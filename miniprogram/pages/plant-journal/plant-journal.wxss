@@ -124,3 +124,24 @@
   padding: 6rpx 16rpx; border-radius: 8rpx;
   flex-shrink: 0; margin-left: 16rpx;
 }
+
+/* 照片操作浮层 */
+.photo-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45); border-radius: 16rpx;
+  display: flex; align-items: center; justify-content: center; gap: 20rpx;
+  z-index: 10;
+}
+.photo-action-btn {
+  background: rgba(255,255,255,0.95); color: #333; font-size: 26rpx;
+  padding: 16rpx 28rpx; border-radius: 12rpx; font-weight: 500;
+}
+.photo-item.menu-active .photo-img { border-radius: 16rpx; }
+
+/* 备注删除按钮 */
+.note-action-btn {
+  background: #e53935; color: #fff; font-size: 22rpx;
+  padding: 8rpx 20rpx; border-radius: 8rpx;
+  flex-shrink: 0; margin-left: 16rpx;
+}
+.note-item.menu-active { background: #FFF8F0; }
