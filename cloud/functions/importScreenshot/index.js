@@ -104,15 +104,35 @@ async function ocrImage(base64) {
 function parseRecords(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   const records = []
-  let currentYear = new Date().getFullYear()
+  const now = new Date()
+  let currentYear = now.getFullYear()
+
+  // 先扫描全文，找出所有年份标记（优先用最早出现的年份作为起始年份）
+  const yearMarkers = []
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    // 匹配: "2025" / "2025年" / "2025 年" / "2025年3月" 等
+    const yearMatch = line.match(/^(20\d{2})\s*年?/)
+    if (yearMatch) {
+      const y = parseInt(yearMatch[1])
+      yearMarkers.push({ index: i, year: y })
+    }
+  }
 
   // ---- 策略1: 列表格式（大部分截图） ----
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    // 年份标记行
-    if (/^(20\d{2})$/.test(line)) {
-      currentYear = parseInt(line)
+    // 年份标记行（宽松匹配: "2025" / "2025年" / "2025 年" 等）
+    const yearLineMatch = line.match(/^(20\d{2})\s*年?$/)
+    if (yearLineMatch) {
+      currentYear = parseInt(yearLineMatch[1])
+      continue
+    }
+    // 带月份的年份行: "2025年3月"
+    const yearMonthLineMatch = line.match(/^(20\d{2})\s*年(\d{1,2})月/)
+    if (yearMonthLineMatch) {
+      currentYear = parseInt(yearMonthLineMatch[1])
       continue
     }
 
@@ -144,7 +164,21 @@ function parseRecords(text) {
     }
   }
 
-  if (records.length > 0) return records
+  // 策略1结束后，如果没有年份标记但有记录，用启发式修正年份
+  if (records.length > 0) {
+    // 如果全文没有年份标记，且最早记录的月份 > 当前月份，说明是去年的数据
+    if (yearMarkers.length === 0) {
+      const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
+      if (earliestMonth > now.getMonth() + 1) {
+        currentYear = now.getFullYear() - 1
+        for (const r of records) {
+          const parts = r.date.split('-')
+          r.date = `${currentYear}-${parts[1]}-${parts[2]}`
+        }
+      }
+    }
+    return records
+  }
 
   // ---- 策略2: 紧凑格式 "月日动作" 在同一行 ----
   for (const line of lines) {
@@ -165,7 +199,20 @@ function parseRecords(text) {
     }
   }
 
-  if (records.length > 0) return records
+  if (records.length > 0) {
+    // 同样的启发式年份修正
+    if (yearMarkers.length === 0) {
+      const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
+      if (earliestMonth > now.getMonth() + 1) {
+        currentYear = now.getFullYear() - 1
+        for (const r of records) {
+          const parts = r.date.split('-')
+          r.date = `${currentYear}-${parts[1]}-${parts[2]}`
+        }
+      }
+    }
+    return records
+  }
 
   // ---- 策略3: 日历网格格式 ----
   let plantName = ''
