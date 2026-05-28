@@ -251,5 +251,7 @@ Page({
     } finally {
       this.setData({ importing: false })
     }
-  }
+  },
+
+  preventBubble() {}
 })

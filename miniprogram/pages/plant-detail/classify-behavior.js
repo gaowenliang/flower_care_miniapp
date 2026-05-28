@@ -47,7 +47,7 @@ module.exports = Behavior({
 
         // 种类匹配（植物名或拉丁名命中）→ 优先显示
         if ((nameMatch || latinMatch) && p.family) {
-          speciesResults.push({ label: `${p.name} → ${p.family}`, family: p.family, priority: 0 })
+          speciesResults.push({ label: `${p.name}（${p.family}）`, family: p.family, priority: 0 })
         }
 
         // 科名匹配

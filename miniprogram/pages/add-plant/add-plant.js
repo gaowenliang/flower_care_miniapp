@@ -49,7 +49,10 @@ Page({
       categories: plantsData.categories,
       filteredPlants: plantsData.plants
     })
-    // 从识花页跳回来的
+  },
+
+  onShow() {
+    // 从识花页跳回来的（switchTab后onLoad不会重新执行，在onShow处理）
     const identified = wx.getStorageSync('identifiedPlant')
     if (identified) {
       wx.removeStorageSync('identifiedPlant')
@@ -57,7 +60,6 @@ Page({
       if (match) {
         this.setData({ selectedPlant: match, showModal: true, nickName: '', location: '阳台', waterDays: match.care.waterDays, price: '', purchaseDate: '', purchaseSource: '' })
       } else {
-        // 识花结果不在数据库，走自定义（带AI识别的科属信息）
         this.setData({
           showCustomModal: true,
           customName: identified.name,
@@ -70,9 +72,7 @@ Page({
         })
       }
     }
-  },
 
-  onShow() {
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
     const presetRooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']

@@ -197,5 +197,6 @@ Page({
     wx.showToast({ title: '已保存', icon: 'none' })
   },
 
-  hideEnvModal() { this.setData({ showEnvModal: false }) }
+  hideEnvModal() { this.setData({ showEnvModal: false }) },
+  preventBubble() {}
 })

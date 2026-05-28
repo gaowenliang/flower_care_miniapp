@@ -72,7 +72,7 @@
 
   <!-- 植物选择器 -->
   <view class="modal-mask" wx:if="{{showPlantPicker}}" bindtap="hidePlantPicker">
-    <view class="modal-content plant-picker-modal" catchtap="">
+    <view class="modal-content plant-picker-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">选择植物</text>
       </view>

@@ -28,7 +28,7 @@
 
   <!-- 重命名弹窗 -->
   <view class="modal-mask" wx:if="{{showRenameModal}}" bindtap="hideRename">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">修改房间名</view>
       <input class="modal-input" placeholder="输入新名称" maxlength="6" value="{{renameInput}}" bindinput="onRenameInput" focus="{{showRenameModal}}" />
       <view class="modal-btns">
@@ -40,7 +40,7 @@
 
   <!-- 添加弹窗 -->
   <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="hideAdd">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">添加房间</view>
       <input class="modal-input" placeholder="输入房间名称，如：厨房、走廊..." maxlength="6" value="{{newRoomName}}" bindinput="onNameInput" focus="{{showAddModal}}" />
       <view class="modal-btns">

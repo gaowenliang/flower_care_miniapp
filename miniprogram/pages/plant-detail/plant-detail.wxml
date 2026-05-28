@@ -192,7 +192,7 @@
 
   <!-- 添加任务弹窗 -->
   <view class="modal-mask" wx:if="{{showAddTask}}" bindtap="hideAddTaskModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">添加养护任务</text>
       </view>
@@ -221,7 +221,7 @@
 
   <!-- 分类操作菜单 -->
   <view class="modal-mask" wx:if="{{showClassifyAction}}" bindtap="hideClassifyMenu">
-    <view class="action-sheet" catchtap="">
+    <view class="action-sheet" catchtap="preventBubble">
       <view class="action-item" bindtap="openClassifySearch">📝 填写分类</view>
       <view class="action-item" bindtap="identifyAvatar">🤖 AI识别 - 头像</view>
       <view class="action-item" bindtap="identifyPhoto">📷 AI识别 - 照片</view>
@@ -231,7 +231,7 @@
 
   <!-- 填写分类搜索 -->
   <view class="classify-mask" wx:if="{{showClassifySearch}}" bindtap="hideClassifySearch">
-    <view class="classify-sheet" catchtap="">
+    <view class="classify-sheet" catchtap="preventBubble">
       <view class="classify-sheet-header">
         <text class="classify-sheet-title">📝 填写分类</text>
         <view class="classify-sheet-close" bindtap="hideClassifySearch">✕</view>

@@ -50,7 +50,7 @@ Page({
       image: plant.image || ''
     }
     wx.setStorageSync('identifiedPlant', info)
-    wx.navigateTo({ url: '/pages/add-plant/add-plant' })
+    wx.switchTab({ url: '/pages/add-plant/add-plant' })
   },
 
   retry() {
