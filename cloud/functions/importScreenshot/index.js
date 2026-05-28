@@ -190,9 +190,14 @@ function parseRecords(text) {
   }
 
   // ---- 第二遍：关联事件生成记录 ----
-  currentYear = now.getFullYear()
+  // 如果预扫描没找到年份，且第一个事件是 year 类型，用它的值
+  // 否则用 now.getFullYear()
+  if (events.length > 0 && events[0].type === 'year') {
+    currentYear = events[0].value
+  } else {
+    currentYear = now.getFullYear()
+  }
   let currentAction = null
-  // 收集紧邻日期前的动作组（支持同日多动作）
   let pendingActions = []
 
   for (const evt of events) {
@@ -200,7 +205,6 @@ function parseRecords(text) {
       currentYear = evt.value
       pendingActions = []
     } else if (evt.type === 'action') {
-      // 收集动作关键词（连续出现的多个动作会分配给下一个日期）
       pendingActions.push({ value: evt.value, note: evt.note })
       currentAction = evt.value
     } else if (evt.type === 'date') {
@@ -228,6 +232,23 @@ function parseRecords(text) {
           date, note: '自动识别'
         })
       }
+    }
+  }
+
+  // 启发式跨年推断：如果 events 里没有 year 类型事件
+  const hasYearEvents = events.some(e => e.type === 'year')
+  if (!hasYearEvents && records.length > 1) {
+    // 截图 OCR 文本是倒序的（最新在上），所以月份从小跳到大（如2月→12月）说明跨年
+    let year = currentYear
+    for (let i = 1; i < records.length; i++) {
+      const prevMonth = parseInt(records[i - 1].date.split('-')[1])
+      const curMonth = parseInt(records[i].date.split('-')[1])
+      // 月份从小跳到大（<=6月→>=7月），说明进入了上一年
+      if (prevMonth <= 6 && curMonth >= 7) {
+        year--
+      }
+      const day = records[i].date.split('-')[2]
+      records[i].date = `${year}-${String(curMonth).padStart(2, '0')}-${day}`
     }
   }
 
