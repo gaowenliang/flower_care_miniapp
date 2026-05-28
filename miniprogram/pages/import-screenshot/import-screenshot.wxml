@@ -53,9 +53,7 @@
     <view class="selected-count" wx:if="{{selectedCount > 0}}">
       已选择 {{selectedCount}} 条
     </view>
-    <view class="debug-info" wx:if="{{debugText}}" style="padding:16rpx;font-size:22rpx;color:#999;border-top:1rpx solid #eee;margin-top:16rpx">
-      <text>版本: {{debugText}}</text>
-    </view>
+
   </view>
 
   <!-- 底部固定栏 -->

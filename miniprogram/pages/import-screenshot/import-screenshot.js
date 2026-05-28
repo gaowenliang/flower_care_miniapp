@@ -115,9 +115,23 @@ Page({
 
       this.setData({
         parsedRecords: records,
-        selectedCount: records.length,
-        debugText: result._version || '旧版本',
-        debugOcr: result.debug_ocr_text ? result.debug_ocr_text.slice(0, 500) : '无OCR文本'
+        selectedCount: records.length
+      })
+
+      // 调试信息弹窗
+      const ver = result._version || '旧版本(未更新)'
+      const ocrPreview = (result.debug_ocr_text || '').slice(0, 300).replace(/\n/g, ' | ')
+      console.log('[importScreenshot] 版本:', ver)
+      console.log('[importScreenshot] OCR原文:', result.debug_ocr_text)
+      console.log('[importScreenshot] records数量:', records.length)
+      if (records.length > 0) {
+        console.log('[importScreenshot] 第一条:', JSON.stringify(records[0]))
+        console.log('[importScreenshot] 最后一条:', JSON.stringify(records[records.length - 1]))
+      }
+      wx.showModal({
+        title: '解析完成',
+        content: `版本: ${ver}\n记录数: ${records.length}\n\nOCR前300字:\n${ocrPreview}`,
+        confirmText: '确定'
       })
 
       // 删除云存储文件（清理临时文件）
