@@ -57,6 +57,7 @@ Page({
     const sorted = (records || []).sort((a, b) => b.date - a.date)
     const grouped = {}
     sorted.forEach(record => {
+      record.id = record._id || record.id  // 兼容家庭模式
       const dateStr = util.formatDate(record.date)
       if (!grouped[dateStr]) {
         grouped[dateStr] = { date: dateStr, maxTs: record.date, dateLabel: this.getDateLabel(record.date), weekday: this.getWeekday(record.date), photos: [], notes: [] }

@@ -164,6 +164,7 @@ Page({
     const records = await family.getRecords(this.data.userPlant._id, 20)
     const processedRecords = (records || []).map(r => ({
       ...r,
+      id: r._id || r.id,
       dateText: util.formatDate(r.date),
       timeAgo: util.timeAgo(r.date)
     }))

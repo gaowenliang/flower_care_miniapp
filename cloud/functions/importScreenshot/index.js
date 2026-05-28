@@ -115,8 +115,19 @@ function parseRecords(text) {
   const now = new Date()
   let currentYear = now.getFullYear()
 
-  // ---- 定位数据起始行：跳过头部噪声（tab名、植物名等） ----
-  // 头部特征：第一个年份标记(2026/2025) 或 第一个月日行之前的内容
+  // ---- 预扫描：全文扫描年份标记 ----
+  for (const line of lines) {
+    // 独立年份行: "2026" / "2025年"
+    const standalone = line.match(/^(20\d{2})\s*年?$/)
+    if (standalone) { /* 在主循环处理 */ break }
+    // 行内年份: "2025年5月" / "2025-03" / "2025/5"
+    const inline = line.match(/^(20\d{2})[年\-\/]/)
+    if (inline) { currentYear = parseInt(inline[1]); break }
+    // 遇到第一个月日行就停止预扫描
+    if (/^(\d{1,2})月(\d{1,2})日?$/.test(line)) break
+  }
+
+  // ---- 定位数据起始行 ----
   let dataStart = 0
   for (let i = 0; i < lines.length; i++) {
     if (/^(20\d{2})\s*年?$/.test(lines[i])) { dataStart = i; break }
