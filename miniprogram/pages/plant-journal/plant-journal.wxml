@@ -42,24 +42,25 @@
       <!-- 照片网格 -->
       <view class="photo-grid" wx:if="{{item.photos.length > 0}}">
         <view class="photo-item" wx:for="{{item.photos}}" wx:for-item="photo" wx:key="id"
-              bindtap="previewImage" data-url="{{photo.photo}}"
-              bindlongpress="deleteRecord" data-id="{{photo.id}}">
+              bindtap="toggleJournalMenu" data-id="{{photo.id}}">
           <image class="photo-img" src="{{photo.photo}}" lazy-load mode="aspectFill" />
           <view class="photo-time">
             <text>{{photo.time}}</text>
           </view>
+          <view class="photo-delete-btn" wx:if="{{photo.showMenu}}" catchtap="deleteRecord" data-id="{{photo.id}}">删除</view>
         </view>
       </view>
 
       <!-- 当日备注 -->
       <view class="note-list" wx:if="{{item.notes.length > 0}}">
         <view class="note-item" wx:for="{{item.notes}}" wx:for-item="note" wx:key="id"
-              bindlongpress="deleteRecord" data-id="{{note.id}}">
+              bindtap="toggleJournalMenu" data-id="{{note.id}}">
           <text class="note-icon">📝</text>
           <view class="note-content">
             <text class="note-text">{{note.note}}</text>
             <text class="note-time">{{note.time}}</text>
           </view>
+          <view class="note-delete-btn" wx:if="{{note.showMenu}}" catchtap="deleteRecord" data-id="{{note.id}}">删除</view>
         </view>
       </view>
     </view>

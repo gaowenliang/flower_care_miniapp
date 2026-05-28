@@ -230,7 +230,23 @@ Page({
     this.setData({ showPreview: false })
   },
 
-  // 长按删除
+  // 长按删除 → 改为点击展开菜单
+  toggleJournalMenu(e) {
+    const targetId = e.currentTarget.dataset.id
+    const journal = this.data.journal.map(group => ({
+      ...group,
+      photos: group.photos.map(p => ({
+        ...p,
+        showMenu: p.id === targetId ? !p.showMenu : false
+      })),
+      notes: group.notes.map(n => ({
+        ...n,
+        showMenu: n.id === targetId ? !n.showMenu : false
+      }))
+    }))
+    this.setData({ journal })
+  },
+
   async deleteRecord(e) {
     const recordId = e.currentTarget.dataset.id
     wx.showModal({

@@ -107,3 +107,20 @@
 .compare-label { display: block; font-size: 24rpx; font-weight: 600; color: #2D3436; margin-top: 8rpx; }
 .compare-date { display: block; font-size: 20rpx; color: #90A4AE; }
 
+
+/* 照片删除按钮 */
+.photo-item { position: relative; }
+.photo-delete-btn {
+  position: absolute; bottom: 16rpx; right: 16rpx;
+  background: #e53935; color: #fff; font-size: 22rpx;
+  padding: 6rpx 16rpx; border-radius: 8rpx;
+  z-index: 10;
+}
+
+/* 备注删除按钮 */
+.note-item { position: relative; align-items: center; }
+.note-delete-btn {
+  background: #e53935; color: #fff; font-size: 22rpx;
+  padding: 6rpx 16rpx; border-radius: 8rpx;
+  flex-shrink: 0; margin-left: 16rpx;
+}
