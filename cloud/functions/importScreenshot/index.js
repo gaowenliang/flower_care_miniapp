@@ -135,7 +135,7 @@ function parseRecords(text) {
   }
 
   // ---- 第一遍：提取结构化事件 ----
-  // 每个事件: { type: 'year'|'action'|'date', value, note, lineIdx }
+  // 只做分类：year / action / date，不做去重
   const events = []
   for (let i = dataStart; i < lines.length; i++) {
     const line = lines[i]
@@ -146,37 +146,36 @@ function parseRecords(text) {
     // 年份
     const yearMatch = line.match(/^(20\d{2})\s*年?$/)
     if (yearMatch) {
-      events.push({ type: 'year', value: parseInt(yearMatch[1]), lineIdx: i })
+      events.push({ type: 'year', value: parseInt(yearMatch[1]) })
       continue
     }
     const ymMatch = line.match(/^(20\d{2})\s*年(\d{1,2})月/)
     if (ymMatch) {
-      events.push({ type: 'year', value: parseInt(ymMatch[1]), lineIdx: i })
+      events.push({ type: 'year', value: parseInt(ymMatch[1]) })
       continue
     }
 
     // 动作关键词（可带备注）
     const actionMatch = line.match(/^(浇水|施肥|修剪|换盆|除虫|喷药|松土|扦插|播种)(?:\s*[(（](.+)[)）])?$/)
     if (actionMatch) {
-      events.push({ type: 'action', value: actionMatch[1], note: actionMatch[2] || '', lineIdx: i })
+      events.push({ type: 'action', value: actionMatch[1], note: actionMatch[2] || '' })
       continue
     }
     // 动作+备注变体: "浇水(延迟1天)"
     for (const kw of ACTION_KEYWORDS) {
       if (line.startsWith(kw + '(') || line.startsWith(kw + '（') || line.startsWith(kw + ' (')) {
         const noteMatch = line.match(/[(（](.+)[)）]/)
-        events.push({ type: 'action', value: kw, note: noteMatch ? noteMatch[1] : '', lineIdx: i })
+        events.push({ type: 'action', value: kw, note: noteMatch ? noteMatch[1] : '' })
         break
       }
     }
-    if (events.length > 0 && events[events.length - 1].type === 'action' && events[events.length - 1].lineIdx === i) continue
 
     // 日期
     const dateMatch = line.match(/^(\d{1,2})月(\d{1,2})日?$/)
     if (dateMatch) {
       const month = parseInt(dateMatch[1]); const day = parseInt(dateMatch[2])
       if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-        events.push({ type: 'date', month, day, lineIdx: i })
+        events.push({ type: 'date', month, day })
       }
       continue
     }
