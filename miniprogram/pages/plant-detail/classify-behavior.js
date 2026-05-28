@@ -33,18 +33,43 @@ module.exports = Behavior({
       this.setData({ classifySearchKey: key })
       if (!key) { this.setData({ classifySearchResults: [] }); return }
       const allPlants = require('../../data/plants').plants
-      const families = new Set()
+
+      // 搜索结果：同时匹配科名和种类名（植物名）
+      // 格式: { label, family, priority }
+      const speciesResults = []  // 种类匹配（优先）
+      const familyResults = []   // 科名匹配
+      const seenFamilies = new Set()
+
       allPlants.forEach(p => {
-        if (p.family && (p.family.includes(key) || p.name.includes(key) || (p.latin || '').toLowerCase().includes(key.toLowerCase()))) {
-          families.add(p.family)
+        const nameMatch = p.name && p.name.includes(key)
+        const latinMatch = p.latin && p.latin.toLowerCase().includes(key.toLowerCase())
+        const familyMatch = p.family && p.family.includes(key)
+
+        // 种类匹配（植物名或拉丁名命中）→ 优先显示
+        if ((nameMatch || latinMatch) && p.family) {
+          speciesResults.push({ label: `${p.name} → ${p.family}`, family: p.family, priority: 0 })
+        }
+
+        // 科名匹配
+        if (familyMatch && !seenFamilies.has(p.family)) {
+          seenFamilies.add(p.family)
+          familyResults.push({ label: p.family, family: p.family, priority: 1 })
         }
       })
-      if (key.endsWith('科')) families.add(key)
-      this.setData({ classifySearchResults: [...families].slice(0, 10) })
+
+      // 手动输入也加入（如用户输入"百合科"）
+      if (key.endsWith('科') && !seenFamilies.has(key)) {
+        familyResults.push({ label: key, family: key, priority: 1 })
+      }
+
+      // 种类优先，然后科名
+      const merged = [...speciesResults, ...familyResults].slice(0, 10)
+      this.setData({ classifySearchResults: merged })
     },
     selectFamily(e) {
-      const f = e.currentTarget.dataset.family
-      this._updatePlantClassify({ family: f })
+      const item = e.currentTarget.dataset.family
+      const familyName = typeof item === 'string' ? item : item.family
+      this._updatePlantClassify({ family: familyName })
       this.setData({ showClassifySearch: false })
     },
     confirmClassifyInput() {

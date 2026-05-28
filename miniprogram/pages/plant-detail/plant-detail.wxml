@@ -240,9 +240,9 @@
         <input class="classify-input" placeholder="搜索或输入科名，如：百合科" value="{{classifySearchKey}}" bindinput="onClassifySearchInput" focus="{{showClassifySearch}}" />
       </view>
       <view class="classify-results" wx:if="{{classifySearchResults.length > 0}}">
-        <view class="classify-result-item" wx:for="{{classifySearchResults}}" wx:key="*this" bindtap="selectFamily" data-family="{{item}}">
+        <view class="classify-result-item" wx:for="{{classifySearchResults}}" wx:key="label" bindtap="selectFamily" data-family="{{item}}">
           <text class="classify-result-icon">🌿</text>
-          <text class="classify-result-text">{{item}}</text>
+          <text class="classify-result-text">{{item.label}}</text>
         </view>
       </view>
       <view class="classify-no-result" wx:elif="{{classifySearchKey.length > 0}}">
