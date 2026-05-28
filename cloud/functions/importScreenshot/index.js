@@ -119,6 +119,41 @@ function parseRecords(text) {
     }
   }
 
+  // ---- 策略0: 相对时间格式 "X天前/X个月前/X年前 + 动作" ----
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    // 匹配: "3天前" "2周前" "5个月前" "1年前" "几个月前" 等
+    const relTimeMatch = line.match(/(\d+)\s*(天|周|个月|年)前/)
+    if (!relTimeMatch) continue
+
+    const num = parseInt(relTimeMatch[1])
+    const unit = relTimeMatch[2]
+    let d = new Date(now)
+
+    switch (unit) {
+      case '天': d.setDate(d.getDate() - num); break
+      case '周': d.setDate(d.getDate() - num * 7); break
+      case '个月': d.setMonth(d.getMonth() - num); break
+      case '年': d.setFullYear(d.getFullYear() - num); break
+    }
+
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+    // 在本行或下一行找动作关键词
+    const searchLines = [line]
+    if (i + 1 < lines.length) searchLines.push(lines[i + 1])
+    for (const sl of searchLines) {
+      for (const kw of ACTION_KEYWORDS) {
+        if (sl.includes(kw)) {
+          records.push({ plantName: '', action: kw, actionType: ACTION_MAP[kw], date: dateStr, note: relTimeMatch[0] })
+          break
+        }
+      }
+    }
+  }
+
+  if (records.length > 0) return records
+
   // ---- 策略1: 列表格式（大部分截图） ----
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -136,8 +171,8 @@ function parseRecords(text) {
       continue
     }
 
-    // 检测月日行: "5月24" "12月03"
-    const monthDayMatch = line.match(/^(\d{1,2})月(\d{1,2})$/)
+    // 检测月日行: "5月24" "12月03" "5月24日"
+    const monthDayMatch = line.match(/^(\d{1,2})月(\d{1,2})日?$/)
     if (monthDayMatch) {
       const month = parseInt(monthDayMatch[1])
       const day = parseInt(monthDayMatch[2])
@@ -146,8 +181,8 @@ function parseRecords(text) {
       // 向下找动作关键词（最多看3行）
       for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
         const nextLine = lines[j]
-        if (/^\d{1,2}月\d{1,2}$/.test(nextLine)) break
-        if (/^(20\d{2})$/.test(nextLine)) break
+        if (/^\d{1,2}月\d{1,2}日?$/.test(nextLine)) break
+        if (/^(20\d{2})\s*年?$/.test(nextLine)) break
 
         for (const kw of ACTION_KEYWORDS) {
           if (nextLine.includes(kw)) {
@@ -166,7 +201,6 @@ function parseRecords(text) {
 
   // 策略1结束后，如果没有年份标记但有记录，用启发式修正年份
   if (records.length > 0) {
-    // 如果全文没有年份标记，且最早记录的月份 > 当前月份，说明是去年的数据
     if (yearMarkers.length === 0) {
       const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
       if (earliestMonth > now.getMonth() + 1) {
@@ -182,7 +216,7 @@ function parseRecords(text) {
 
   // ---- 策略2: 紧凑格式 "月日动作" 在同一行 ----
   for (const line of lines) {
-    const compactMatch = line.match(/(\d{1,2})月(\d{1,2})(浇水|施肥|修剪|换盆|除虫|喷药)/)
+    const compactMatch = line.match(/(\d{1,2})月(\d{1,2})日?(浇水|施肥|修剪|换盆|除虫|喷药)/)
     if (compactMatch) {
       const month = parseInt(compactMatch[1])
       const day = parseInt(compactMatch[2])
@@ -200,7 +234,6 @@ function parseRecords(text) {
   }
 
   if (records.length > 0) {
-    // 同样的启发式年份修正
     if (yearMarkers.length === 0) {
       const earliestMonth = Math.min(...records.map(r => parseInt(r.date.split('-')[1])))
       if (earliestMonth > now.getMonth() + 1) {
