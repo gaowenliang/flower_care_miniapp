@@ -261,7 +261,8 @@ Page({
   },
 
   async deleteRecord(e) {
-    const recordId = e.currentTarget.dataset.id
+    // 兼容家庭模式(_id)和个人模式(id)
+    const recordId = e.currentTarget.dataset.id || e.currentTarget.dataset._id
     wx.showModal({
       title: '删除记录', content: '确定删除这条记录吗？', confirmColor: '#2E7D32',
       success: async (res) => {

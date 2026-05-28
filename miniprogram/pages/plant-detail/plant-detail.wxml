@@ -165,7 +165,7 @@
           <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
           <text class="record-time">{{item.timeAgo}} · {{item.dateText}}</text>
         </view>
-        <view class="record-delete-btn" wx:if="{{item.showMenu}}" catchtap="deleteRecord" data-id="{{item.id}}" data-idx="{{index}}">删除</view>
+        <view class="record-delete-btn" wx:if="{{item.showMenu}}" catchtap="deleteRecord" data-id="{{item._id || item.id}}" data-idx="{{index}}">删除</view>
       </view>
     </view>
     <view class="card empty-hint" wx:else>

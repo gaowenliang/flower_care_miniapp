@@ -886,6 +886,9 @@ Page({
     const record = this.data.records[idx]
     if (!record) return
 
+    // 兼容家庭模式(_id)和个人模式(id)
+    const recordId = id || record._id || record.id
+
     wx.showModal({
       title: '删除记录',
       content: `确定删除「${record.typeName}」记录？`,
@@ -893,13 +896,13 @@ Page({
       success: async (res) => {
         if (!res.confirm) return
         if (this.data.isFamilyMode) {
-          const result = await family.deleteRecord(id)
+          const result = await family.deleteRecord(recordId)
           if (!result.success) {
             wx.showToast({ title: result.error || '删除失败', icon: 'none' })
             return
           }
         } else {
-          storage.deleteRecord(id)
+          storage.deleteRecord(recordId)
         }
         const records = this.data.records.filter((_, i) => i !== idx)
         this.setData({ records })

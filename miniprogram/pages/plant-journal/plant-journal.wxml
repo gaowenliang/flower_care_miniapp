@@ -42,10 +42,10 @@
       <!-- 照片网格 -->
       <view class="photo-grid" wx:if="{{item.photos.length > 0}}">
         <view class="photo-item {{photo.showMenu ? 'menu-active' : ''}}" wx:for="{{item.photos}}" wx:for-item="photo" wx:key="id"
-              catchtap="toggleJournalMenu" data-id="{{photo.id}}">
+              catchtap="toggleJournalMenu" data-id="{{photo._id || photo.id}}">
           <image class="photo-img" src="{{photo.photo}}" lazy-load mode="aspectFill" />
           <view class="photo-overlay" wx:if="{{photo.showMenu}}">
-            <view class="photo-action-btn" catchtap="deleteRecord" data-id="{{photo.id}}">🗑️ 删除</view>
+            <view class="photo-action-btn" catchtap="deleteRecord" data-id="{{photo._id || photo.id}}">🗑️ 删除</view>
             <view class="photo-action-btn" catchtap="previewImage" data-url="{{photo.photo}}">🔍 查看</view>
           </view>
           <view class="photo-time">
@@ -57,13 +57,13 @@
       <!-- 当日备注 -->
       <view class="note-list" wx:if="{{item.notes.length > 0}}">
         <view class="note-item {{note.showMenu ? 'menu-active' : ''}}" wx:for="{{item.notes}}" wx:for-item="note" wx:key="id"
-              catchtap="toggleJournalMenu" data-id="{{note.id}}">
+              catchtap="toggleJournalMenu" data-id="{{note._id || note.id}}">
           <text class="note-icon">📝</text>
           <view class="note-content">
             <text class="note-text">{{note.note}}</text>
             <text class="note-time">{{note.time}}</text>
           </view>
-          <view class="note-action-btn" wx:if="{{note.showMenu}}" catchtap="deleteRecord" data-id="{{note.id}}">删除</view>
+          <view class="note-action-btn" wx:if="{{note.showMenu}}" catchtap="deleteRecord" data-id="{{note._id || note.id}}">删除</view>
         </view>
       </view>
     </view>
