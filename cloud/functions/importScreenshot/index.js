@@ -378,6 +378,7 @@ exports.main = async (event) => {
     success: true,
     total: unique.length,
     records: unique,
-    debug_ocr_text: fullText  // 调试用：返回 OCR 原文
+    debug_ocr_text: fullText,
+    _version: '2026-05-29-v3'  // 版本标记，确认是最新代码
   }
 }
