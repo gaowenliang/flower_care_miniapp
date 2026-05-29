@@ -139,38 +139,40 @@
   padding: 10rpx 24rpx; border-radius: 44rpx;
 }
 /* 日历热力图 */
-.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0 12rpx; }
-.cal-nav-btn { font-size: 28rpx; color: #4CAF50; padding: 8rpx 20rpx; }
-.cal-month-label { font-size: 28rpx; font-weight: 600; color: #2D3436; }
-.cal-header { display: flex; margin-bottom: 8rpx; }
-.cal-weekday { flex: 1; text-align: center; font-size: 22rpx; color: #90A4AE; }
-.cal-grid { /* container */ }
-.cal-week { display: flex; }
 .cal-cell {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 8rpx 0; margin: 2rpx; border-radius: 10rpx;
-  min-height: 64rpx; position: relative;
+  width: 14.28%; display: flex; flex-direction: column; align-items: center;
+  height: 80rpx; justify-content: center; position: relative;
 }
-.cal-cell.empty { opacity: 0; }
-.cal-cell.today { background: #E8F5E9; }
-.cal-cell.future { opacity: 0.35; }
-.cal-cell.menu-active { background: #E3F2FD; }
-.cal-day { font-size: 20rpx; color: #B0BEC5; line-height: 1; }
-.cal-cell.today .cal-day { color: #4CAF50; font-weight: 600; }
-.cal-icons { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 2rpx; }
-.cal-icon { font-size: 18rpx; line-height: 1; }
-.cal-members { display: flex; justify-content: center; gap: 4rpx; margin-top: 2rpx; }
-.cal-member-dot { width: 8rpx; height: 8rpx; border-radius: 50%; }
-/* 选中详情 */
-.cal-detail { margin-top: 16rpx; padding-top: 16rpx; border-top: 1rpx solid #F0F2F0; }
-.cal-detail-date { font-size: 24rpx; color: #90A4AE; margin-bottom: 8rpx; display: block; }
-.cal-detail-item { display: flex; align-items: center; padding: 8rpx 0; gap: 10rpx; }
-.cal-detail-emoji { font-size: 28rpx; }
-.cal-detail-info { flex: 1; display: flex; flex-direction: column; }
-.cal-detail-name { font-size: 26rpx; color: #2D3436; font-weight: 500; }
-.cal-detail-note { font-size: 22rpx; color: #90A4AE; }
-.cal-detail-creator { font-size: 22rpx; color: #4CAF50; background: #E8F5E9; padding: 2rpx 10rpx; border-radius: 8rpx; }
-.cal-detail-del { font-size: 24rpx; color: #B0BEC5; padding: 4rpx 12rpx; }
+
+/* 时间线样式 */
+.tl { }
+.tl-month {
+  font-size: 26rpx; font-weight: 600; color: #4CAF50;
+  padding: 20rpx 0 8rpx; border-bottom: 1rpx solid #E8F5E9;
+  margin-bottom: 12rpx;
+}
+.tl-month:first-child { padding-top: 4rpx; }
+.tl-day { margin-bottom: 16rpx; }
+.tl-day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4rpx 0 8rpx;
+}
+.tl-day-label { font-size: 24rpx; color: #78909C; font-weight: 500; }
+.tl-day-label.today { color: #4CAF50; font-weight: 600; }
+.tl-day-count { font-size: 20rpx; color: #B0BEC5; }
+.tl-capsules { display: flex; flex-wrap: wrap; gap: 10rpx; }
+.capsule {
+  display: inline-flex; align-items: center; gap: 6rpx;
+  background: #F1F8E9; border-radius: 24rpx;
+  padding: 8rpx 16rpx; font-size: 24rpx;
+  border: 1rpx solid #E8F5E9;
+}
+.capsule-emoji { font-size: 22rpx; }
+.capsule-name { color: #2E7D32; font-weight: 500; }
+.capsule-note { color: #90A4AE; font-size: 20rpx; max-width: 200rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.capsule-creator { color: #4CAF50; font-size: 20rpx; background: #E8F5E9; padding: 2rpx 8rpx; border-radius: 8rpx; }
+.capsule-del { color: #B0BEC5; font-size: 22rpx; padding: 2rpx 8rpx; }
+.tl-empty { text-align: center; padding: 40rpx 0; color: #B0BEC5; font-size: 26rpx; }
 .tip-item { display: flex; padding: 14rpx 0; border-bottom: 1rpx solid #F0F2F0; }
 .tip-item:last-child { border-bottom: none; }
 .tip-bullet { margin-right: 12rpx; font-size: 28rpx; }

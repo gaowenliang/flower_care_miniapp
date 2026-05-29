@@ -16,14 +16,8 @@ Page({
     tasks: [],
     records: [],
     activeTab: 'record',
-    // 日历热力图
-    calWeekdays: ['一', '二', '三', '四', '五', '六', '日'],
-    calYear: new Date().getFullYear(),
-    calMonth: new Date().getMonth(),
-    calMonthLabel: '',
-    calWeeks: [],
-    calSelectedDate: '',
-    calSelectedRecords: [],
+    // 养护记录时间线
+    recordTimeline: [],
     showAddTask: false,
     newTaskType: 'water',
     newTaskInterval: 7,
@@ -208,108 +202,53 @@ Page({
     if (e.currentTarget.dataset.tab === 'record') this.buildCalendar()
   },
 
-  // ========== 日历热力图 ==========
+  // ========== 养护记录时间线（胶囊） ==========
   buildCalendar() {
-    const { calYear, calMonth, records, taskTypes, isFamilyMode } = this.data
-    const y = calYear, m = calMonth
-    const monthLabel = `${y}年${m + 1}月`
+    const { records, taskTypes } = this.data
 
     // 动作 emoji 映射
     const typeMap = {}
     ;(taskTypes || []).forEach(t => { typeMap[t.id] = t.emoji })
 
-    // 家庭成员颜色池
-    const memberColorPool = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#C9B1FF']
-    const memberColorMap = {}
-    let colorIdx = 0
-
-    // 按日期索引记录
-    const dateMap = {}
+    // 按日期分组
+    const dayMap = new Map()
     records.forEach((r, idx) => {
       const d = new Date(r.date)
-      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
-      if (!dateMap[key]) dateMap[key] = []
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      if (!dayMap.has(key)) dayMap.set(key, [])
       const emoji = typeMap[r.taskType || r.actionType] || '💧'
-      const creatorId = r.creatorId || r.creatorOpenId || ''
-      if (creatorId && !(creatorId in memberColorMap)) {
-        memberColorMap[creatorId] = memberColorPool[colorIdx++ % memberColorPool.length]
-      }
-      dateMap[key].push({ ...r, emoji, idx, memberColor: memberColorMap[creatorId] || '#4CAF50' })
+      dayMap.get(key).push({ ...r, emoji, idx })
     })
 
-    // 构建日历网格
-    const firstDay = new Date(y, m, 1)
-    let startWeekday = firstDay.getDay() // 0=周日
-    startWeekday = startWeekday === 0 ? 6 : startWeekday - 1 // 转为周一=0
-    const daysInMonth = new Date(y, m + 1, 0).getDate()
+    // 排序：日期倒序
+    const sortedDays = [...dayMap.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+
+    // 生成年月分隔 + 日期组
+    const timeline = []
+    let lastMonth = ''
     const today = new Date()
-    const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-    const weeks = []
-    let week = []
-    // 前置空格
-    for (let i = 0; i < startWeekday; i++) week.push({ isEmpty: true })
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      const key = `${y}-${m}-${d}`
-      const dayRecords = dateMap[key] || []
-      const isToday = key === todayStr
-      const isFuture = new Date(y, m, d) > today
-      const icons = [...new Set(dayRecords.map(r => r.emoji))]
-      const memberColors = [...new Set(dayRecords.map(r => r.memberColor))]
-      week.push({
-        day: d, dateStr, isEmpty: false, isToday, isFuture,
-        icons, memberColors, records: dayRecords
-      })
-      if (week.length === 7) { weeks.push(week); week = [] }
-    }
-    // 尾部填充
-    if (week.length > 0) {
-      while (week.length < 7) week.push({ isEmpty: true })
-      weeks.push(week)
-    }
-
-    this.setData({ calMonthLabel: monthLabel, calWeeks: weeks })
-  },
-
-  prevMonth() {
-    let { calYear, calMonth } = this.data
-    calMonth--
-    if (calMonth < 0) { calMonth = 11; calYear-- }
-    this.setData({ calYear, calMonth, calSelectedRecords: [], calSelectedDate: '' })
-    this.buildCalendar()
-  },
-
-  nextMonth() {
-    let { calYear, calMonth } = this.data
-    calMonth++
-    if (calMonth > 11) { calMonth = 0; calYear++ }
-    this.setData({ calYear, calMonth, calSelectedRecords: [], calSelectedDate: '' })
-    this.buildCalendar()
-  },
-
-  toggleCellMenu(e) {
-    const dateStr = e.currentTarget.dataset.date
-    const { calWeeks, calSelectedDate } = this.data
-    // 找到对应 cell
-    let cell = null
-    for (const week of calWeeks) {
-      for (const c of week) {
-        if (c.dateStr === dateStr) { cell = c; break }
+    for (const [dateStr, dayRecords] of sortedDays) {
+      const [y, m] = dateStr.split('-')
+      const monthLabel = `${y}年${parseInt(m)}月`
+      if (monthLabel !== lastMonth) {
+        timeline.push({ type: 'month', label: monthLabel })
+        lastMonth = monthLabel
       }
-      if (cell) break
-    }
-    if (!cell || cell.isEmpty || !cell.records || cell.records.length === 0) return
-
-    // 切换选中
-    if (calSelectedDate === dateStr) {
-      this.setData({ calSelectedRecords: [], calSelectedDate: '' })
-    } else {
-      this.setData({
-        calSelectedDate: dateStr,
-        calSelectedRecords: cell.records
+      const isToday = dateStr === todayKey
+      const d = new Date(dateStr)
+      const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()]
+      timeline.push({
+        type: 'day',
+        dateStr,
+        dayLabel: isToday ? '今天' : `${parseInt(dateStr.split('-')[1])}/${parseInt(dateStr.split('-')[2])} 周${weekDay}`,
+        isToday,
+        records: dayRecords
       })
     }
+
+    this.setData({ recordTimeline: timeline })
   },
 
   async completeTask(e) {
@@ -1020,7 +959,7 @@ Page({
           storage.deleteRecord(recordId)
         }
         const records = this.data.records.filter((_, i) => i !== idx)
-        this.setData({ records, calSelectedRecords: [] })
+        this.setData({ records })
         this.buildCalendar()
         wx.showToast({ title: '已删除', icon: 'none' })
       }

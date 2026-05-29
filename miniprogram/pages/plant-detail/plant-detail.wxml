@@ -158,44 +158,29 @@
     </view>
 
     <view class="card" wx:if="{{records.length > 0}}">
-      <!-- 月份切换 -->
-      <view class="cal-nav">
-        <text class="cal-nav-btn" bindtap="prevMonth">◀</text>
-        <text class="cal-month-label">{{calMonthLabel}}</text>
-        <text class="cal-nav-btn" bindtap="nextMonth">▶</text>
-      </view>
-      <!-- 星期头 -->
-      <view class="cal-header">
-        <text class="cal-weekday" wx:for="{{calWeekdays}}" wx:key="*this">{{item}}</text>
-      </view>
-      <!-- 日历格子 -->
-      <view class="cal-grid">
-        <view class="cal-week" wx:for="{{calWeeks}}" wx:key="index" wx:for-item="week">
-          <view class="cal-cell {{cell.isEmpty ? 'empty' : ''}} {{cell.isToday ? 'today' : ''}} {{cell.isFuture ? 'future' : ''}} {{cell.showMenu ? 'menu-active' : ''}}"
-                wx:for="{{week}}" wx:key="dateStr" wx:for-item="cell"
-                bindtap="toggleCellMenu" data-date="{{cell.dateStr}}">
-            <text class="cal-day">{{cell.day}}</text>
-            <view class="cal-icons" wx:if="{{cell.icons.length > 0}}">
-              <text class="cal-icon" wx:for="{{cell.icons}}" wx:for-item="icon" wx:key="*this">{{icon}}</text>
-            </view>
-            <view class="cal-members" wx:if="{{cell.memberColors.length > 0}}">
-              <view class="cal-member-dot" wx:for="{{cell.memberColors}}" wx:for-item="c" wx:key="*this" style="background:{{c}}"></view>
+      <!-- 时间线列表 -->
+      <view class="tl" wx:for="{{recordTimeline}}" wx:key="index">
+        <!-- 月份标题 -->
+        <view class="tl-month" wx:if="{{item.type === 'month'}}">{{item.label}}</view>
+        <!-- 日期组 -->
+        <view class="tl-day" wx:if="{{item.type === 'day'}}">
+          <view class="tl-day-header">
+            <text class="tl-day-label {{item.isToday ? 'today' : ''}}">{{item.dayLabel}}</text>
+            <text class="tl-day-count">{{item.records.length}}条</text>
+          </view>
+          <view class="tl-capsules">
+            <view class="capsule" wx:for="{{item.records}}" wx:for-item="rec" wx:key="idx">
+              <text class="capsule-emoji">{{rec.emoji}}</text>
+              <text class="capsule-name">{{rec.typeName}}</text>
+              <text class="capsule-note" wx:if="{{rec.note}}">{{rec.note}}</text>
+              <text class="capsule-creator" wx:if="{{rec.creatorNickname}}">{{rec.creatorNickname}}</text>
+              <text class="capsule-del" catchtap="deleteRecord" data-id="{{rec._id || rec.id}}" data-idx="{{rec.idx}}">✕</text>
             </view>
           </view>
         </view>
       </view>
-      <!-- 选中日期的记录详情 -->
-      <view class="cal-detail" wx:if="{{calSelectedRecords.length > 0}}">
-        <text class="cal-detail-date">{{calSelectedDate}}</text>
-        <view class="cal-detail-item" wx:for="{{calSelectedRecords}}" wx:key="id">
-          <text class="cal-detail-emoji">{{item.emoji}}</text>
-          <view class="cal-detail-info">
-            <text class="cal-detail-name">{{item.typeName}}</text>
-            <text class="cal-detail-note" wx:if="{{item.note}}">{{item.note}}</text>
-          </view>
-          <text class="cal-detail-creator" wx:if="{{item.creatorNickname}}">{{item.creatorNickname}}</text>
-          <text class="cal-detail-del" catchtap="deleteRecord" data-id="{{item._id || item.id}}" data-idx="{{item.idx}}">✕</text>
-        </view>
+      <view class="tl-empty" wx:if="{{recordTimeline.length === 0}}">
+        <text>暂无记录</text>
       </view>
     </view>
     <view class="card empty-hint" wx:else>
