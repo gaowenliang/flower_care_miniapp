@@ -156,16 +156,46 @@
       <text class="record-title">养护记录</text>
       <text class="import-btn" bindtap="goImportScreenshot">📥 导入记录</text>
     </view>
+
     <view class="card" wx:if="{{records.length > 0}}">
-      <view class="record-item {{item.showMenu ? 'menu-active' : ''}}" wx:for="{{records}}" wx:key="id">
-        <view class="record-dot"></view>
-        <view class="record-content" catchtap="toggleRecordMenu" data-idx="{{index}}">
-          <text class="record-type">{{item.typeName}}</text>
-          <text class="record-creator" wx:if="{{isFamilyMode && item.creatorNickname}}">by {{item.creatorNickname}}</text>
-          <text class="record-note" wx:if="{{item.note}}">{{item.note}}</text>
-          <text class="record-time">{{item.timeAgo}} · {{item.dateText}}</text>
+      <!-- 月份切换 -->
+      <view class="cal-nav">
+        <text class="cal-nav-btn" bindtap="prevMonth">◀</text>
+        <text class="cal-month-label">{{calMonthLabel}}</text>
+        <text class="cal-nav-btn" bindtap="nextMonth">▶</text>
+      </view>
+      <!-- 星期头 -->
+      <view class="cal-header">
+        <text class="cal-weekday" wx:for="{{calWeekdays}}" wx:key="*this">{{item}}</text>
+      </view>
+      <!-- 日历格子 -->
+      <view class="cal-grid">
+        <view class="cal-week" wx:for="{{calWeeks}}" wx:key="index" wx:for-item="week">
+          <view class="cal-cell {{cell.isEmpty ? 'empty' : ''}} {{cell.isToday ? 'today' : ''}} {{cell.isFuture ? 'future' : ''}} {{cell.showMenu ? 'menu-active' : ''}}"
+                wx:for="{{week}}" wx:key="dateStr" wx:for-item="cell"
+                bindtap="toggleCellMenu" data-date="{{cell.dateStr}}">
+            <text class="cal-day">{{cell.day}}</text>
+            <view class="cal-icons" wx:if="{{cell.icons.length > 0}}">
+              <text class="cal-icon" wx:for="{{cell.icons}}" wx:for-item="icon" wx:key="*this">{{icon}}</text>
+            </view>
+            <view class="cal-members" wx:if="{{cell.memberColors.length > 0}}">
+              <view class="cal-member-dot" wx:for="{{cell.memberColors}}" wx:for-item="c" wx:key="*this" style="background:{{c}}"></view>
+            </view>
+          </view>
         </view>
-        <view class="record-delete-btn" wx:if="{{item.showMenu}}" catchtap="deleteRecord" data-id="{{item._id || item.id}}" data-idx="{{index}}">删除</view>
+      </view>
+      <!-- 选中日期的记录详情 -->
+      <view class="cal-detail" wx:if="{{calSelectedRecords.length > 0}}">
+        <text class="cal-detail-date">{{calSelectedDate}}</text>
+        <view class="cal-detail-item" wx:for="{{calSelectedRecords}}" wx:key="id">
+          <text class="cal-detail-emoji">{{item.emoji}}</text>
+          <view class="cal-detail-info">
+            <text class="cal-detail-name">{{item.typeName}}</text>
+            <text class="cal-detail-note" wx:if="{{item.note}}">{{item.note}}</text>
+          </view>
+          <text class="cal-detail-creator" wx:if="{{item.creatorNickname}}">{{item.creatorNickname}}</text>
+          <text class="cal-detail-del" catchtap="deleteRecord" data-id="{{item._id || item.id}}" data-idx="{{item.idx}}">✕</text>
+        </view>
       </view>
     </view>
     <view class="card empty-hint" wx:else>
