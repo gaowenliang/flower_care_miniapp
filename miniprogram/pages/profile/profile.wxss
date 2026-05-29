@@ -52,7 +52,7 @@
 
 .family-group { margin-bottom: 4rpx; }
 .family-header-row { display: flex; align-items: center; gap: 14rpx; padding: 12rpx 0; }
-.family-bar-name { font-size: 26rpx; color: #2D3436; min-width: 72rpx; font-weight: 500; }
+.family-bar-name { font-size: 26rpx; color: #2D3436; width: 104rpx; text-align: right; font-weight: 500; }
 .family-bar-wrap { flex: 1; height: 16rpx; background: #F0F2F0; border-radius: 8rpx; overflow: hidden; }
 .family-bar-fill { height: 100%; border-radius: 8rpx; background: linear-gradient(90deg, #4CAF50, #66BB6A); }
 .family-bar-count { font-size: 24rpx; color: #4CAF50; font-weight: 500; min-width: 56rpx; text-align: right; }

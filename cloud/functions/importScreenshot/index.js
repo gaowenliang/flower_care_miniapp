@@ -116,15 +116,24 @@ function parseRecords(text) {
   let currentYear = now.getFullYear()
 
   // ---- 预扫描：全文扫描年份标记 ----
+  let hasYearMarker = false
+  let relativeYearHint = 0  // "X年前" 推断的偏移量
   for (const line of lines) {
     // 独立年份行: "2026" / "2025年"
     const standalone = line.match(/^(20\d{2})\s*年?$/)
-    if (standalone) { /* 在主循环处理 */ break }
+    if (standalone) { hasYearMarker = true; break }
     // 行内年份: "2025年5月" / "2025-03" / "2025/5"
     const inline = line.match(/^(20\d{2})[年\-\/]/)
-    if (inline) { currentYear = parseInt(inline[1]); break }
-    // 遇到第一个月日行就停止预扫描
-    if (/^(\d{1,2})月(\d{1,2})日?$/.test(line)) break
+    if (inline) { currentYear = parseInt(inline[1]); hasYearMarker = true; break }
+    // 相对时间 "X年前" — 提取最大偏移量作为年份推断依据（不 break，继续扫描）
+    const relYear = line.match(/^(\d+)\s*年前$/)
+    if (relYear) { relativeYearHint = Math.max(relativeYearHint, parseInt(relYear[1])) }
+    // 注意：不再遇到日期行就 break，需要扫完全文找 "X年前" 线索
+  }
+
+  // 没有明确年份标记，但有 "X年前" 线索
+  if (!hasYearMarker && relativeYearHint > 0) {
+    currentYear = now.getFullYear() - relativeYearHint
   }
 
   // ---- 定位数据起始行 ----
@@ -190,13 +199,11 @@ function parseRecords(text) {
   }
 
   // ---- 第二遍：关联事件生成记录 ----
-  // 如果预扫描没找到年份，且第一个事件是 year 类型，用它的值
-  // 否则用 now.getFullYear()
+  // currentYear 已在预扫描阶段设置（明确年份 / "X年前"推断 / 默认当前年）
   if (events.length > 0 && events[0].type === 'year') {
     currentYear = events[0].value
-  } else {
-    currentYear = now.getFullYear()
   }
+  // 不再无条件重置为当前年份
   let currentAction = null
   let pendingActions = []
 
@@ -255,7 +262,7 @@ function parseRecords(text) {
   if (records.length > 0) return records
 
   // ---- 回退策略: 只找日期行，无动作时默认浇水 ----
-  currentYear = now.getFullYear()
+  // currentYear 保留预扫描结果（可能已被 "X年前" 推断修正）
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const yearLineMatch = line.match(/^(20\d{2})\s*年?$/)
