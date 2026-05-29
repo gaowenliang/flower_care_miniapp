@@ -169,12 +169,12 @@
             <text class="tl-day-count">{{item.records.length}}条</text>
           </view>
           <view class="tl-capsules">
-            <view class="capsule" wx:for="{{item.records}}" wx:for-item="rec" wx:key="idx">
+            <view class="capsule" wx:for="{{item.records}}" wx:for-item="rec" wx:key="idx"
+                  bindlongpress="deleteRecord" data-id="{{rec._id || rec.id}}" data-idx="{{rec.idx}}">
               <text class="capsule-emoji">{{rec.emoji}}</text>
               <text class="capsule-name">{{rec.typeName}}</text>
               <text class="capsule-note" wx:if="{{rec.note}}">{{rec.note}}</text>
               <text class="capsule-creator" wx:if="{{rec.creatorNickname}}">{{rec.creatorNickname}}</text>
-              <text class="capsule-del" catchtap="deleteRecord" data-id="{{rec._id || rec.id}}" data-idx="{{rec.idx}}">✕</text>
             </view>
           </view>
         </view>

@@ -171,20 +171,6 @@
 .capsule-name { color: #2E7D32; font-weight: 500; }
 .capsule-note { color: #90A4AE; font-size: 20rpx; max-width: 200rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .capsule-creator { color: #4CAF50; font-size: 20rpx; background: #E8F5E9; padding: 2rpx 8rpx; border-radius: 8rpx; }
-.capsule-del { color: #B0BEC5; font-size: 22rpx; padding: 2rpx 8rpx; }
-.tl-empty { text-align: center; padding: 40rpx 0; color: #B0BEC5; font-size: 26rpx; }
-.tip-item { display: flex; padding: 14rpx 0; border-bottom: 1rpx solid #F0F2F0; }
-.tip-item:last-child { border-bottom: none; }
-.tip-bullet { margin-right: 12rpx; font-size: 28rpx; }
-.tip-text { font-size: 28rpx; color: #2D3436; line-height: 1.6; }
-
-/* 弹窗 */
-.modal-mask {
-  position: fixed; top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.45); display:flex;
-  align-items:flex-end; justify-content:center; z-index:999;
-  animation: fadeIn 0.2s ease;
-}
 .modal-content {
   width: 100%; max-height: 85vh; background: #FFFFFF; border-radius: 28rpx 28rpx 0 0;
   overflow: hidden; animation: slideUp 0.3s ease-out;
