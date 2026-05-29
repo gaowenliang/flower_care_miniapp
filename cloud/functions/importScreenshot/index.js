@@ -118,6 +118,7 @@ function parseRecords(text) {
   // ---- 预扫描：全文扫描年份标记 ----
   let hasYearMarker = false
   let relativeYearHint = 0  // "X年前" 推断的偏移量
+  let relativeMonthHint = 0  // "X个月前" 推断的月份偏移
   for (const line of lines) {
     // 独立年份行: "2026" / "2025年"
     const standalone = line.match(/^(20\d{2})\s*年?$/)
@@ -125,15 +126,22 @@ function parseRecords(text) {
     // 行内年份: "2025年5月" / "2025-03" / "2025/5"
     const inline = line.match(/^(20\d{2})[年\-\/]/)
     if (inline) { currentYear = parseInt(inline[1]); hasYearMarker = true; break }
-    // 相对时间 "X年前" — 提取最大偏移量作为年份推断依据（不 break，继续扫描）
+    // 相对时间线索（不 break，继续扫描全文）
     const relYear = line.match(/^(\d+)\s*年前$/)
     if (relYear) { relativeYearHint = Math.max(relativeYearHint, parseInt(relYear[1])) }
-    // 注意：不再遇到日期行就 break，需要扫完全文找 "X年前" 线索
+    const relMonth = line.match(/^(\d+)\s*个月前$/)
+    if (relMonth) { relativeMonthHint = Math.max(relativeMonthHint, parseInt(relMonth[1])) }
   }
 
-  // 没有明确年份标记，但有 "X年前" 线索
-  if (!hasYearMarker && relativeYearHint > 0) {
-    currentYear = now.getFullYear() - relativeYearHint
+  // 没有明确年份标记，用相对时间线索推断
+  if (!hasYearMarker) {
+    if (relativeYearHint > 0) {
+      currentYear = now.getFullYear() - relativeYearHint
+    } else if (relativeMonthHint > 0) {
+      // 从当前月份往前推 relativeMonthHint 个月
+      const pastDate = new Date(now.getFullYear(), now.getMonth() - relativeMonthHint, 1)
+      currentYear = pastDate.getFullYear()
+    }
   }
 
   // ---- 定位数据起始行 ----
