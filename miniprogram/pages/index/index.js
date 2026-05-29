@@ -87,7 +87,7 @@ Page({
     try {
       const plants = await family.getPlants(true)
       const allTasks = await family.getTasks('', true)
-      const allRecords = await family.getRecords('', 100, true)
+      const allRecords = await family.getRecords('', 500, true)
       this._buildFamilyUI(plants || [], allTasks || [], allRecords || [])
     } catch (e) {
       console.error('加载家庭数据失败:', e)

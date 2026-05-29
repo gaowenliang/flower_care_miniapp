@@ -343,7 +343,7 @@ function completeTask(taskId, note) {
     const result = await fdata('completeTask', { taskId, note })
     if (result.success) {
       getTasks('', true).catch(() => {})
-      getRecords('', 100, true).catch(() => {})
+      getRecords('', 500, true).catch(() => {})
     } else {
       const c = _readCache(FAMILY_TASKS_KEY)
       if (c && c.tasks) {
@@ -427,7 +427,7 @@ async function getRecords(plantId, limit, forceRefresh) {
       return plantId ? records.filter(r => r.plantId === plantId) : records
     }
   }
-  const result = await fdata('getRecords', { plantId: plantId || '', limit: limit || 100 })
+  const result = await fdata('getRecords', { plantId: plantId || '', limit: limit || 500 })
   if (result.success) {
     _saveCache(FAMILY_RECORDS_KEY, { records: result.records, _cachedAt: Date.now() })
     return result.records
@@ -460,7 +460,7 @@ function addRecord(recordData) {
   enqueueWrite(async () => {
     const result = await fdata('addRecord', { record: recordData })
     if (result.success) {
-      getRecords('', 100, true).catch(() => {})
+      getRecords('', 500, true).catch(() => {})
     } else {
       const c = _readCache(FAMILY_RECORDS_KEY)
       if (c && c.records) {

@@ -38,7 +38,7 @@ Page({
   onShow() {
     this.setData({ isFamilyMode: family.isInFamily() })
     if (this.data.isFamilyMode) {
-      family.getRecords('', 100).then(() => this.buildCalendar()).catch(() => this.buildCalendar())
+      family.getRecords('', 500).then(() => this.buildCalendar()).catch(() => this.buildCalendar())
       this.loadFamilyPhotoTimeline()
     } else {
       this.buildCalendar()
@@ -152,7 +152,7 @@ Page({
   },
 
   async loadFamilyPhotoTimeline() {
-    const records = await family.getRecords('', 50) || []
+    const records = await family.getRecords('', 500) || []
     const garden = family.getCachedPlants()
     const timeline = records.filter(r => r.type === 'photo' && r.photo).sort((a, b) => b.date - a.date).map(r => {
       const plant = garden.find(p => p._id === r.plantId)
@@ -289,7 +289,7 @@ Page({
         wx.showToast({ title: `导入${res.total || 0}条（新增${res.imported || 0}，更新${res.updated || 0}）`, icon: 'none', duration: 3000 })
         // 刷新缓存再重建日历
         if (this.data.isFamilyMode) {
-          await family.getRecords('', 100, true) // forceRefresh
+          await family.getRecords('', 500, true) // forceRefresh
         }
         this.buildCalendar()
       } else {

@@ -169,7 +169,7 @@ Page({
   },
 
   async loadFamilyRecords() {
-    const records = await family.getRecords(this.data.userPlant._id, 200)
+    const records = await family.getRecords(this.data.userPlant._id, 500)
     const processedRecords = (records || []).map(r => ({
       ...r,
       id: r._id || r.id,

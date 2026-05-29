@@ -397,22 +397,25 @@ async function getRecords(event, familyId) {
   let query = { familyId }
   if (plantId) query.plantId = plantId
 
-  const l = Math.min(limit || 100, 100)
-  const result = await db.collection('family_records')
-    .where(query)
-    .orderBy('date', 'desc')
-    .limit(l)
-    .get()
+  // 使用 fetchAll 分页获取全部记录（解决超过100条时2025年数据被截断的问题）
+  const allRecords = await fetchAll('family_records', query)
+
+  // 按日期倒序
+  allRecords.sort((a, b) => (b.date || 0) - (a.date || 0))
+
+  // 如果传了 limit 就截取
+  const l = limit || 500
+  const records = l > 0 ? allRecords.slice(0, l) : allRecords
 
   // 获取成员信息映射
-  const openids = new Set(result.data.map(r => r.createdBy).filter(Boolean))
+  const openids = new Set(records.map(r => r.createdBy).filter(Boolean))
   let memberMap = {}
   if (openids.size > 0) {
     const membersRes = await db.collection('family_members').where({ familyId }).get()
     membersRes.data.forEach(m => { memberMap[m.openid] = m })
   }
 
-  const enrichedRecords = result.data.map(r => ({
+  const enrichedRecords = records.map(r => ({
     ...r,
     creatorNickname: r.creatorNickname || (memberMap[r.createdBy] || {}).nickname || '成员'
   }))

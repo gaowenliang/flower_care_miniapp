@@ -40,7 +40,7 @@ Page({
       // 家庭模式：刷新缓存后算统计
       await family.getPlants(true).catch(() => {})
       await family.getTasks('', true).catch(() => {})
-      await family.getRecords('', 100, true).catch(() => {})
+      await family.getRecords('', 500, true).catch(() => {})
       const plants = family.getCachedPlants()
       const tasks = family.getCachedTasks('')
       const records = family.getCachedRecords('')
