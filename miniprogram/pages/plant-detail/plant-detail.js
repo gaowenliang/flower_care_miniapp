@@ -206,8 +206,13 @@ Page({
   buildCalendar() {
     const { records, taskTypes } = this.data
 
-    // 动作 emoji 映射
-    const typeMap = {}
+    // 动作 emoji 映射（覆盖所有已知类型）
+    const typeMap = {
+      water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉',
+      photo: '📷', note: '📝', retro: '🔖', custom: '🌿',
+      pest: '🐛', loosen: '🌱', cutting: '✂️', sow: '🌱',
+      repot: '🏺'
+    }
     ;(taskTypes || []).forEach(t => { typeMap[t.id] = t.emoji })
 
     // 按日期分组
@@ -216,7 +221,7 @@ Page({
       const d = new Date(r.date)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       if (!dayMap.has(key)) dayMap.set(key, [])
-      const emoji = typeMap[r.taskType || r.actionType] || '💧'
+      const emoji = typeMap[r.type] || typeMap[r.taskType] || typeMap[r.actionType] || '💧'
       dayMap.get(key).push({ ...r, emoji, idx })
     })
 
