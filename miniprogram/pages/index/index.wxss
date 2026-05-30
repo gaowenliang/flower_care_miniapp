@@ -89,7 +89,7 @@
   box-shadow: 0 2rpx 12rpx rgba(76,175,80,0.05);
 }
 .search-icon { font-size: 28rpx; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #2D3436; }
+.search-input { flex: 1; font-size: 28rpx; color: #2D3436; height: 56rpx; line-height: 56rpx; }
 .search-clear { font-size: 28rpx; color: #90A4AE; padding: 4rpx 12rpx; }
 
 /* 房间标签栏 */
@@ -201,6 +201,7 @@
 .form-input {
   border: 2rpx solid #E8F5E9; border-radius: 20rpx;
   padding: 20rpx; font-size: 28rpx; background: #F7F9F7; color: #2D3436;
+  height: 88rpx; box-sizing: border-box;
 }
 .modal-footer { display: flex; border-top: 1rpx solid #F0F2F0; }
 .modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }

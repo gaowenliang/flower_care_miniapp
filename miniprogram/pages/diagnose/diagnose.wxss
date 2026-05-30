@@ -2,8 +2,8 @@
 .input-card { padding: 28rpx; margin-bottom: 16rpx; }
 .input-title { font-size: 32rpx; font-weight: 600; color: #2D3436; display: block; margin-bottom: 16rpx; }
 .symptom-input {
-  width: 100%; min-height: 120rpx; font-size: 28rpx; color: #2D3436;
-  line-height: 1.6; padding: 16rpx; background: #F7F9F7;
+  width: 100%; min-height: 160rpx; font-size: 28rpx; color: #2D3436;
+  line-height: 1.6; padding: 20rpx; background: #F7F9F7;
   border-radius: 16rpx; border: 2rpx solid #E8F5E9; box-sizing: border-box;
 }
 .input-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16rpx; }

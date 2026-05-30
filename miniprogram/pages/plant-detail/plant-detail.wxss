@@ -183,7 +183,8 @@
 .form-label { font-size: 26rpx; color: #90A4AE; margin-bottom: 12rpx; display: block; }
 .form-input {
   border: 2rpx solid #E8F5E9; border-radius: 20rpx;
-  padding: 28rpx; font-size: 28rpx; background: #F7F9F7; color: #2D3436;
+  padding: 20rpx; font-size: 28rpx; background: #F7F9F7; color: #2D3436;
+  height: 88rpx; box-sizing: border-box;
 }
 
 .type-options { display: flex; flex-wrap: wrap; gap: 12rpx; }
@@ -291,7 +292,7 @@
 .classify-sheet-title { font-size: 34rpx; font-weight: bold; color: #2D3436; }
 .classify-sheet-close { font-size: 32rpx; color: #999; padding: 8rpx 16rpx; }
 .classify-input-wrap { background: #F5F5F5; border-radius: 16rpx; padding: 4rpx; }
-.classify-input { width: 100%; padding: 20rpx 24rpx; font-size: 30rpx; box-sizing: border-box; }
+.classify-input { width: 100%; padding: 20rpx 24rpx; font-size: 30rpx; box-sizing: border-box; height: 88rpx; }
 .classify-results { max-height: 40vh; overflow-y: auto; margin-top: 12rpx; }
 .classify-result-item { display: flex; align-items: center; gap: 16rpx; padding: 24rpx 16rpx; border-bottom: 1rpx solid #f5f5f5; }
 .classify-result-item:active { background: #F1F8E9; }
@@ -312,7 +313,7 @@
 .fert-tag { padding: 12rpx 28rpx; border-radius: 32rpx; font-size: 26rpx; background: #f0f0f0; color: #333; }
 .fert-tag.active { background: #4CAF50; color: #fff; }
 .fert-input-row { padding: 16rpx 0; }
-.fert-input { width: 100%; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+.fert-input { width: 100%; height: 88rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; line-height: 88rpx; }
 
 /* 房间弹窗 */
 .room-modal { max-height: 70vh; }
@@ -320,13 +321,13 @@
 .room-tag { padding: 12rpx 28rpx; border-radius: 32rpx; font-size: 26rpx; background: #f0f0f0; color: #333; }
 .room-tag.active { background: #4CAF50; color: #fff; }
 .room-input-row { padding: 16rpx 0; }
-.room-input { width: 100%; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+.room-input { width: 100%; height: 88rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; line-height: 88rpx; }
 
 /* 价格弹窗 */
 .price-modal { max-height: 70vh; }
 .price-field { display: flex; align-items: center; margin: 16rpx 0; }
 .price-field-label { font-size: 28rpx; color: #666; width: 80rpx; flex-shrink: 0; }
-.price-field-input { flex: 1; height: 72rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; }
+.price-field-input { flex: 1; height: 88rpx; border: 2rpx solid #ddd; border-radius: 12rpx; padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box; line-height: 88rpx; }
 .source-tags { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 12rpx 0; }
 .source-tag { padding: 10rpx 24rpx; border-radius: 32rpx; font-size: 24rpx; background: #f0f0f0; color: #333; }
 .source-tag.active { background: #FF9800; color: #fff; }
