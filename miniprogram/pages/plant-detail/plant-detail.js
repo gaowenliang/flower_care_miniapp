@@ -171,6 +171,7 @@ Page({
       timeAgo: util.timeAgo(r.date)
     }))
     this.setData({ records: processedRecords })
+    this.buildCalendar()
   },
 
   // ========== 个人模式数据加载 ==========
