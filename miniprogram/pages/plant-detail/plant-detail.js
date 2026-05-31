@@ -212,9 +212,27 @@ Page({
       water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉',
       photo: '📷', note: '📝', retro: '🔖', custom: '🌿',
       pest: '🐛', loosen: '🌱', cutting: '✂️', sow: '🌱',
-      repot: '🏺'
+      postpone: '⏩'
     }
     ;(taskTypes || []).forEach(t => { typeMap[t.id] = t.emoji })
+
+    // 养护类型颜色映射
+    const typeColors = {
+      water:    { bg: '#E3F2FD', border: '#BBDEFB', text: '#1565C0', creator: '#42A5F5', creatorBg: '#BBDEFB' },
+      fertilize:{ bg: '#FFF3E0', border: '#FFE0B2', text: '#E65100', creator: '#FFA726', creatorBg: '#FFE0B2' },
+      prune:    { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457', creator: '#EC407A', creatorBg: '#F8BBD0' },
+      repot:    { bg: '#EFEBE9', border: '#D7CCC8', text: '#4E342E', creator: '#8D6E63', creatorBg: '#D7CCC8' },
+      spray:    { bg: '#E8EAF6', border: '#C5CAE9', text: '#283593', creator: '#5C6BC0', creatorBg: '#C5CAE9' },
+      photo:    { bg: '#F3E5F5', border: '#E1BEE7', text: '#6A1B9A', creator: '#AB47BC', creatorBg: '#E1BEE7' },
+      note:     { bg: '#FFF8E1', border: '#FFECB3', text: '#F57F17', creator: '#FFCA28', creatorBg: '#FFECB3' },
+      pest:     { bg: '#FFEBEE', border: '#FFCDD2', text: '#B71C1C', creator: '#EF5350', creatorBg: '#FFCDD2' },
+      loosen:   { bg: '#E8F5E9', border: '#C8E6C9', text: '#2E7D32', creator: '#66BB6A', creatorBg: '#C8E6C9' },
+      sow:      { bg: '#E8F5E9', border: '#C8E6C9', text: '#2E7D32', creator: '#66BB6A', creatorBg: '#C8E6C9' },
+      cutting:  { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457', creator: '#EC407A', creatorBg: '#F8BBD0' },
+      postpone: { bg: '#ECEFF1', border: '#CFD8DC', text: '#546E7A', creator: '#78909C', creatorBg: '#CFD8DC' },
+      custom:   { bg: '#E0F2F1', border: '#B2DFDB', text: '#00695C', creator: '#26A69A', creatorBg: '#B2DFDB' },
+      retro:    { bg: '#FBE9E7', border: '#FFCCBC', text: '#BF360C', creator: '#FF7043', creatorBg: '#FFCCBC' }
+    }
 
     // 按日期分组
     const dayMap = new Map()
@@ -222,8 +240,10 @@ Page({
       const d = new Date(r.date)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       if (!dayMap.has(key)) dayMap.set(key, [])
-      const emoji = typeMap[r.type] || typeMap[r.taskType] || typeMap[r.actionType] || '💧'
-      dayMap.get(key).push({ ...r, emoji, idx })
+      const t = r.type || r.taskType || r.actionType || 'water'
+      const emoji = typeMap[t] || '💧'
+      const color = typeColors[t] || typeColors.custom
+      dayMap.get(key).push({ ...r, emoji, idx, color })
     })
 
     // 排序：日期倒序
