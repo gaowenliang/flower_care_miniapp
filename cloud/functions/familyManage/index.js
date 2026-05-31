@@ -359,7 +359,11 @@ async function getPK(openid, { period }) {
 async function getHealthBoard(openid) {
   const member = await getMemberInfo(openid)
   if (!member) return { success: false, error: '不在家庭中' }
-  const plantsRes = await db.collection('family_plants').where({ familyId: member.familyId }).get()
+  const familyId = member.familyId
+  const plantsRes = await db.collection('family_plants').where({ familyId }).get()
+  // 获取成员映射
+  const membersRes = await db.collection('family_members').where({ familyId }).get()
+  const memberMap = {}; membersRes.data.forEach(m => { memberMap[m.openid] = m })
   const plants = plantsRes.data.map(p => {
     // 简单健康评估
     const days = Math.floor((Date.now() - (p.addedAt || Date.now())) / 86400000)
@@ -369,8 +373,10 @@ async function getHealthBoard(openid) {
     if (p.adopters && p.adopters.length > 0) score += 5 // 有人认养加分
     score = Math.min(100, score)
     const level = score >= 90 ? 'excellent' : score >= 70 ? 'good' : score >= 50 ? 'fair' : 'poor'
-    const emoji = score >= 90 ? '😊' : score >= 70 ? '🙂' : score >= 50 ? '😐' : '😟'
-    return { _id: p._id, name: p.nickname || p.name, emoji: p.emoji, score, level, emojiIcon: emoji, location: p.location, adopterCount: (p.adopters || []).length }
+    const emojiIcon = score >= 90 ? '😊' : score >= 70 ? '🙂' : score >= 50 ? '😐' : '😟'
+    // 认养者名称
+    const adopterNames = (p.adopters || []).map(a => (memberMap[a] || {}).nickname || '成员').filter(Boolean)
+    return { _id: p._id, name: p.nickname || p.name, emoji: p.emoji, score, level, emojiIcon, location: p.location, adopterNames, adopterCount: adopterNames.length }
   })
   plants.sort((a, b) => a.score - b.score) // 需要照顾的排前面
   return { success: true, plants }

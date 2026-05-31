@@ -46,20 +46,32 @@
     <scroll-view scroll-x class="tab-bar" enhanced show-scrollbar="{{false}}">
       <view class="tab {{activeTab==='summary'?'active':''}}" bindtap="switchTab" data-tab="summary">汇总</view>
       <view class="tab {{activeTab==='plants'?'active':''}}" bindtap="switchTab" data-tab="plants">植物</view>
-      <view class="tab {{activeTab==='members'?'active':''}}" bindtap="switchTab" data-tab="members">排行</view>
-      <view class="tab {{activeTab==='report'?'active':''}}" bindtap="switchTab" data-tab="report">报表</view>
+      <view class="tab {{activeTab==='stats'?'active':''}}" bindtap="switchTab" data-tab="stats">统计</view>
       <view class="tab {{activeTab==='wish'?'active':''}}" bindtap="switchTab" data-tab="wish">心愿</view>
       <view class="tab {{activeTab==='feed'?'active':''}}" bindtap="switchTab" data-tab="feed">动态</view>
     </scroll-view>
 
     <!-- ===== 汇总 ===== -->
     <view wx:if="{{activeTab==='summary'}}">
+      <!-- 核心指标 -->
+      <view class="section-card">
+        <view class="section-title">📊 家庭概览</view>
+        <view class="stat-overview">
+          <view class="stat-item"><view class="stat-num">{{summaryStats.totalPlants}}</view><view class="stat-label">植物总数</view></view>
+          <view class="stat-item"><view class="stat-num">{{summaryStats.healthyCount}}</view><view class="stat-label">健康</view></view>
+          <view class="stat-item"><view class="stat-num" style="color:#FF9800">{{summaryStats.warningCount}}</view><view class="stat-label">需关注</view></view>
+          <view class="stat-item"><view class="stat-num">{{summaryStats.totalCare}}</view><view class="stat-label">累计养护</view></view>
+        </view>
+        <view class="stat-sub-row" wx:if="{{summaryStats.continuousDays > 0}}">
+          <text class="stat-sub-badge">🔥 连续养护 {{summaryStats.continuousDays}} 天</text>
+        </view>
+      </view>
+
       <!-- 周报 -->
       <view class="section-card" wx:if="{{weeklyReport}}">
         <view class="section-title">📰 本周周报</view>
         <view class="weekly-report">
           <view class="wr-item">📅 {{weeklyReport.week}}</view>
-          <view class="wr-item">🌱 共 {{weeklyReport.totalPlants}} 棵植物</view>
           <view class="wr-item">💧 累计养护 {{weeklyReport.totalCare}} 次</view>
           <view class="wr-item">👑 最勤快：{{weeklyReport.topMember}}（{{weeklyReport.topCount}}次）</view>
           <view class="wr-item" wx:if="{{weeklyReport.neglectedPlants.length>0}}">😟 需要关心：{{weeklyReport.neglectedPlants.join('、')}}</view>
@@ -77,6 +89,17 @@
         </view>
       </view>
 
+      <!-- 快捷排行 -->
+      <view class="section-card" wx:if="{{leaderboard.length > 0}}">
+        <view class="section-title">🏆 积分排行</view>
+        <view class="lb-item {{index===0?'first':''}}" wx:for="{{leaderboard}}" wx:key="openid">
+          <view class="lb-rank">{{index+1}}</view>
+          <view class="lb-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+          <view class="lb-info"><view class="lb-name">{{item.nickname||'成员'}}</view><view class="lb-detail">打理{{item.totalCare||0}}次 · 认养{{item.adoptedCount||0}}棵</view></view>
+          <view class="lb-points">⭐ {{item.points||0}}</view>
+        </view>
+      </view>
+
       </view>
 
     <!-- ===== 植物 ===== -->
@@ -86,7 +109,14 @@
         <view class="health-list">
           <view class="health-item" wx:for="{{healthPlants}}" wx:key="_id">
             <text class="health-plant-emoji">{{item.emoji}}</text>
-            <view class="health-plant-info"><view class="health-name">{{item.name}}</view><view class="health-location">{{item.location}}</view></view>
+            <view class="health-plant-info">
+              <view class="health-name">{{item.name}}</view>
+              <view class="health-location">{{item.location}}</view>
+              <view class="health-adopters" wx:if="{{item.adopterNames.length > 0}}">
+                <text class="adopter-tag" wx:for="{{item.adopterNames}}" wx:for-item="aname" wx:key="*this">🤝 {{aname}}</text>
+              </view>
+              <view class="health-no-adopter" wx:else>💭 待认养</view>
+            </view>
             <view class="health-score-wrap">
               <text class="health-icon">{{item.emojiIcon}}</text>
               <text class="health-score {{item.level}}">{{item.score}}</text>
@@ -97,30 +127,9 @@
       </view>
     </view>
 
-    <!-- ===== 排行 ===== -->
-    <view wx:if="{{activeTab==='members'}}">
-      <view class="section-card">
-        <view class="section-title">🏆 积分排行</view>
-        <view class="lb-item {{index===0?'first':''}}" wx:for="{{leaderboard}}" wx:key="openid">
-          <view class="lb-rank">{{index+1}}</view>
-          <view class="lb-avatar" style="background:{{item.color}}">{{item.initial}}</view>
-          <view class="lb-info"><view class="lb-name">{{item.nickname||'成员'}}</view><view class="lb-detail">打理{{item.totalCare||0}}次 · 认养{{item.adoptedCount||0}}棵</view></view>
-          <view class="lb-points">⭐ {{item.points||0}}</view>
-        </view>
-      </view>
-      <view class="section-card">
-        <view class="section-title">👨‍👩‍👧‍👦 成员</view>
-        <view class="member-list">
-          <view class="member-item" wx:for="{{members}}" wx:key="openid">
-            <view class="member-avatar" style="background:{{item.color}}">{{item.initial}}</view>
-            <view class="member-info"><view class="member-name">{{item.nickname||'成员'}}</view><view class="member-role">{{item.role==='admin'?'管理员':'成员'}}</view></view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ===== 报表 ===== -->
-    <view wx:if="{{activeTab==='report'}}">
+    <!-- ===== 统计（排行+报表合并） ===== -->
+    <view wx:if="{{activeTab==='stats'}}">
+      <!-- 时间筛选 -->
       <view class="period-bar">
         <view class="period-btn {{reportPeriod==='week'?'active':''}}" bindtap="switchPeriod" data-period="week">本周</view>
         <view class="period-btn {{reportPeriod==='month'?'active':''}}" bindtap="switchPeriod" data-period="month">本月</view>
@@ -128,21 +137,70 @@
       </view>
       <view class="loading-box" wx:if="{{reportLoading}}" style="padding-top:40rpx"><view class="loading-spinner"></view></view>
       <view wx:elif="{{reportData}}">
+        <!-- 总览数据 -->
         <view class="section-card">
-          <view class="stat-overview"><view class="stat-item"><view class="stat-num">{{reportData.totalRecords}}</view><view class="stat-label">总记录</view></view><view class="stat-item"><view class="stat-num">{{reportData.memberStats.length}}</view><view class="stat-label">参与人数</view></view></view>
+          <view class="stat-overview">
+            <view class="stat-item"><view class="stat-num">{{reportData.totalRecords}}</view><view class="stat-label">养护次数</view></view>
+            <view class="stat-item"><view class="stat-num">{{reportData.memberStats.length}}</view><view class="stat-label">参与人数</view></view>
+            <view class="stat-item"><view class="stat-num">{{reportData.plantCount || 0}}</view><view class="stat-label">涉及植物</view></view>
+          </view>
         </view>
+
+        <!-- 积分排行 -->
+        <view class="section-card">
+          <view class="section-title">🏆 积分排行</view>
+          <view class="lb-item {{index===0?'first':''}}" wx:for="{{leaderboard}}" wx:key="openid">
+            <view class="lb-rank">{{index+1}}</view>
+            <view class="lb-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+            <view class="lb-info"><view class="lb-name">{{item.nickname||'成员'}}</view><view class="lb-detail">打理{{item.totalCare||0}}次 · 认养{{item.adoptedCount||0}}棵</view></view>
+            <view class="lb-points">⭐ {{item.points||0}}</view>
+          </view>
+        </view>
+
+        <!-- 成员贡献柱状图 -->
         <view class="section-card">
           <view class="section-title">📊 成员贡献</view>
           <view class="bar-chart">
-            <view class="bar-item" wx:for="{{reportData.memberStats}}" wx:key="openid"><view class="bar-val">{{item.total}}</view><view class="bar-fill" style="height:{{item.barHeight}}rpx"></view><view class="bar-name">{{item.nickname}}</view></view>
+            <view class="bar-item" wx:for="{{reportData.memberStats}}" wx:key="openid">
+              <view class="bar-val">{{item.total}}</view>
+              <view class="bar-fill" style="height:{{item.barHeight}}rpx"></view>
+              <view class="bar-name">{{item.nickname}}</view>
+            </view>
           </view>
         </view>
+
+        <!-- 养护类型分布 -->
         <view class="section-card">
-          <view class="section-title">📋 养护类型</view>
+          <view class="section-title">📋 养护类型分布</view>
           <view class="type-list">
-            <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name"><view class="type-emoji">{{item.emoji}}</view><view class="type-name">{{item.name}}</view><view class="type-count">{{item.count}}次</view></view>
+            <view class="type-item" wx:for="{{reportData.typeStats}}" wx:key="name">
+              <view class="type-emoji">{{item.emoji}}</view>
+              <view class="type-name">{{item.name}}</view>
+              <view class="type-bar-wrap"><view class="type-bar-fill" style="width:{{item.percent}}%"></view></view>
+              <view class="type-count">{{item.count}}次</view>
+            </view>
           </view>
         </view>
+
+        <!-- 每个人各类型明细 -->
+        <view class="section-card" wx:if="{{reportData.memberStats.length > 0}}">
+          <view class="section-title">👥 成员养护明细</view>
+          <view class="member-detail-list">
+            <view class="member-detail-item" wx:for="{{reportData.memberStats}}" wx:key="openid">
+              <view class="md-header">
+                <view class="md-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+                <text class="md-name">{{item.nickname}}</text>
+                <text class="md-total">{{item.total}}次</text>
+              </view>
+              <view class="md-types">
+                <view class="md-type" wx:for="{{item.topTypes}}" wx:for-item="t" wx:key="name">
+                  <text>{{t.emoji}} {{t.name}} {{t.count}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
         <!-- 花费统计 -->
         <view class="section-card" wx:if="{{reportData.costStats}}">
           <view class="section-title">💰 花费统计</view>
@@ -164,6 +222,17 @@
             <text class="cat-bar-name">{{item.name}}</text>
             <view class="cat-bar-wrap"><view class="cat-bar-fill orange" style="width: {{item.percent}}%"></view></view>
             <text class="cat-bar-count">¥{{item.total}} ({{item.count}}棵 均¥{{item.avg}})</text>
+          </view>
+        </view>
+
+        <!-- 成员列表 -->
+        <view class="section-card">
+          <view class="section-title">👨‍👩‍👧‍👦 家庭成员</view>
+          <view class="member-list">
+            <view class="member-item" wx:for="{{members}}" wx:key="openid">
+              <view class="member-avatar" style="background:{{item.color}}">{{item.initial}}</view>
+              <view class="member-info"><view class="member-name">{{item.nickname||'成员'}}</view><view class="member-role">{{item.role==='admin'?'管理员':'成员'}}</view></view>
+            </view>
           </view>
         </view>
       </view>

@@ -6,9 +6,10 @@ Page({
     loading: true, loadError: false, inFamily: false,
     familyInfo: null, myRole: '', members: [],
     leaderboard: [], myPoints: 0,
-    // Tab: summary | members | report | wish | feed
+    // Tab: summary | plants | stats | wish | feed
     activeTab: 'summary',
     // 汇总
+    summaryStats: { totalPlants: 0, healthyCount: 0, warningCount: 0, totalCare: 0, continuousDays: 0 },
     weeklyReport: null, pkData: null, healthPlants: [], milestones: [],
     // 动态流
     activities: [],
@@ -74,8 +75,8 @@ Page({
     switch (tab) {
       case 'summary': await this.loadSummaryData(); break
       case 'plants': await this.loadPlantsBoard(); break
+      case 'stats': await this.loadStatsTab(); break
       case 'feed': await this.loadActivities(); break
-      case 'report': if (!this.data.reportData) await this.loadReport(); break
       case 'wish': await this.loadWishlist(); break
     }
   },
@@ -83,19 +84,46 @@ Page({
   // ========== 汇总 ==========
 
   async loadSummaryData() {
-    const [pkResult, reportResult] = await Promise.all([
+    const [pkResult, reportResult, healthResult] = await Promise.all([
       family.getPK('week'),
-      family.getWeeklyReport()
+      family.getWeeklyReport(),
+      family.getHealthBoard()
     ])
+    // 汇总统计
+    const healthPlants = healthResult.success ? healthResult.plants : []
+    const totalPlants = healthPlants.length
+    const healthyCount = healthPlants.filter(p => p.score >= 70).length
+    const warningCount = healthPlants.filter(p => p.score < 70).length
+    // 计算连续养护天数
+    let continuousDays = 0
+    if (reportResult.success && reportResult.report) {
+      continuousDays = reportResult.report.continuousDays || 0
+    }
+    // 累计养护从成员积分推算
+    const totalCare = this.data.leaderboard.reduce((s, m) => s + (m.totalCare || 0), 0)
     this.setData({
       pkData: pkResult.success ? pkResult : null,
-      weeklyReport: reportResult.success ? reportResult.report : null
+      weeklyReport: reportResult.success ? reportResult.report : null,
+      summaryStats: { totalPlants, healthyCount, warningCount, totalCare, continuousDays }
     })
   },
 
   async loadPlantsBoard() {
     const healthResult = await family.getHealthBoard()
-    this.setData({ healthPlants: healthResult.success ? healthResult.plants : [] })
+    const plants = healthResult.success ? healthResult.plants : []
+    // 获取认养信息
+    const allPlants = family.getCachedPlants()
+    const plantsWithAdopters = plants.map(p => {
+      const cached = allPlants.find(cp => cp._id === p._id)
+      return { ...p, adopterNames: cached ? (cached.adopterNames || []) : [] }
+    })
+    this.setData({ healthPlants: plantsWithAdopters })
+  },
+
+  // ========== 统计Tab（排行+报表合并） ==========
+
+  async loadStatsTab() {
+    await this.loadReport()
   },
 
   // ========== 动态流 ==========
@@ -124,10 +152,24 @@ Page({
     const result = await family.getReport(this.data.reportPeriod)
     if (result.success) {
       const maxTotal = Math.max(1, ...result.memberStats.map(m => m.total))
-      const memberStats = result.memberStats.map(m => ({ ...m, barHeight: Math.max(8, (m.total / maxTotal) * 200) }))
+      const memberStats = result.memberStats.map(m => ({
+        ...m,
+        barHeight: Math.max(8, (m.total / maxTotal) * 200),
+        initial: m.nickname ? m.nickname.charAt(0) : '?',
+        color: this.data.colorMap[this.data.leaderboard.findIndex(lb => lb.openid === m.openid) % this.data.colorMap.length] || '#4CAF50',
+        topTypes: Object.entries(m.byType || {}).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([type, count]) => {
+          const typeEmoji = { water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉', photo: '📷', note: '📝', custom: '🌿', pest: '🐛', loosen: '🌱', postpone: '⏩' }
+          const typeNameMap = { water: '浇水', fertilize: '施肥', prune: '修剪', repot: '换盆', spray: '喷药', photo: '拍照', note: '备注', custom: '养护', pest: '除虫', loosen: '松土', postpone: '推迟' }
+          return { name: typeNameMap[type] || type, emoji: typeEmoji[type] || '📋', count }
+        })
+      }))
       const typeEmoji = { '浇水': '💧', '施肥': '🧪', '修剪': '✂️', '换盆': '🏺', '喷药': '💉', '拍照记录': '📷', '备注': '📝' }
-      const typeStats = Object.entries(result.typeStats || {}).map(([name, count]) => ({ name, count, emoji: typeEmoji[name] || '📋' })).sort((a, b) => b.count - a.count)
-      this.setData({ reportData: { totalRecords: result.totalRecords, memberStats, typeStats, costStats: result.costStats || null }, reportLoading: false })
+      const maxTypeCount = Math.max(1, ...Object.values(result.typeStats || {}))
+      const typeStats = Object.entries(result.typeStats || {}).map(([name, count]) => ({ name, count, emoji: typeEmoji[name] || '📋', percent: Math.round(count / maxTypeCount * 100) })).sort((a, b) => b.count - a.count)
+      // 涉及植物数
+      const plantIds = new Set()
+      memberStats.forEach(m => { Object.keys(m.plants || {}).forEach(id => plantIds.add(id)) })
+      this.setData({ reportData: { totalRecords: result.totalRecords, memberStats, typeStats, plantCount: plantIds.size, costStats: result.costStats || null }, reportLoading: false })
     } else { this.setData({ reportLoading: false }) }
   },
 
