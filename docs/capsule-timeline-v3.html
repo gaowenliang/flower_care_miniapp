@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>养护记录胶囊时间线</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #F0F2F0; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; max-width: 420px; margin: 0 auto; min-height: 100vh; }
+
+/* 顶部导航 */
+.nav { background: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1rpx solid #f0f0f0; position: sticky; top: 0; z-index: 10; }
+.nav-back { font-size: 20px; color: #333; }
+.nav-title { font-size: 17px; font-weight: 600; color: #2D3436; flex: 1; }
+.nav-action { font-size: 14px; color: #4CAF50; }
+
+/* 植物头部 */
+.plant-header { background: #fff; padding: 16px; margin-bottom: 8px; }
+.header-row { display: flex; align-items: center; gap: 14px; }
+.avatar { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #C8E6C9, #A5D6A7); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+.plant-name { font-size: 18px; font-weight: 600; color: #2D3436; }
+.plant-species { font-size: 12px; color: #90A4AE; margin-top: 2px; }
+.plant-loc { font-size: 12px; color: #78909C; margin-top: 4px; }
+
+/* 健康条 */
+.health { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F0F2F0; }
+.health-emoji { font-size: 16px; }
+.health-label { font-size: 12px; color: #4CAF50; font-weight: 600; }
+.health-bar-bg { flex: 1; height: 6px; background: #E8F5E9; border-radius: 3px; }
+.health-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; width: 85%; }
+.health-score { font-size: 12px; color: #4CAF50; font-weight: 600; }
+
+/* 操作按钮 */
+.actions { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
+.act-btn { flex-shrink: 0; padding: 8px 14px; background: #F7F9F7; border-radius: 20px; font-size: 13px; color: #2D3436; border: 1px solid #E8F5E9; }
+
+/* Tab */
+.tabs { display: flex; background: #fff; padding: 4px; margin: 0 12px; border-radius: 12px; gap: 4px; margin-top: 8px; }
+.tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #90A4AE; border-radius: 10px; }
+.tab.active { background: #4CAF50; color: #fff; font-weight: 600; }
+
+/* 记录头部 */
+.record-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 8px; }
+.record-title { font-size: 15px; font-weight: 600; color: #2D3436; }
+.import-btn { font-size: 13px; color: #4CAF50; }
+
+/* Card */
+.card { background: #fff; border-radius: 12px; margin: 0 12px 12px; padding: 12px 16px; }
+
+/* 时间线 */
+.tl-month { font-size: 14px; font-weight: 600; color: #4CAF50; padding: 14px 0 8px; border-bottom: 1px solid #E8F5E9; margin-bottom: 10px; }
+.tl-month:first-child { padding-top: 4px; }
+.tl-day { margin-bottom: 14px; }
+.tl-day-header { display: flex; align-items: center; justify-content: space-between; padding: 2px 0 8px; }
+.tl-day-label { font-size: 12px; color: #78909C; font-weight: 500; }
+.tl-day-label.today { color: #4CAF50; font-weight: 700; }
+.tl-day-count { font-size: 10px; color: #B0BEC5; }
+
+.tl-capsules { display: flex; flex-wrap: wrap; gap: 8px; }
+.capsule {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #F1F8E9; border-radius: 20px;
+  padding: 7px 14px; font-size: 13px;
+  border: 1px solid #E8F5E9;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.capsule:active { transform: scale(0.96); background: #E8F5E9; }
+.capsule-emoji { font-size: 12px; }
+.capsule-name { color: #2E7D32; font-weight: 500; }
+.capsule-note { color: #90A4AE; font-size: 11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.capsule-creator { color: #4CAF50; font-size: 10px; background: #E8F5E9; padding: 1px 7px; border-radius: 8px; }
+
+/* 不同类型胶囊颜色区分 */
+.capsule.water { background: #E3F2FD; border-color: #BBDEFB; }
+.capsule.water .capsule-name { color: #1565C0; }
+.capsule.fertilize { background: #E8F5E9; border-color: #C8E6C9; }
+.capsule.fertilize .capsule-name { color: #2E7D32; }
+.capsule.prune { background: #FFF3E0; border-color: #FFE0B2; }
+.capsule.prune .capsule-name { color: #E65100; }
+.capsule.repot { background: #F3E5F5; border-color: #E1BEE7; }
+.capsule.repot .capsule-name { color: #6A1B9A; }
+.capsule.spray { background: #E0F2F1; border-color: #B2DFDB; }
+.capsule.spray .capsule-name { color: #00695C; }
+.capsule.photo { background: #FFF8E1; border-color: #FFECB3; }
+.capsule.photo .capsule-name { color: #F57F17; }
+.capsule.retro { background: #FCE4EC; border-color: #F8BBD0; }
+.capsule.retro .capsule-name { color: #AD1457; }
+
+/* 长按提示 */
+.long-press-hint { text-align: center; padding: 12px 0 4px; font-size: 11px; color: #B0BEC5; }
+
+.bottom-safe { height: 34px; }
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<div class="nav">
+  <span class="nav-back">‹</span>
+  <span class="nav-title">植物详情</span>
+  <span class="nav-action"></span>
+</div>
+
+<!-- 植物头部 -->
+<div class="plant-header">
+  <div class="header-row">
+    <div class="avatar">🌿</div>
+    <div>
+      <div class="plant-name">龟背竹</div>
+      <div class="plant-species">龟背竹 · Monstera deliciosa</div>
+      <div class="plant-location">📍 阳台 · 绿植</div>
+      <div class="plant-loc">📅 2025/3/15 到家 · 💰 ¥39.9</div>
+    </div>
+  </div>
+  <div class="health">
+    <span class="health-emoji">😊</span>
+    <span class="health-label">健康</span>
+    <div class="health-bar-bg"><div class="health-bar-fill"></div></div>
+    <span class="health-score">85分</span>
+  </div>
+  <div class="actions">
+    <span class="act-btn">📷 拍照</span>
+    <span class="act-btn">📖 日记</span>
+    <span class="act-btn">📤 报告</span>
+    <span class="act-btn">🩺 诊断</span>
+    <span class="act-btn">➕ 任务</span>
+    <span class="act-btn">🔖 补卡</span>
+  </div>
+</div>
+
+<!-- Tab -->
+<div class="tabs">
+  <div class="tab active">养护记录</div>
+  <div class="tab">养护指南</div>
+  <div class="tab">小贴士</div>
+</div>
+
+<!-- 记录头部 -->
+<div class="record-header">
+  <span class="record-title">养护记录</span>
+  <span class="import-btn">📥 导入记录</span>
+</div>
+
+<!-- 时间线 -->
+<div class="card">
+  <!-- 2026年5月 -->
+  <div class="tl-month">2026年5月</div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label today">今天</span>
+      <span class="tl-day-count">3条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+      <view class="capsule prune">
+        <span class="capsule-emoji">✂️</span>
+        <span class="capsule-name">修剪</span>
+        <span class="capsule-note">去掉黄叶</span>
+      </view>
+      <view class="capsule photo">
+        <span class="capsule-emoji">📷</span>
+        <span class="capsule-name">拍照记录</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">5/28 周四</span>
+      <span class="tl-day-count">2条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+      <view class="capsule fertilize">
+        <span class="capsule-emoji">🧪</span>
+        <span class="capsule-name">施肥</span>
+        <span class="capsule-note">花多多1号</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">5/25 周一</span>
+      <span class="tl-day-count">1条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">5/20 周三</span>
+      <span class="tl-day-count">4条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+      <view class="capsule fertilize">
+        <span class="capsule-emoji">🧪</span>
+        <span class="capsule-name">施肥</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+      <view class="capsule prune">
+        <span class="capsule-emoji">✂️</span>
+        <span class="capsule-name">修剪</span>
+      </view>
+      <view class="capsule photo">
+        <span class="capsule-emoji">📷</span>
+        <span class="capsule-name">拍照记录</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">5/10 周日</span>
+      <span class="tl-day-count">2条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+      <view class="capsule retro">
+        <span class="capsule-emoji">🔖</span>
+        <span class="capsule-name">补卡</span>
+      </view>
+    </div>
+  </div>
+
+  <!-- 2026年4月 -->
+  <div class="tl-month">2026年4月</div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">4/28 周一</span>
+      <span class="tl-day-count">3条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+      <view class="capsule fertilize">
+        <span class="capsule-emoji">🧪</span>
+        <span class="capsule-name">施肥</span>
+        <span class="capsule-note">奥绿缓释肥</span>
+      </view>
+      <view class="capsule repot">
+        <span class="capsule-emoji">🏺</span>
+        <span class="capsule-name">换盆</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">4/15 周二</span>
+      <span class="tl-day-count">1条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+    </div>
+  </div>
+
+  <!-- 2025年11月 -->
+  <div class="tl-month">2025年11月</div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">11/20 周四</span>
+      <span class="tl-day-count">2条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+      <view class="capsule spray">
+        <span class="capsule-emoji">💉</span>
+        <span class="capsule-name">喷药</span>
+        <span class="capsule-note">多菌灵</span>
+      </view>
+    </div>
+  </div>
+
+  <!-- 2025年10月 -->
+  <div class="tl-month">2025年10月</div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">10/25 周六</span>
+      <span class="tl-day-count">3条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+      <view class="capsule fertilize">
+        <span class="capsule-emoji">🧪</span>
+        <span class="capsule-name">施肥</span>
+        <span class="capsule-creator">小花</span>
+      </view>
+      <view class="capsule photo">
+        <span class="capsule-emoji">📷</span>
+        <span class="capsule-name">拍照记录</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="tl-day">
+    <div class="tl-day-header">
+      <span class="tl-day-label">10/10 周五</span>
+      <span class="tl-day-count">2条</span>
+    </div>
+    <div class="tl-capsules">
+      <view class="capsule water">
+        <span class="capsule-emoji">💧</span>
+        <span class="capsule-name">浇水</span>
+      </view>
+      <view class="capsule prune">
+        <span class="capsule-emoji">✂️</span>
+        <span class="capsule-name">修剪</span>
+        <span class="capsule-note">气生根修剪</span>
+      </view>
+    </div>
+  </div>
+
+  <div class="long-press-hint">长按胶囊可删除记录</div>
+  <div class="bottom-safe"></div>
+</div>
+
+</body>
+</html>
