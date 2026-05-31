@@ -617,7 +617,7 @@ async function batchImportRecords(event, openid, familyId) {
 
   // 加分并行（只给新插入的加，覆盖的不重复加）
   if (toInsert.length > 0) {
-    await Promise.all(toInsert.map(rec => addPointsToMember(operatorOpenid, rec.type).catch(() => {})))
+    await Promise.all(toInsert.map(rec => addPointsToMember(operatorOpenid, rec.type).catch(e => console.error('加分失败:', e))))
   }
 
   // 汇总写一条动态

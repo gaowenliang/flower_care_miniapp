@@ -1,5 +1,6 @@
 // pages/room-manage/room-manage.js
 const storage = require('../../utils/storage')
+const family = require('../../utils/family')
 
 const PRESET_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
 
@@ -34,7 +35,7 @@ Page({
 
     const rooms = [...PRESET_ROOMS.filter(r => !hiddenPresets.has(r)), ...customRooms.filter(r => !PRESET_ROOMS.includes(r) || hiddenPresets.has(r))].map(name => {
       const env = roomEnvs[name] || null
-      return { name, isPreset: false, env }
+      return { name, isPreset: PRESET_ROOMS.includes(name) && !hiddenPresets.has(name), env }
     })
     this.setData({ rooms })
   },
@@ -51,7 +52,7 @@ Page({
   hideRename() { this.setData({ showRenameModal: false }) },
   onRenameInput(e) { this.setData({ renameInput: e.detail.value }) },
 
-  confirmRename() {
+  async confirmRename() {
     const newName = this.data.renameInput.trim()
     const oldName = this.data.renameOldName
     if (!newName) { wx.showToast({ title: '请输入名称', icon: 'none' }); return }
@@ -88,16 +89,32 @@ Page({
     }
 
     // 更新该房间下的植物
-    const garden = storage.getGarden()
-    let changed = 0
-    garden.forEach(p => {
-      if (p.location === oldName) { p.location = newName; changed++ }
-    })
-    if (changed > 0) storage.saveGarden(garden)
-
-    this.setData({ showRenameModal: false })
-    this.loadRooms()
-    wx.showToast({ title: changed > 0 ? `已改名，${changed}棵植物已迁移` : '已改名', icon: 'none' })
+    if (family.isInFamily()) {
+      // 家庭模式：更新云端植物
+      const plants = family.getCachedPlants()
+      let changed = 0
+      const updates = []
+      plants.forEach(p => {
+        if (p.location === oldName) {
+          updates.push(family.updatePlant(p._id, { location: newName }))
+          changed++
+        }
+      })
+      if (updates.length > 0) await Promise.all(updates).catch(() => {})
+      this.setData({ showRenameModal: false })
+      this.loadRooms()
+      wx.showToast({ title: changed > 0 ? `已改名，${changed}棵植物已迁移` : '已改名', icon: 'none' })
+    } else {
+      const garden = storage.getGarden()
+      let changed = 0
+      garden.forEach(p => {
+        if (p.location === oldName) { p.location = newName; changed++ }
+      })
+      if (changed > 0) storage.saveGarden(garden)
+      this.setData({ showRenameModal: false })
+      this.loadRooms()
+      wx.showToast({ title: changed > 0 ? `已改名，${changed}棵植物已迁移` : '已改名', icon: 'none' })
+    }
   },
 
   confirmAdd() {
@@ -123,7 +140,7 @@ Page({
       title: '删除房间',
       content: `确定删除「${name}」？该房间下的植物将移到「阳台」。`,
       confirmColor: '#e53935',
-      success: (res) => {
+      success: async (res) => {
         if (!res.confirm) return
 
         // 从自定义列表删除
@@ -146,11 +163,20 @@ Page({
         try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
 
         // 该房间的植物移到阳台
-        const garden = storage.getGarden()
-        garden.forEach(p => {
-          if (p.location === name) p.location = '阳台'
-        })
-        storage.saveGarden(garden)
+        if (family.isInFamily()) {
+          const plants = family.getCachedPlants()
+          const updates = []
+          plants.forEach(p => {
+            if (p.location === name) updates.push(family.updatePlant(p._id, { location: '阳台' }))
+          })
+          if (updates.length > 0) await Promise.all(updates).catch(() => {})
+        } else {
+          const garden = storage.getGarden()
+          garden.forEach(p => {
+            if (p.location === name) p.location = '阳台'
+          })
+          storage.saveGarden(garden)
+        }
 
         this.loadRooms()
         wx.showToast({ title: '已删除', icon: 'none' })

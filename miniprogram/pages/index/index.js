@@ -521,6 +521,7 @@ Page({
           })
         } catch (e) { /* 日志失败不影响主流程 */ }
         wx.showToast({ title: '已推迟到明天', icon: 'none' })
+        this.loadFamilyData()
       } else {
         // 失败了恢复
         newTasks.splice(idx, 0, task)
@@ -547,6 +548,7 @@ Page({
         try { wx.setStorageSync(storage.KEYS.RECORDS, records) } catch (e) {}
       }
       wx.showToast({ title: '已推迟到明天', icon: 'none' })
+      this.loadTodayTasks()
     }
   },
 
