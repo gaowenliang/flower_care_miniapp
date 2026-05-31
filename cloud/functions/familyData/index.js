@@ -542,6 +542,14 @@ async function batchImportRecords(event, openid, familyId) {
   // 实际操作人（如果前端传了 createdBy 就用前端的，否则用当前用户）
   const operatorOpenid = createdBy || openid
 
+  // 安全校验：createdBy 只能是本人或家庭成员
+  if (createdBy && createdBy !== openid) {
+    const targetMember = await db.collection('family_members').where({ openid: createdBy, familyId }).limit(1).get()
+    if (targetMember.data.length === 0) {
+      return { success: false, error: '指定的养护人不在家庭中' }
+    }
+  }
+
   // 校验 plantId 归属该家庭
   try {
     const plantRes = await db.collection('family_plants').doc(plantId).get()
@@ -601,16 +609,17 @@ async function batchImportRecords(event, openid, familyId) {
     }
   }
 
-  // 插入新记录
-  if (toInsert.length > 0) {
-    await Promise.all(toInsert.map(rec =>
+  // 分批插入新记录（每批20条，避免云开发限流）
+  const BATCH_SIZE = 20
+  for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
+    await Promise.all(toInsert.slice(i, i + BATCH_SIZE).map(rec =>
       db.collection('family_records').add({ data: rec })
     ))
   }
 
-  // 覆盖旧记录
-  if (toUpdate.length > 0) {
-    await Promise.all(toUpdate.map(u =>
+  // 分批覆盖旧记录
+  for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+    await Promise.all(toUpdate.slice(i, i + BATCH_SIZE).map(u =>
       db.collection('family_records').doc(u.id).update({ data: u.data })
     ))
   }
