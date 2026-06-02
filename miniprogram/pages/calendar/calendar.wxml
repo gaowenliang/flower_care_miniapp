@@ -31,7 +31,9 @@
       <view class="week-header">
         <text class="week-day" wx:for="{{weekDays}}" wx:key="*this">{{item}}</text>
       </view>
-      <view class="days-grid">
+      <view class="days-grid" 
+            bindtouchstart="onCalendarTouchStart" 
+            bindtouchend="onCalendarTouchEnd">
         <view class="day-cell {{item.isToday ? 'today' : ''}} {{item.hasTask || item.hasRecord ? 'has-task' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.empty ? 'empty' : ''}}" 
               wx:for="{{days}}" wx:key="index"
               bindtap="selectDate" data-date="{{item.date}}">

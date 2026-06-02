@@ -303,5 +303,24 @@ Page({
     }
   },
 
-  preventBubble() {}
+  preventBubble() {},
+
+  // ========== 滑动手势切换月份 ==========
+  _touchStartX: 0,
+
+  onCalendarTouchStart(e) {
+    if (e.touches && e.touches.length > 0) {
+      this._touchStartX = e.touches[0].clientX
+    }
+  },
+
+  onCalendarTouchEnd(e) {
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      const dx = e.changedTouches[0].clientX - this._touchStartX
+      if (Math.abs(dx) > 60) {
+        if (dx < 0) this.nextMonth()
+        else this.prevMonth()
+      }
+    }
+  }
 })

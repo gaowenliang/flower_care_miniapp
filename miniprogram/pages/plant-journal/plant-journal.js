@@ -48,7 +48,7 @@ Page({
 
   // 加载家庭日记
   async loadFamilyJournal() {
-    const records = await family.getRecords(this.data.userPlant._id, 500)
+    const records = await family.getRecords(this.data.userPlant._id, 500, true)
     this.buildJournalFromRecords(records || [])
   },
 

@@ -48,6 +48,8 @@
 .modal-btn.confirm { background: #4CAF50; color: #fff; }
 
 /* 环境参数 */
+.env-modal { max-height: 85vh; display: flex; flex-direction: column; }
+.env-scroll { max-height: 60vh; }
 .env-row { padding: 12rpx 0; border-bottom: 1rpx solid #f0f0f0; }
 .env-row:last-of-type { border-bottom: none; }
 .env-label { font-size: 28rpx; color: #2D3436; font-weight: 500; display: block; margin-bottom: 8rpx; }

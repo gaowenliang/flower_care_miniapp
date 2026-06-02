@@ -37,13 +37,23 @@ Page({
 
   async loadStats() {
     if (this.data.inFamily) {
-      // 家庭模式：刷新缓存后算统计
-      await family.getPlants(true).catch(() => {})
-      await family.getTasks('', true).catch(() => {})
-      await family.getRecords('', 500, true).catch(() => {})
-      const plants = family.getCachedPlants()
-      const tasks = family.getCachedTasks('')
-      const records = family.getCachedRecords('')
+      // 家庭模式：优先用缓存，30s 内不重新拉
+      let plants = family.getCachedPlants()
+      let tasks = family.getCachedTasks('')
+      let records = family.getCachedRecords('')
+      const cacheAge = (() => {
+        try { const c = wx.getStorageSync('_family_plants') || {}; return Date.now() - (c._cachedAt || 0) } catch(e) { return Infinity }
+      })()
+      if (plants.length === 0 || cacheAge > 30000) {
+        const [p, t, r] = await Promise.all([
+          family.getPlants(true).catch(() => []),
+          family.getTasks('', true).catch(() => []),
+          family.getRecords('', 200, true).catch(() => [])
+        ])
+        plants = p || []
+        tasks = t || []
+        records = r || []
+      }
       const today = new Date(); today.setHours(0, 0, 0, 0)
       const todayTs = today.getTime()
       const dueToday = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000).length
@@ -412,7 +422,7 @@ Page({
         const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
         if (cost <= 0) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
         const note = '设备购买'
-        if (this.data.isFamilyMode) {
+        if (this.data.inFamily) {
           await family.addRecord({ plantId: '__equipment__', type: 'cost', typeName: '设备花费', note, cost })
         } else {
           storage.addRecord({ id: require('../../utils/util').genId(), userPlantId: '__equipment__', type: 'cost', typeName: '设备花费', date: Date.now(), note, cost })
@@ -432,7 +442,7 @@ Page({
         const cost = Math.round((parseFloat(res.content) || 0) * 100) / 100
         if (cost <= 0) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
         const note = '废料购买'
-        if (this.data.isFamilyMode) {
+        if (this.data.inFamily) {
           await family.addRecord({ plantId: '__material__', type: 'cost', typeName: '废料花费', note, cost })
         } else {
           storage.addRecord({ id: require('../../utils/util').genId(), userPlantId: '__material__', type: 'cost', typeName: '废料花费', date: Date.now(), note, cost })

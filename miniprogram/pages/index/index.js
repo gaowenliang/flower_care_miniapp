@@ -1,11 +1,18 @@
-// pages/index/index.js - 首页：我的花园（支持家庭模式）
+// pages/index/index.js - 首页：我的花园（家庭模式）
 const util = require('../../utils/util')
-const storage = require('../../utils/storage')
 const subscribe = require('../../utils/subscribe')
 const family = require('../../utils/family')
 
 // 预设房间
-const DEFAULT_ROOMS = ['全部', '阳台', '客厅', '卧室', '书房', '窗台', '花园']
+const DEFAULT_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+
+// 工具函数：安全读取 customRooms
+function getCustomRooms() {
+  try { return wx.getStorageSync('customRooms') || [] } catch (e) { return [] }
+}
+function setCustomRooms(rooms) {
+  try { wx.setStorageSync('customRooms', rooms) } catch (e) {}
+}
 
 Page({
   data: {
@@ -25,8 +32,10 @@ Page({
     showAddRoom: false,
     newRoomName: '',
     _lastLoadTime: 0,
-    // 家庭模式
-    isFamilyMode: false,
+    // 智能刷新：超过此时间才重新拉云数据
+    _lastCloudRefresh: 0,
+    // 家庭模式（始终为 true，保留字段兼容）
+    isFamilyMode: true,
     // 天气
     weather: null,
     weatherLoading: false,
@@ -36,29 +45,31 @@ Page({
   onShow() {
     const now = Date.now()
     if (now - this.data._lastLoadTime < 500) return
-    this.setData({ loading: true, _lastLoadTime: now })
+    this.setData({ _lastLoadTime: now })
     this.initMode()
   },
 
   async initMode() {
-    // 必须加入家庭才能使用
     const cachedInfo = family.getCachedFamily()
     if (cachedInfo && cachedInfo.inFamily) {
-      this.setData({ isFamilyMode: true })
-      this.loadFamilyDataFromCache()
-      family.refreshFamilyInfo().then(info => {
-        if (info.success && !info.inFamily) {
-          // 被踢出家庭了，跳转家庭页
-          wx.redirectTo({ url: '/pages/family/family' })
-        }
-      })
-    } else {
-      const info = await family.refreshFamilyInfo()
-      if (info.success && info.inFamily) {
-        this.setData({ isFamilyMode: true })
+      const timeSinceRefresh = Date.now() - this.data._lastCloudRefresh
+      if (timeSinceRefresh > 30000) {
+        this.setData({ loading: true, _lastCloudRefresh: Date.now() })
+        family.refreshFamilyInfo().then(info => {
+          if (info.success && !info.inFamily) {
+            wx.redirectTo({ url: '/pages/family/family' })
+          }
+        })
         this.loadFamilyData()
       } else {
-        // 未加入家庭，跳转家庭页
+        this.loadFamilyDataFromCache()
+      }
+    } else {
+      this.setData({ loading: true, _lastCloudRefresh: Date.now() })
+      const info = await family.refreshFamilyInfo()
+      if (info.success && info.inFamily) {
+        this.loadFamilyData()
+      } else {
         wx.redirectTo({ url: '/pages/family/family' })
         return
       }
@@ -70,13 +81,11 @@ Page({
 
   // ========== 家庭模式数据加载 ==========
 
-  // 从缓存渲染家庭数据（不调云函数）
   loadFamilyDataFromCache() {
     const plants = family.getCachedPlants()
     const allTasks = family.getCachedTasks('')
     const allRecords = family.getCachedRecords('')
     if (plants.length === 0) {
-      // 缓存为空，走完整加载
       this.loadFamilyData()
       return
     }
@@ -87,7 +96,7 @@ Page({
     try {
       const plants = await family.getPlants(true)
       const allTasks = await family.getTasks('', true)
-      const allRecords = await family.getRecords('', 500, true)
+      const allRecords = await family.getRecords('', 100, true)
       this._buildFamilyUI(plants || [], allTasks || [], allRecords || [])
     } catch (e) {
       console.error('加载家庭数据失败:', e)
@@ -113,13 +122,12 @@ Page({
         }
       })
 
-      garden.sort((a, b) => {
+      const sortedGarden = [...garden].sort((a, b) => {
         if (a.dead !== b.dead) return a.dead ? 1 : -1
         if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
         return (b.addedAt || 0) - (a.addedAt || 0)
       })
 
-      // 家庭模式下的今日任务
       const todayTasks = []
       garden.forEach(plant => {
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
@@ -138,39 +146,51 @@ Page({
       })
 
       this.setData({
-        garden,
-        hasPlants: garden.length > 0,
+        garden: sortedGarden,
+        hasPlants: sortedGarden.length > 0,
         todayTasks,
         stats: {
-          totalPlants: garden.length,
+          totalPlants: sortedGarden.length,
           totalTasks: allTasks.length,
           activeTasks: (allTasks || []).filter(t => t.enabled).length,
           dueToday: todayTasks.length,
           totalRecords: allRecords.length,
           totalCost: (() => {
-            const purchaseTotal = garden.reduce((s, p) => s + (p.purchasePrice || 0), 0)
+            const purchaseTotal = sortedGarden.reduce((s, p) => s + (p.purchasePrice || 0), 0)
             const costTotal = (allRecords || []).filter(r => r.type === 'cost').reduce((s, r) => s + (r.cost || 0), 0)
             return (purchaseTotal + costTotal).toFixed(2)
           })()
         }
       })
-      this.loadRooms() // 数据加载后再刷新房间列表（确保💀天堂出现）
+      this.loadRooms()
       this.applyFilter()
   },
 
   // ========== 房间管理 ==========
 
   loadRooms() {
-    let customRooms = []
-    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
-    // 直接用 this.data.garden（已经 setData 过了）
-    const garden = this.data.garden
-    const hasDead = garden && garden.some(p => p.dead)
-    if (hasDead && !customRooms.includes('💀 天堂')) {
-      customRooms.push('💀 天堂')
-      try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
-    }
-    this.setData({ rooms: [...DEFAULT_ROOMS, ...customRooms] })
+    const customRooms = getCustomRooms()
+    const garden = this.data.garden || []
+
+    // 从实际植物数据中自动发现房间
+    const plantLocations = new Set()
+    garden.forEach(p => {
+      if (p.location) plantLocations.add(p.location)
+    })
+
+    // 💀 天堂永远排最后：先排除，最后单独加
+    const hasDead = garden.some(p => p.dead)
+
+    // 构建最终列表：全部 → 预设（去掉全部） → 自定义（去掉💀天堂） → 植物实际房间（不在上面列表中的） → 💀天堂 → + 添加
+    const rooms = ['全部']
+    const presetWithoutAll = DEFAULT_ROOMS
+    presetWithoutAll.forEach(r => { if (plantLocations.has(r) || customRooms.includes(r)) rooms.push(r) })
+    customRooms.forEach(r => { if (!rooms.includes(r) && r !== '💀 天堂') rooms.push(r) })
+    plantLocations.forEach(r => { if (!rooms.includes(r) && r !== '💀 天堂') rooms.push(r) })
+    if (hasDead) rooms.push('💀 天堂')
+    rooms.push('+ 添加')
+
+    this.setData({ rooms })
   },
 
   switchRoom(e) {
@@ -193,12 +213,12 @@ Page({
     if (this.data.rooms.includes(name)) { wx.showToast({ title: '该房间已存在', icon: 'none' }); return }
     if (name.length > 6) { wx.showToast({ title: '房间名最多6个字', icon: 'none' }); return }
 
-    let customRooms = []
-    try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+    const customRooms = getCustomRooms()
     customRooms.push(name)
-    try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
+    setCustomRooms(customRooms)
 
-    this.setData({ rooms: [...DEFAULT_ROOMS, ...customRooms], activeRoom: name, showAddRoom: false, newRoomName: '' })
+    this.loadRooms()
+    this.setData({ activeRoom: name, showAddRoom: false, newRoomName: '' })
     this.applyFilter()
     wx.showToast({ title: '已添加', icon: 'none' })
   },
@@ -211,61 +231,25 @@ Page({
 
   deleteRoom(e) {
     const room = e.currentTarget.dataset.room
-    if (DEFAULT_ROOMS.includes(room)) { wx.showToast({ title: '预设房间不能删除', icon: 'none' }); return }
+    if (DEFAULT_ROOMS.includes(room) || room === '全部' || room === '💀 天堂' || room === '+ 添加') {
+      wx.showToast({ title: '该房间不能删除', icon: 'none' }); return
+    }
     wx.showModal({
       title: '删除房间', content: `确定删除「${room}」？该房间下的植物不会删除。`,
       success: (res) => {
         if (res.confirm) {
-          let customRooms = []
-          try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
+          let customRooms = getCustomRooms()
           customRooms = customRooms.filter(r => r !== room)
-          try { wx.setStorageSync('customRooms', customRooms) } catch (e) {}
-          this.setData({ rooms: [...DEFAULT_ROOMS, ...customRooms], activeRoom: this.data.activeRoom === room ? '全部' : this.data.activeRoom })
+          setCustomRooms(customRooms)
+          this.loadRooms()
+          this.setData({ activeRoom: this.data.activeRoom === room ? '全部' : this.data.activeRoom })
           this.applyFilter()
         }
       }
     })
   },
 
-  // ========== 花园数据（个人模式） ==========
-
-  loadGarden() {
-    if (this.data.isFamilyMode) return
-    let garden = storage.getGarden()
-    garden.forEach(plant => {
-      const tasks = storage.getTasksByPlant(plant.id).filter(t => t.enabled)
-      const dueCount = tasks.filter(t => util.isDueToday(t.nextDate)).length
-      plant.statusEmoji = dueCount > 0 ? '🥺' : '😊'
-      plant.hasOverdue = dueCount > 0
-      plant.dueCount = dueCount
-      plant.addedDays = Math.floor((Date.now() - plant.addedAt) / 86400000)
-    })
-    garden.sort((a, b) => {
-      // 嘎了的排最后
-      if (a.dead !== b.dead) return a.dead ? 1 : -1
-      if (a.hasOverdue !== b.hasOverdue) return a.hasOverdue ? -1 : 1
-      return b.addedAt - a.addedAt
-    })
-    this.setData({ garden, hasPlants: garden.length > 0 })
-    this.loadRooms() // 个人模式也刷新房间列表
-    this.applyFilter()
-  },
-
-  loadTodayTasks() {
-    if (this.data.isFamilyMode) return
-    const dueTasks = storage.getDueTasks()
-    const garden = storage.getGarden()
-    dueTasks.forEach(task => {
-      const plant = garden.find(p => p.id === task.userPlantId)
-      task.plantName = plant ? plant.nickname : '未知植物'
-      task.plantEmoji = plant ? plant.emoji : '🌱'
-      task.plantId = task.userPlantId
-      const daysOver = Math.abs(util.daysUntilNext(task.nextDate))
-      task.daysText = daysOver === 0 ? '今天' : `逾期${daysOver}天`
-    })
-    this.setData({ todayTasks: dueTasks })
-    // 雨天检查已合并到 loadWeather
-  },
+  // ========== 天气 ==========
 
   loadWeather() {
     try {
@@ -284,7 +268,6 @@ Page({
     let city = ''
     try { city = wx.getStorageSync('_weather_city') || '' } catch (e) {}
     if (!city) {
-      // 没有缓存城市，尝试定位
       wx.getLocation({
         type: 'gcj02',
         success: (loc) => {
@@ -305,7 +288,6 @@ Page({
 
   _fetchWeather(city) {
     this.setData({ weatherLoading: true })
-    // 先试云函数
     const tryCloud = () => {
       if (!wx.cloud) return Promise.reject(new Error('no cloud'))
       return new Promise((resolve, reject) => {
@@ -319,11 +301,10 @@ Page({
         })
       })
     }
-    // 云函数失败 → 天气不可用（不暴露 API Key）
     tryCloud().then(w => {
       const emojiMap = { '晴': '☀️', '多云': '⛅', '阴': '☁️', '小雨': '🌧️', '中雨': '🌧️', '大雨': '⛈️', '雷阵雨': '⛈️', '小雪': '🌨️', '中雪': '🌨️', '大雪': '❄️', '雾': '🌫️' }
       const weatherEmoji = emojiMap[w.weather] || '🌤️'
-      const data = { temp: w.temperature, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.windpower, city: w.city || '上海' }
+      const data = { temp: w.temperature, weather: w.weather, emoji: weatherEmoji, humidity: w.humidity, wind: w.windpower, city: w.city || '' }
       this.setData({ weather: data, weatherLoading: false })
       try { wx.setStorageSync('_weather_cache', { data, _t: Date.now() }) } catch (e) {}
       this._checkRainyDayFromCache(data)
@@ -344,18 +325,6 @@ Page({
     } catch (e) {}
   },
 
-  loadStats() {
-    if (this.data.isFamilyMode) return
-    const stats = storage.getStats()
-    // 个人模式加花费
-    const garden = storage.getGarden()
-    const records = storage.getRecords()
-    const purchaseTotal = garden.reduce((s, p) => s + (p.purchasePrice || 0), 0)
-    const costTotal = records.filter(r => r.type === 'cost').reduce((s, r) => s + (r.cost || 0), 0)
-    stats.totalCost = (purchaseTotal + costTotal).toFixed(2)
-    this.setData({ stats })
-  },
-
   // ========== 搜索/筛选 ==========
 
   onSearchInput(e) {
@@ -368,9 +337,15 @@ Page({
   applyFilter() {
     let filtered = [...this.data.garden]
     const { searchKeyword, activeRoom } = this.data
-    // 【全部】不显示嘎了的植物，只在【💀天堂】显示
-    if (activeRoom === '全部') filtered = filtered.filter(p => !p.dead)
-    if (activeRoom !== '全部') filtered = filtered.filter(p => p.location === activeRoom)
+
+    if (activeRoom === '全部') {
+      filtered = filtered.filter(p => !p.dead)
+    } else if (activeRoom === '💀 天堂') {
+      filtered = filtered.filter(p => p.dead)
+    } else {
+      filtered = filtered.filter(p => p.location === activeRoom && !p.dead)
+    }
+
     if (searchKeyword) {
       filtered = filtered.filter(p =>
         (p.nickname || '').toLowerCase().includes(searchKeyword) ||
@@ -404,50 +379,30 @@ Page({
       success: async (res) => {
         const tapIndex = res.tapIndex
         if (tapIndex === 3) {
-          // 查看详情
           wx.navigateTo({ url: `/pages/plant-detail/plant-detail?id=${plant.id}` })
           return
         }
-        // 快捷养护
         const typeMap = ['water', 'fertilize', 'prune']
         const nameMap = ['浇水', '施肥', '修剪']
         const type = typeMap[tapIndex]
         const typeName = nameMap[tapIndex]
         if (!type) return
 
-        if (this.data.isFamilyMode) {
-          const tasks = family.getCachedTasks(plant._id || plant.id)
-          const task = tasks.find(t => t.type === type && t.enabled !== false)
-          if (task) {
-            wx.showLoading({ title: '完成中...' })
-            const result = await family.completeTask(task._id || task.id)
-            wx.hideLoading()
-            if (result.success) {
-              this.setData({ showTip: true, tipText: `${plant.nickname} ${typeName}完成！` })
-              setTimeout(() => this.setData({ showTip: false }), 2000)
-              await this.loadFamilyData()
-            } else {
-              wx.showToast({ title: result.error || '操作失败', icon: 'none' })
-            }
-          } else {
-            wx.showToast({ title: '暂无该养护任务', icon: 'none' })
-          }
-        } else {
-          const tasks = storage.getTasksByPlant(plant.id)
-          const task = tasks.find(t => t.type === type && t.enabled)
-          if (task) {
-            storage.completeTask(task.id)
-            storage.addRecord({
-              id: util.genId(), userPlantId: plant.id, type, typeName,
-              date: Date.now(), note: typeName
-            })
+        const tasks = family.getCachedTasks(plant._id || plant.id)
+        const task = tasks.find(t => t.type === type && t.enabled !== false)
+        if (task) {
+          wx.showLoading({ title: '完成中...' })
+          const result = await family.completeTask(task._id || task.id)
+          wx.hideLoading()
+          if (result.success) {
             this.setData({ showTip: true, tipText: `${plant.nickname} ${typeName}完成！` })
             setTimeout(() => this.setData({ showTip: false }), 2000)
-            this.loadGarden()
-            this.loadStats()
+            await this.loadFamilyData()
           } else {
-            wx.showToast({ title: '暂无该养护任务', icon: 'none' })
+            wx.showToast({ title: result.error || '操作失败', icon: 'none' })
           }
+        } else {
+          wx.showToast({ title: '暂无该养护任务', icon: 'none' })
         }
       }
     })
@@ -457,19 +412,7 @@ Page({
     const taskId = e.currentTarget.dataset.id
     wx.vibrateShort({ type: 'light' })
 
-    if (this.data.isFamilyMode) {
-      const result = await family.completeTask(taskId)
-      if (result.success) {
-        this.setData({ showTip: true, tipText: '完成啦~' })
-        setTimeout(() => this.setData({ showTip: false }), 2000)
-        await this.loadFamilyData()
-      } else {
-        wx.showToast({ title: result.error || '操作失败', icon: 'none' })
-      }
-      return
-    }
-
-    // 家庭模式
+    // 乐观更新：先标记动画
     const tasks = this.data.todayTasks.map(t => t.id === taskId ? { ...t, completing: true } : t)
     this.setData({ todayTasks: tasks })
 
@@ -501,54 +444,30 @@ Page({
     newTasks.splice(idx, 1)
     this.setData({ todayTasks: newTasks })
 
-    if (this.data.isFamilyMode) {
-      const newNextDate = Date.now() + 86400000
-      const result = await family.updateTask(taskId, { nextDate: newNextDate })
-      if (result.success) {
-        // 写日志记录
-        try {
-          await wx.cloud.callFunction({
-            name: 'familyData',
+    const newNextDate = Date.now() + 86400000
+    const result = await family.updateTask(taskId, { nextDate: newNextDate })
+    if (result.success) {
+      try {
+        await wx.cloud.callFunction({
+          name: 'familyData',
+          data: {
+            action: 'addRecord',
             data: {
-              action: 'addRecord',
-              data: {
-                plantId: task.plantId,
-                type: 'postpone',
-                typeName: '推迟',
-                note: `${task.typeName}推迟至明天`
-              }
+              plantId: task.plantId,
+              type: 'postpone',
+              typeName: '推迟',
+              note: `${task.typeName}推迟至明天`
             }
-          })
-        } catch (e) { /* 日志失败不影响主流程 */ }
-        wx.showToast({ title: '已推迟到明天', icon: 'none' })
-        this.loadFamilyData()
-      } else {
-        // 失败了恢复
-        newTasks.splice(idx, 0, task)
-        this.setData({ todayTasks: newTasks })
-        wx.showToast({ title: result.error || '操作失败', icon: 'none' })
-      }
-    } else {
-      // 个人模式
-      const tasks = storage.getTasks()
-      const t = tasks.find(t => t.id === taskId)
-      if (t) {
-        t.nextDate = Date.now() + 86400000
-        try { wx.setStorageSync(storage.KEYS.TASKS, tasks) } catch (e) {}
-        // 写日志
-        const records = storage.getRecords()
-        records.unshift({
-          id: 'postpone_' + Date.now(),
-          userPlantId: task.plantId || task.userPlantId,
-          type: 'postpone',
-          typeName: '推迟',
-          date: Date.now(),
-          note: `${task.typeName}推迟至明天`
+          }
         })
-        try { wx.setStorageSync(storage.KEYS.RECORDS, records) } catch (e) {}
-      }
+      } catch (e) { /* 日志失败不影响主流程 */ }
       wx.showToast({ title: '已推迟到明天', icon: 'none' })
-      this.loadTodayTasks()
+      this.loadFamilyData()
+    } else {
+      // 失败了恢复
+      newTasks.splice(idx, 0, task)
+      this.setData({ todayTasks: newTasks })
+      wx.showToast({ title: result.error || '操作失败', icon: 'none' })
     }
   },
 
@@ -560,14 +479,12 @@ Page({
       title: '一键完成', content: `确认完成今天的 ${tasks.length} 项养护任务？`,
       success: async (res) => {
         if (res.confirm) {
-          if (this.data.isFamilyMode) {
-            const results = await Promise.allSettled(tasks.map(t => family.completeTask(t.id)))
-            const failures = results.filter(r => r.status === 'rejected' || (r.value && !r.value.success))
-            if (failures.length > 0) {
-              wx.showToast({ title: `${failures.length}项完成失败`, icon: 'none' })
-            }
-            await this.loadFamilyData()
+          const results = await Promise.allSettled(tasks.map(t => family.completeTask(t.id)))
+          const failures = results.filter(r => r.status === 'rejected' || (r.value && !r.value.success))
+          if (failures.length > 0) {
+            wx.showToast({ title: `${failures.length}项完成失败`, icon: 'none' })
           }
+          await this.loadFamilyData()
           this.setData({ showTip: true, tipText: `${tasks.length}项全部完成！` })
           setTimeout(() => this.setData({ showTip: false }), 2000)
         }
@@ -589,30 +506,15 @@ Page({
         if (!res.confirm) return
         wx.showLoading({ title: '浇水中...' })
         let done = 0
-        if (this.data.isFamilyMode) {
-          for (const plant of plants) {
-            const tasks = family.getCachedTasks(plant._id || plant.id)
-            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
-            if (waterTask) {
-              await family.completeTask(waterTask._id || waterTask.id).catch(() => {})
-              done++
-            }
+        for (const plant of plants) {
+          const tasks = family.getCachedTasks(plant._id || plant.id)
+          const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
+          if (waterTask) {
+            await family.completeTask(waterTask._id || waterTask.id).catch(() => {})
+            done++
           }
-          await this.loadFamilyData()
-        } else {
-          for (const plant of plants) {
-            const tasks = storage.getTasksByPlant(plant.id)
-            const waterTask = tasks.find(t => t.type === 'water' && t.enabled)
-            if (waterTask) {
-              storage.completeTask(waterTask.id)
-              storage.addRecord({ id: util.genId(), userPlantId: plant.id, type: 'water', typeName: '浇水', date: Date.now(), note: '房间一键浇水' })
-              done++
-            }
-          }
-          this.loadGarden()
-          this.loadTodayTasks()
-          this.loadStats()
         }
+        await this.loadFamilyData()
         wx.hideLoading()
         this.setData({ showTip: true, tipText: `💧 ${done}棵植物已浇水！` })
         setTimeout(() => this.setData({ showTip: false }), 2000)

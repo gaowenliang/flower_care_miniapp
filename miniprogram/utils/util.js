@@ -87,6 +87,72 @@ function getDifficultyColor(diff) {
   return map[diff] || '#999'
 }
 
+/**
+ * 将记录按日期分组为时间线
+ * 用于 plant-detail 和 calendar 页面共享
+ */
+function buildRecordTimeline(records, typeEmojis, typeColors) {
+  const defaultEmojis = {
+    water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉',
+    photo: '📷', note: '📝', retro: '🔖', custom: '🌿',
+    pest: '🐛', loosen: '🌱', cutting: '✂️', sow: '🌱', postpone: '⏩'
+  }
+  const defaultColors = {
+    water:    { bg: '#E3F2FD', border: '#BBDEFB', text: '#1565C0' },
+    fertilize:{ bg: '#FFF3E0', border: '#FFE0B2', text: '#E65100' },
+    prune:    { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457' },
+    repot:    { bg: '#EFEBE9', border: '#D7CCC8', text: '#4E342E' },
+    spray:    { bg: '#E8EAF6', border: '#C5CAE9', text: '#283593' },
+    photo:    { bg: '#F3E5F5', border: '#E1BEE7', text: '#6A1B9A' },
+    note:     { bg: '#FFF8E1', border: '#FFECB3', text: '#F57F17' },
+    pest:     { bg: '#FFEBEE', border: '#FFCDD2', text: '#B71C1C' },
+    retro:    { bg: '#FBE9E7', border: '#FFCCBC', text: '#BF360C' },
+    custom:   { bg: '#E0F2F1', border: '#B2DFDB', text: '#00695C' },
+    postpone: { bg: '#ECEFF1', border: '#CFD8DC', text: '#546E7A' }
+  }
+  const emojis = { ...defaultEmojis, ...(typeEmojis || {}) }
+  const colors = { ...defaultColors, ...(typeColors || {}) }
+
+  const dayMap = new Map()
+  records.forEach((r, idx) => {
+    const d = new Date(r.date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    if (!dayMap.has(key)) dayMap.set(key, [])
+    const t = r.type || r.taskType || r.actionType || 'water'
+    const emoji = emojis[t] || '💧'
+    const color = colors[t] || colors.custom
+    dayMap.get(key).push({ ...r, emoji, idx, color })
+  })
+
+  const sortedDays = [...dayMap.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+
+  const timeline = []
+  let lastMonth = ''
+  const today = new Date()
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  for (const [dateStr, dayRecords] of sortedDays) {
+    const [y, m] = dateStr.split('-')
+    const monthLabel = `${y}年${parseInt(m)}月`
+    if (monthLabel !== lastMonth) {
+      timeline.push({ type: 'month', label: monthLabel })
+      lastMonth = monthLabel
+    }
+    const isToday = dateStr === todayKey
+    const d = new Date(dateStr)
+    const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()]
+    timeline.push({
+      type: 'day',
+      dateStr,
+      dayLabel: isToday ? '今天' : `${parseInt(dateStr.split('-')[1])}/${parseInt(dateStr.split('-')[2])} 周${weekDay}`,
+      isToday,
+      records: dayRecords
+    })
+  }
+
+  return timeline
+}
+
 module.exports = {
   formatDate,
   timeAgo,
@@ -95,5 +161,6 @@ module.exports = {
   daysUntilNext,
   genId,
   getWeatherIcon,
-  getDifficultyColor
+  getDifficultyColor,
+  buildRecordTimeline
 }

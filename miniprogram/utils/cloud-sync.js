@@ -246,7 +246,17 @@ function mergeArrays(localArr, cloudArr) {
       const localTime = item.updatedAt || item.addedAt || 0
       const cloudTime = cloud.updatedAt || cloud.addedAt || 0
       if (localTime >= cloudTime) {
-        map.set(item.id, { ...cloud, ...item })
+        // 以 local 为准，但清理 undefined/null 字段（表示删除）
+        const merged = { ...cloud }
+        Object.keys(item).forEach(key => {
+          const val = item[key]
+          if (val === undefined || val === null) {
+            delete merged[key] // 显式删除
+          } else {
+            merged[key] = val
+          }
+        })
+        map.set(item.id, merged)
       }
       // else 保留 cloud
     }

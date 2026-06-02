@@ -79,12 +79,7 @@
     <view class="header-actions">
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
       <view class="action-btn" bindtap="goJournal">📖 日记</view>
-      <view class="action-btn" bindtap="shareReport">📤 报告</view>
-      <view class="action-btn" bindtap="goDiagnose">🩺 诊断</view>
-      <view class="action-btn" bindtap="showAddTaskModal">➕ 任务</view>
-      <view class="action-btn" bindtap="retroCard">🔖 补卡</view>
-      <view class="action-btn danger" bindtap="deletePlant">🗑️</view>
-      <view class="action-btn {{userPlant.dead ? 'revive' : 'dead'}}" bindtap="markDead">{{userPlant.dead ? '🌱 复活' : '💀'}}</view>
+      <view class="action-btn" bindtap="showMoreActions">⋯ 更多</view>
     </view>
   </view>
 

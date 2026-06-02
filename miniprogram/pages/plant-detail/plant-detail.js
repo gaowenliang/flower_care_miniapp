@@ -163,7 +163,8 @@ Page({
   },
 
   async loadFamilyRecords() {
-    const records = await family.getRecords(this.data.userPlant._id, 500)
+    // 始终强制刷新，避免缓存不一致（完成操作后切回来看到旧数据）
+    const records = await family.getRecords(this.data.userPlant._id, 500, true)
     const processedRecords = (records || []).map(r => ({
       ...r,
       id: r._id || r.id,
@@ -206,74 +207,9 @@ Page({
   // ========== 养护记录时间线（胶囊） ==========
   buildCalendar() {
     const { records, taskTypes } = this.data
-
-    // 动作 emoji 映射（覆盖所有已知类型）
-    const typeMap = {
-      water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉',
-      photo: '📷', note: '📝', retro: '🔖', custom: '🌿',
-      pest: '🐛', loosen: '🌱', cutting: '✂️', sow: '🌱',
-      postpone: '⏩'
-    }
-    ;(taskTypes || []).forEach(t => { typeMap[t.id] = t.emoji })
-
-    // 养护类型颜色映射
-    const typeColors = {
-      water:    { bg: '#E3F2FD', border: '#BBDEFB', text: '#1565C0', creator: '#42A5F5', creatorBg: '#BBDEFB' },
-      fertilize:{ bg: '#FFF3E0', border: '#FFE0B2', text: '#E65100', creator: '#FFA726', creatorBg: '#FFE0B2' },
-      prune:    { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457', creator: '#EC407A', creatorBg: '#F8BBD0' },
-      repot:    { bg: '#EFEBE9', border: '#D7CCC8', text: '#4E342E', creator: '#8D6E63', creatorBg: '#D7CCC8' },
-      spray:    { bg: '#E8EAF6', border: '#C5CAE9', text: '#283593', creator: '#5C6BC0', creatorBg: '#C5CAE9' },
-      photo:    { bg: '#F3E5F5', border: '#E1BEE7', text: '#6A1B9A', creator: '#AB47BC', creatorBg: '#E1BEE7' },
-      note:     { bg: '#FFF8E1', border: '#FFECB3', text: '#F57F17', creator: '#FFCA28', creatorBg: '#FFECB3' },
-      pest:     { bg: '#FFEBEE', border: '#FFCDD2', text: '#B71C1C', creator: '#EF5350', creatorBg: '#FFCDD2' },
-      loosen:   { bg: '#E8F5E9', border: '#C8E6C9', text: '#2E7D32', creator: '#66BB6A', creatorBg: '#C8E6C9' },
-      sow:      { bg: '#E8F5E9', border: '#C8E6C9', text: '#2E7D32', creator: '#66BB6A', creatorBg: '#C8E6C9' },
-      cutting:  { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457', creator: '#EC407A', creatorBg: '#F8BBD0' },
-      postpone: { bg: '#ECEFF1', border: '#CFD8DC', text: '#546E7A', creator: '#78909C', creatorBg: '#CFD8DC' },
-      custom:   { bg: '#E0F2F1', border: '#B2DFDB', text: '#00695C', creator: '#26A69A', creatorBg: '#B2DFDB' },
-      retro:    { bg: '#FBE9E7', border: '#FFCCBC', text: '#BF360C', creator: '#FF7043', creatorBg: '#FFCCBC' }
-    }
-
-    // 按日期分组
-    const dayMap = new Map()
-    records.forEach((r, idx) => {
-      const d = new Date(r.date)
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      if (!dayMap.has(key)) dayMap.set(key, [])
-      const t = r.type || r.taskType || r.actionType || 'water'
-      const emoji = typeMap[t] || '💧'
-      const color = typeColors[t] || typeColors.custom
-      dayMap.get(key).push({ ...r, emoji, idx, color })
-    })
-
-    // 排序：日期倒序
-    const sortedDays = [...dayMap.entries()].sort((a, b) => b[0].localeCompare(a[0]))
-
-    // 生成年月分隔 + 日期组
-    const timeline = []
-    let lastMonth = ''
-    const today = new Date()
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-
-    for (const [dateStr, dayRecords] of sortedDays) {
-      const [y, m] = dateStr.split('-')
-      const monthLabel = `${y}年${parseInt(m)}月`
-      if (monthLabel !== lastMonth) {
-        timeline.push({ type: 'month', label: monthLabel })
-        lastMonth = monthLabel
-      }
-      const isToday = dateStr === todayKey
-      const d = new Date(dateStr)
-      const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()]
-      timeline.push({
-        type: 'day',
-        dateStr,
-        dayLabel: isToday ? '今天' : `${parseInt(dateStr.split('-')[1])}/${parseInt(dateStr.split('-')[2])} 周${weekDay}`,
-        isToday,
-        records: dayRecords
-      })
-    }
-
+    const typeEmojis = {}
+    ;(taskTypes || []).forEach(t => { typeEmojis[t.id] = t.emoji })
+    const timeline = util.buildRecordTimeline(records, typeEmojis)
     this.setData({ recordTimeline: timeline })
   },
 
@@ -561,7 +497,6 @@ Page({
 
           if (this.data.isFamilyMode) {
             await family.addRecord({
-              userPlantId: this.data.userPlant._id,
               plantId: this.data.userPlant._id,
               type: 'photo',
               typeName: '拍照记录',
@@ -609,7 +544,6 @@ Page({
         if (res.confirm && res.content) {
           if (this.data.isFamilyMode) {
             await family.addRecord({
-              userPlantId: this.data.userPlant._id,
               plantId: this.data.userPlant._id,
               type: 'note',
               typeName: '备注',
@@ -656,8 +590,12 @@ Page({
     const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`
     if (isFamilyMode) {
       try {
-        const retroData = wx.getStorageSync('_family_retro') || {}
-        retroUsed = (retroData[monthKey] || []).length
+        // 从云端记录统计本月补卡次数（避免多端竞态）
+        const allRecords = family.getCachedRecords(this.data.userPlant._id || this.data.userPlant.id)
+        retroUsed = allRecords.filter(r => r.type === 'retro' && r.date) .filter(r => {
+          const d = new Date(r.date)
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+        }).length
       } catch (e) {}
     } else {
       retroUsed = MAX_RETRO_PER_MONTH - storage.getRetroRemaining()
@@ -718,12 +656,6 @@ Page({
                     typeName: '补卡',
                     note: `补 ${selected.label} 养护记录`
                   })
-                  // 记录补卡次数
-                  let retroData = {}
-                  try { retroData = wx.getStorageSync('_family_retro') || {} } catch (e) {}
-                  if (!retroData[monthKey]) retroData[monthKey] = []
-                  retroData[monthKey].push(selected.ts)
-                  try { wx.setStorageSync('_family_retro', retroData) } catch (e) {}
                   wx.showToast({ title: '补卡成功 ✅', icon: 'none' })
                   this.loadFamilyRecords()
                 } catch (e) {
@@ -1019,5 +951,31 @@ Page({
   },
 
   // 阻止冒泡
-  preventBubble() {}
+  preventBubble() {},
+
+  showMoreActions() {
+    const items = ['📝 添加备注', '📤 分享报告', '🩺 诊断病害', '➕ 添加任务', '🔖 补卡记录']
+    if (this.data.userPlant.dead) {
+      items.push('🌱 复活')
+    } else {
+      items.push('💀 标记嘎了')
+    }
+    items.push('🗑️ 删除植物')
+
+    wx.showActionSheet({
+      alertText: this.data.userPlant.nickname,
+      itemList: items,
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0: this.addNote(); break
+          case 1: this.shareReport(); break
+          case 2: this.goDiagnose(); break
+          case 3: this.showAddTaskModal(); break
+          case 4: this.retroCard(); break
+          case 5: this.markDead(); break
+          case 6: this.deletePlant(); break
+        }
+      }
+    })
+  }
 })

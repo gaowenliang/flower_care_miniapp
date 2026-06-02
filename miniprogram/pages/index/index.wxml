@@ -69,6 +69,7 @@
       <text class="weather-emoji">{{weather.emoji}}</text>
       <text class="weather-temp">{{weather.temp}}°</text>
       <text class="weather-desc">{{weather.weather}}</text>
+      <text class="weather-city" wx:if="{{weather.city}}">{{weather.city}}</text>
       <text class="weather-detail" wx:if="{{weather.humidity}}">💧 {{weather.humidity}}%</text>
     </view>
     <view class="weather-card loading" wx:elif="{{weatherLoading}}">

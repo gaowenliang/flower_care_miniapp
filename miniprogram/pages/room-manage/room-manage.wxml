@@ -54,7 +54,7 @@
   <view class="modal-mask" wx:if="{{showEnvModal}}" bindtap="hideEnvModal">
     <view class="modal-content env-modal" catchtap="preventBubble">
       <view class="modal-title">⚙️ {{editingRoom}}</view>
-
+      <scroll-view scroll-y="true" class="env-scroll">
       <view class="env-row">
         <text class="env-label">🌬️ 通风</text>
         <view class="env-options">
@@ -99,6 +99,7 @@
         </view>
       </view>
 
+      </scroll-view>
       <view class="modal-btns">
         <view class="modal-btn cancel" bindtap="hideEnvModal">取消</view>
         <view class="modal-btn confirm" bindtap="saveEnv">保存</view>

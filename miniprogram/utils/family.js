@@ -237,10 +237,11 @@ function removePlant(plantId) {
 // ========== 认养（乐观写）==========
 
 function toggleAdopt(plantId) {
-  const info = getCachedFamily()
-  const wasAdopted = info && (info.myAdoptedPlants || []).includes(plantId)
+  const rawInfo = getCachedFamily()
+  const wasAdopted = rawInfo && (rawInfo.myAdoptedPlants || []).includes(plantId)
 
-  // 乐观更新认养状态
+  // 乐观更新认养状态（深拷贝避免 mutate 原始引用）
+  const info = rawInfo ? JSON.parse(JSON.stringify(rawInfo)) : null
   if (info) {
     if (wasAdopted) {
       info.myAdoptedPlants = (info.myAdoptedPlants || []).filter(id => id !== plantId)
