@@ -79,6 +79,7 @@
     <view class="header-actions">
       <view class="action-btn" bindtap="takePhoto">📷 拍照</view>
       <view class="action-btn" bindtap="goJournal">📖 日记</view>
+      <view class="action-btn water" bindtap="showRetroWaterModal">💧 补浇水</view>
       <view class="action-btn" bindtap="showMoreActions">⋯ 更多</view>
     </view>
   </view>
@@ -345,6 +346,33 @@
       <view class="modal-btns-lg">
         <view class="btn-lg cancel" bindtap="cancelPrice">取消</view>
         <view class="btn-lg confirm" bindtap="confirmPrice">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 补浇水日期选择弹窗 -->
+  <view class="modal-mask" wx:if="{{showRetroWater}}" bindtap="cancelRetroWater">
+    <view class="modal-content retro-water-modal" catchtap="preventBubble">
+      <text class="modal-title">💧 补浇水</text>
+      <text class="retro-water-subtitle">选择过去实际浇水的日期</text>
+      <view class="retro-water-dates">
+        <view class="retro-date-item {{retroWaterDate === item.value ? 'active' : ''}}" 
+              wx:for="{{retroWaterDates}}" wx:key="value"
+              bindtap="selectRetroWaterDate" data-date="{{item.value}}">
+          <text class="retro-date-label">{{item.label}}</text>
+          <text class="retro-date-week">{{item.week}}</text>
+          <text class="retro-date-check" wx:if="{{retroWaterDate === item.value}}">✓</text>
+        </view>
+      </view>
+      <view class="retro-water-custom">
+        <text class="retro-water-custom-label">自定义日期：</text>
+        <picker mode="date" value="{{retroWaterCustomDate}}" end="{{todayStr}}" bindchange="onRetroWaterCustomDate">
+          <view class="retro-water-custom-picker">{{retroWaterCustomDate || '选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="modal-btns-lg">
+        <view class="btn-lg cancel" bindtap="cancelRetroWater">取消</view>
+        <view class="btn-lg confirm" bindtap="confirmRetroWater">确认</view>
       </view>
     </view>
   </view>

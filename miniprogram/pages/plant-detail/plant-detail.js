@@ -44,6 +44,11 @@ Page({
     showPriceModal: false,
     priceInput: '',
     sourceInput: '',
+    // 补浇水
+    showRetroWater: false,
+    retroWaterDate: '',
+    retroWaterDates: [],
+    retroWaterCustomDate: '',
     // 到家日期
     showArrivalDateModal: false,
     arrivalDateInput: '',
@@ -122,7 +127,7 @@ Page({
     } else {
       plantInfo = { ...plantInfo, family: userPlant.family || plantInfo.family || '', genus: userPlant.genus || plantInfo.genus || '', latin: userPlant.latin || plantInfo.latin || '' }
     }
-    this.setData({ userPlant, plantInfo, arrivalDateText: this._formatArrivalDate(userPlant) })
+    this.setData({ userPlant, plantInfo, arrivalDateText: this._formatArrivalDate(userPlant), todayStr: this._getTodayStr(), retroWaterDates: this._buildRetroWaterDates() })
     this.loadTasks()
     this.loadRecords()
     this.loadSmartTips()
@@ -836,6 +841,129 @@ Page({
 
   cancelPrice() {
     this.setData({ showPriceModal: false })
+  },
+
+  // ========== 补浇水 ==========
+
+  _getTodayStr() {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  },
+
+  _buildRetroWaterDates() {
+    const dates = []
+    const now = new Date()
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(now.getTime() - i * 86400000)
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      dates.push({
+        value: dateStr,
+        label: `${d.getMonth() + 1}月${d.getDate()}日`,
+        week: weekDays[d.getDay()],
+        daysAgo: i
+      })
+    }
+    return dates
+  },
+
+  showRetroWaterModal() {
+    this.setData({
+      showRetroWater: true,
+      retroWaterDate: '',
+      retroWaterCustomDate: ''
+    })
+  },
+
+  selectRetroWaterDate(e) {
+    this.setData({
+      retroWaterDate: e.currentTarget.dataset.date,
+      retroWaterCustomDate: ''
+    })
+  },
+
+  onRetroWaterCustomDate(e) {
+    this.setData({
+      retroWaterCustomDate: e.detail.value,
+      retroWaterDate: ''
+    })
+  },
+
+  async confirmRetroWater() {
+    const selectedDate = this.data.retroWaterDate || this.data.retroWaterCustomDate
+    if (!selectedDate) {
+      wx.showToast({ title: '请选择日期', icon: 'none' })
+      return
+    }
+    const ts = new Date(selectedDate + 'T12:00:00').getTime()
+    if (isNaN(ts)) {
+      wx.showToast({ title: '日期无效', icon: 'none' })
+      return
+    }
+    this.setData({ showRetroWater: false })
+
+    // 写入浇水记录
+    if (this.data.isFamilyMode) {
+      try {
+        await family.addRecord({
+          plantId: this.data.userPlant._id || this.data.userPlant.id,
+          date: ts,
+          type: 'water',
+          typeName: '浇水',
+          note: '补浇水'
+        })
+        // 更新浇水任务的 nextDate：从补浇水日期起算下一个周期
+        await this._updateWaterTaskNextDate(ts)
+        wx.showToast({ title: '已补浇水 💧', icon: 'none' })
+        this.loadFamilyRecords()
+        this.loadFamilyTasks()
+        this.loadHealthScore()
+      } catch (e) {
+        wx.showToast({ title: '操作失败', icon: 'none' })
+      }
+    } else {
+      storage.addRecord({
+        id: util.genId(),
+        userPlantId: this.data.userPlant.id,
+        type: 'water',
+        typeName: '浇水',
+        date: ts,
+        note: '补浇水'
+      })
+      // 更新浇水任务的 nextDate
+      this._updateWaterTaskNextDateLocal(ts)
+      wx.showToast({ title: '已补浇水 💧', icon: 'none' })
+      this.loadRecords()
+      this.loadTasks()
+      this.loadHealthScore()
+    }
+  },
+
+  // 家庭模式：更新浇水任务 nextDate
+  async _updateWaterTaskNextDate(waterDate) {
+    const waterTask = this.data.tasks.find(t => t.type === 'water' && t.enabled)
+    if (!waterTask) return
+    const taskId = waterTask.id || waterTask._id
+    const interval = waterTask.intervalDays || 7
+    const nextDate = waterDate + interval * 86400000
+    try {
+      await family.updateTask(taskId, { nextDate, lastDoneDate: waterDate })
+    } catch (e) {}
+  },
+
+  // 个人模式：更新浇水任务 nextDate
+  _updateWaterTaskNextDateLocal(waterDate) {
+    const allTasks = storage.getTasks()
+    const waterTask = allTasks.find(t => t.type === 'water' && t.enabled && t.userPlantId === this.data.userPlant.id)
+    if (!waterTask) return
+    const interval = waterTask.intervalDays || 7
+    waterTask.nextDate = waterDate + interval * 86400000
+    waterTask.lastDoneDate = waterDate
+    storage.saveTasks(allTasks)
+  },
+
+  cancelRetroWater() {
+    this.setData({ showRetroWater: false, retroWaterDate: '', retroWaterCustomDate: '' })
   },
 
   // ========== 到家日期 ==========
