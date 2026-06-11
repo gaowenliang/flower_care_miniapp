@@ -20,40 +20,70 @@
 .header-main { display: flex; align-items: center; margin-bottom: 24rpx; }
 
 .header-avatar {
-  width: 128rpx; height: 128rpx; border-radius: 28rpx; margin-right: 24rpx;
-  position: relative; overflow: hidden; flex-shrink: 0;
-  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  width: 168rpx; height: 168rpx; border-radius: 50%; margin-right: 28rpx;
+  position: relative; flex-shrink: 0;
+  background: linear-gradient(135deg, #66BB6A, #4CAF50);
   display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4rpx 20rpx rgba(76,175,80,0.15);
+  padding: 4rpx;
+}
+.header-avatar-img {
+  width: 160rpx; height: 160rpx; border-radius: 50%;
+  position: relative; z-index: 1;
+}
+.header-emoji-text {
+  position: relative; z-index: 1;
+  font-size: 64rpx;
+  width: 160rpx; height: 160rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  border-radius: 50%;
 }
 .header-avatar-img {
   width: 100%; height: 100%; position: absolute; top: 0; left: 0;
 }
-.header-emoji-text {
-  font-size: 56rpx; z-index: 1;
-}
 .avatar-camera {
-  position: absolute; bottom: 0; right: 0;
-  width: 36rpx; height: 36rpx; border-radius: 50%;
+  position: absolute; bottom: 4rpx; right: 4rpx;
+  width: 40rpx; height: 40rpx; border-radius: 50%;
   background: rgba(0,0,0,0.5); display: flex;
   align-items: center; justify-content: center;
-  font-size: 18rpx; z-index: 2;
+  font-size: 20rpx; z-index: 2;
 }
 .header-info { flex: 1; display: flex; flex-direction: column; text-align: left; }
-.header-name { font-size: 36rpx; font-weight: 700; color: #2D3436; }
-.header-species { font-size: 22rpx; color: #81C784; font-style: italic; margin-top: 4rpx; }
-.header-location { font-size: 24rpx; color: #A5D6A7; margin-top: 8rpx; }
+.header-name-row { display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx; }
+.header-name { font-size: 40rpx; font-weight: 800; color: #2D3436; line-height: 1.2; }
 
-.header-actions { display: flex; justify-content: center; gap: 14rpx; flex-wrap: wrap; }
+/* 次要信息标签区 */
+.header-meta { display: flex; flex-direction: column; gap: 10rpx; }
+.meta-row { display: flex; align-items: center; gap: 6rpx; }
+.meta-icon { font-size: 22rpx; flex-shrink: 0; }
+.meta-text { font-size: 24rpx; color: #636e72; }
+.meta-sub { font-size: 22rpx; color: #b2bec3; margin-left: 4rpx; }
+.price-text { color: #FF9800; font-weight: 700; font-size: 28rpx; }
+
+.header-actions { display: flex; justify-content: center; gap: 14rpx; flex-wrap: wrap; margin-top: 24rpx; }
 .action-btn {
-  padding: 12rpx 24rpx; border-radius: 44rpx;
+  padding: 14rpx 28rpx; border-radius: 44rpx;
   background: #F7F9F7; font-size: 24rpx; color: #90A4AE;
   transition: all 0.15s;
 }
-.action-btn:active { background: #E8F5E9; color: #4CAF50; }
+.action-btn:active { transform: scale(0.95); }
+/* 浇水按钮：绿底白字，最突出 */
+.action-btn.water {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 4rpx 16rpx rgba(76,175,80,0.25);
+}
+.action-btn.water:active { opacity: 0.9; }
+/* 拍照按钮：次突出 */
+.action-btn:first-child {
+  background: #E8F5E9;
+  color: #2E7D32;
+  font-weight: 500;
+}
 .action-btn.danger { color: #5D4037; background: #EFEBE9; }
 .action-btn.danger:active { background: #D7CCC8; }
-.action-btn.water { color: #1565C0; background: #E3F2FD; }
-.action-btn.water:active { background: #BBDEFB; }
 
 /* 任务区 */
 .section-title {
@@ -203,9 +233,7 @@
 .btn-primary { color: #4CAF50; font-weight: 600; }
 
 /* 编辑入口 */
-.header-name-row { display: flex; align-items: center; gap: 8rpx; }
 .edit-icon { font-size: 24rpx; opacity: 0.5; }
-.header-location-row { display: flex; align-items: center; }
 .edit-icon-sm { font-size: 28rpx; color: #90A4AE; margin-left: 8rpx; }
 
 /* 智能贴士 */
@@ -242,15 +270,12 @@
 
 /* 操作者标签 */
 .record-creator { font-size: 22rpx; color: #4CAF50; background: #E8F5E9; padding: 2rpx 12rpx; border-radius: 10rpx; margin-left: 12rpx; }
-/* 价格信息 */
-.header-price-row { display: flex; align-items: center; margin-top: 8rpx; font-size: 24rpx; }
-.price-label { color: #90A4AE; }
-.price-value { color: #FF9800; font-weight: 700; font-size: 28rpx; margin: 0 6rpx; }
-.price-date { color: #B0BEC5; font-size: 22rpx; }
+/* 价格信息 - 已合并到 meta-row */
 .price-add { color: #4CAF50; font-size: 24rpx; }
 
 /* 学名行 + 放大镜 */
-.species-row { display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
+.species-row { gap: 12rpx; flex-wrap: wrap; }
+.header-species { font-size: 24rpx; color: #81C784; font-style: italic; }
 .species-tag { font-size: 20rpx; background: #F1F8E9; color: #558B2F; padding: 2rpx 10rpx; border-radius: 6rpx; }
 .search-icon { font-size: 28rpx; opacity: 0.6; padding: 4rpx 8rpx; }
 .search-icon:active { opacity: 1; }
@@ -307,7 +332,7 @@
 .dead-badge { font-size: 22rpx; background: #FFEBEE; color: #C62828; padding: 4rpx 12rpx; border-radius: 16rpx; margin-left: 8rpx; }
 .action-btn.dead { background: #FFEBEE; color: #C62828; }
 .action-btn.revive { background: #E8F5E9; color: #4CAF50; }
-.dead-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 48rpx; background: rgba(0,0,0,0.35); border-radius: 28rpx; }
+.dead-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 48rpx; background: rgba(0,0,0,0.35); border-radius: 50%; }
 
 /* 施肥类型弹窗 */
 .fertilize-modal { max-height: 70vh; }
@@ -402,7 +427,4 @@
   border-bottom: 1rpx solid #eee;
 }
 
-/* 到家日期 */
-.arrival-date-row { padding: 4rpx 0 !important; }
-.arrival-label { font-size: 20rpx; margin-right: 6rpx; }
-.arrival-date-text { font-size: 22rpx; color: #81C784; flex: 1; }
+/* 到家日期 - 已合并到 meta-row */

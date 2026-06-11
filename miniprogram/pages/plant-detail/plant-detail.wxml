@@ -22,38 +22,39 @@
         <view class="avatar-camera" wx:if="{{!userPlant.dead}}">📷</view>
       </view>
       <view class="header-info">
+        <!-- 昵称：独立一行，突出 -->
         <view class="header-name-row">
           <text class="header-name">{{userPlant.nickname}}</text>
           <text class="dead-badge" wx:if="{{userPlant.dead}}">💀 已嘎</text>
           <text class="edit-icon" bindtap="editNickname">✏️</text>
         </view>
-        <view class="species-row">
-          <text class="header-species">{{plantInfo.name}}{{plantInfo.latin ? ' · ' + plantInfo.latin : ''}}</text>
-          <text class="species-tag" wx:if="{{plantInfo.family}}">{{plantInfo.family}}</text>
-          <text class="species-tag" wx:if="{{plantInfo.genus}}">{{plantInfo.genus}}</text>
-          <text class="search-icon" bindtap="showClassifyMenu">🔍</text>
-        </view>
-        <view class="header-location-row" bindtap="editLocation">
-          <text class="header-location">📍 {{userPlant.location}} · {{plantInfo.category}}</text>
-          <text class="edit-icon-sm">›</text>
-        </view>
-        <!-- 价格信息 -->
-        <!-- 到家日期 -->
-        <view class="header-price-row arrival-date-row" bindtap="editArrivalDate">
-          <text class="arrival-label">📅</text>
-          <text class="arrival-date-text">{{arrivalDateText}}</text>
-          <text class="edit-icon-sm">✏️</text>
-        </view>
-        <!-- 价格信息 -->
-        <view class="header-price-row" wx:if="{{userPlant.purchasePrice > 0}}">
-          <text class="price-label">💰 购入</text>
-          <text class="price-value">¥{{userPlant.purchasePrice}}</text>
-          <text class="price-date" wx:if="{{userPlant.purchaseDate}}"> · {{userPlant.purchaseDateStr || ''}}</text>
-          <text class="price-source" wx:if="{{userPlant.purchaseSource}}"> · {{userPlant.purchaseSource}}</text>
-          <text class="edit-icon-sm" bindtap="editPrice">✏️</text>
-        </view>
-        <view class="header-price-row" wx:else>
-          <text class="price-add" bindtap="editPrice">+ 添加购入价格</text>
+        <!-- 次要信息：标签式展示，间距拉开 -->
+        <view class="header-meta">
+          <view class="meta-row species-row">
+            <text class="header-species">{{plantInfo.name}}{{plantInfo.latin ? ' · ' + plantInfo.latin : ''}}</text>
+            <text class="species-tag" wx:if="{{plantInfo.family}}">{{plantInfo.family}}</text>
+            <text class="species-tag" wx:if="{{plantInfo.genus}}">{{plantInfo.genus}}</text>
+            <text class="search-icon" bindtap="showClassifyMenu">🔍</text>
+          </view>
+          <view class="meta-row" bindtap="editLocation">
+            <text class="meta-icon">📍</text>
+            <text class="meta-text">{{userPlant.location}} · {{plantInfo.category}}</text>
+            <text class="edit-icon-sm">›</text>
+          </view>
+          <view class="meta-row" bindtap="editArrivalDate">
+            <text class="meta-icon">📅</text>
+            <text class="meta-text">{{arrivalDateText}}</text>
+            <text class="edit-icon-sm">✏️</text>
+          </view>
+          <view class="meta-row" wx:if="{{userPlant.purchasePrice > 0}}" bindtap="editPrice">
+            <text class="meta-icon">💰</text>
+            <text class="meta-text price-text">¥{{userPlant.purchasePrice}}</text>
+            <text class="meta-sub" wx:if="{{userPlant.purchaseSource}}">{{userPlant.purchaseSource}}</text>
+            <text class="edit-icon-sm">✏️</text>
+          </view>
+          <view class="meta-row" wx:else>
+            <text class="price-add" bindtap="editPrice">+ 添加购入价格</text>
+          </view>
         </view>
       </view>
     </view>
