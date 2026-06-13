@@ -92,7 +92,7 @@
       <text class="add-link" bindtap="showAddTaskModal">+ 添加</text>
     </view>
     <view class="card" wx:if="{{tasks.length > 0}}">
-      <view class="task-row" wx:for="{{tasks}}" wx:key="id">
+      <view class="task-row {{item.isOverdue && item.enabled ? 'task-overdue' : ''}}" wx:for="{{tasks}}" wx:key="id">
         <view class="task-left">
           <text class="task-emoji">{{item.type === 'water' ? '💧' : item.type === 'fertilize' ? '🧪' : item.type === 'prune' ? '✂️' : item.type === 'repot' ? '🏺' : '💉'}}</text>
           <view class="task-info">

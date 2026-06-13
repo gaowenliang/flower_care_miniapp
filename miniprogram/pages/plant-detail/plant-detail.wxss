@@ -103,7 +103,16 @@
 .task-name { font-size: 28rpx; font-weight: 500; color: #2D3436; }
 .task-name.disabled { color: #B0BEC5; text-decoration: line-through; }
 .task-status { font-size: 24rpx; color: #4CAF50; margin-top: 4rpx; }
-.task-status.overdue { color: #2E7D32; font-weight: 600; }
+.task-status.overdue { color: #E53935; font-weight: 700; }
+
+/* 逾期任务整行高亮 */
+.task-row.task-overdue {
+  background: #FFF8F8;
+  border-radius: 16rpx;
+  padding: 20rpx 16rpx;
+  margin: 8rpx -16rpx;
+  border-left: 6rpx solid #EF5350;
+}
 
 .task-right { display: flex; align-items: center; gap: 12rpx; }
 .interval-ctrl {
@@ -126,8 +135,8 @@
 }
 .done-btn:active { transform: scale(0.9); }
 .done-btn.highlight {
-  background: #4CAF50; color: #FFFFFF;
-  box-shadow: 0 4rpx 16rpx rgba(76,175,80,0.3);
+  background: #EF5350; color: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(239,83,80,0.35);
   animation: pulse 1.5s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }

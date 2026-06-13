@@ -157,13 +157,25 @@ Page({
 
   async loadFamilyTasks() {
     const tasks = await family.getTasks(this.data.userPlant._id)
-    const processedTasks = (tasks || []).map(task => ({
-      ...task,
-      id: task._id,
-      daysUntil: task.nextDate ? Math.ceil((task.nextDate - Date.now()) / 86400000) : 0,
-      statusText: task.nextDate && task.nextDate <= Date.now() ? '该养护了!' : `${Math.ceil((task.nextDate - Date.now()) / 86400000)}天后`,
-      isOverdue: task.nextDate && task.nextDate <= Date.now()
-    }))
+    const processedTasks = (tasks || []).map(task => {
+      const daysUntil = task.nextDate ? Math.ceil((task.nextDate - Date.now()) / 86400000) : 0
+      const isOverdue = task.nextDate && task.nextDate <= Date.now()
+      const overdueDays = isOverdue ? Math.floor((Date.now() - task.nextDate) / 86400000) : 0
+      let statusText
+      if (isOverdue) {
+        statusText = overdueDays === 0 ? '今天该养护了!' : `已逾期${overdueDays}天`
+      } else {
+        statusText = daysUntil === 0 ? '今天该养护了' : `${daysUntil}天后`
+      }
+      return {
+        ...task,
+        id: task._id,
+        daysUntil,
+        isOverdue,
+        overdueDays,
+        statusText
+      }
+    })
     this.setData({ tasks: processedTasks })
   },
 
@@ -187,8 +199,15 @@ Page({
     const tasks = storage.getTasksByPlant(this.data.userPlant.id)
     tasks.forEach(task => {
       task.daysUntil = util.daysUntilNext(task.nextDate)
-      task.statusText = task.daysUntil <= 0 ? '该养护了!' : `${task.daysUntil}天后`
+      const overdueDays = -task.daysUntil
       task.isOverdue = task.daysUntil <= 0
+      if (task.isOverdue) {
+        task.overdueDays = overdueDays
+        task.statusText = overdueDays === 0 ? '今天该养护了!' : `已逾期${overdueDays}天`
+      } else {
+        task.overdueDays = 0
+        task.statusText = task.daysUntil === 0 ? '今天该养护了' : `${task.daysUntil}天后`
+      }
     })
     this.setData({ tasks })
   },

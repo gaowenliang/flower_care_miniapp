@@ -133,13 +133,14 @@ Page({
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
         plantTasks.forEach(task => {
           if (task.nextDate && task.nextDate <= (Date.now() + 86400000)) {
+            const overdueDays = task.nextDate <= Date.now() ? Math.floor((Date.now() - task.nextDate) / 86400000) : 0
             todayTasks.push({
               ...task,
               id: task._id,
               plantName: plant.nickname || plant.name,
               plantEmoji: plant.emoji || '🌱',
               plantId: plant._id,
-              daysText: task.nextDate <= Date.now() ? '逾期' : '今天'
+              daysText: task.nextDate <= Date.now() ? (overdueDays === 0 ? '逾期' : `逾期${overdueDays}天`) : '今天'
             })
           }
         })
