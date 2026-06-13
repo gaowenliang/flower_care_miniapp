@@ -1082,7 +1082,8 @@ Page({
   preventBubble() {},
 
   showMoreActions() {
-    const items = ['📝 添加备注', '📤 分享报告', '🩺 诊断病害', '➕ 添加任务', '🔖 补卡记录']
+    // ⚠️ wx.showActionSheet itemList 最大长度为6，不能超
+    const items = ['📝 添加备注', '📤 分享报告', '🩺 诊断病害', '🔖 补卡记录']
     if (this.data.userPlant.dead) {
       items.push('🌱 复活')
     } else {
@@ -1098,10 +1099,14 @@ Page({
           case 0: this.addNote(); break
           case 1: this.shareReport(); break
           case 2: this.goDiagnose(); break
-          case 3: this.showAddTaskModal(); break
-          case 4: this.retroCard(); break
-          case 5: this.markDead(); break
-          case 6: this.deletePlant(); break
+          case 3: this.retroCard(); break
+          case 4: this.markDead(); break
+          case 5: this.deletePlant(); break
+        }
+      },
+      fail: (err) => {
+        if (err.errMsg !== 'fail cancel') {
+          console.error('showMoreActions error:', err)
         }
       }
     })
