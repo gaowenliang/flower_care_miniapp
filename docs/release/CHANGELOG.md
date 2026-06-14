@@ -1,23 +1,22 @@
 # 📋 更新日志
 
-## v1.4.0 — 代码质量大修（2026-06-14）
+## v1.4.0 — 补浇水 + 截图导入 + 嘎了功能 + 代码大修（2026-06-14）
+
+> 128 commits，20 天。详见 [docs/release/v1.4.0.md](docs/release/v1.4.0.md)
+
+### 新功能
+- 🌧️ 补浇水/逾期提醒 · 📸 截图导入养护记录 · 🪦 植物嘎了/复活 · 🌡️ 天气功能（双通道兜底）
+- 🏠 房间管理（改名/删除/一键浇水） · 📅 日历热力图→胶囊时间线 · 🧪 施肥类型记录
+- 📝 日记多张上传+EXIF自动更新 · 🔍 分类搜索（种类+科名双匹配） · 💰 设备/废料花费记录
+- 👋 新用户引导 · 📱 UI 大升级（弹窗居中/头像放大/输入框统一/胶囊彩色）
 
 ### 重构
-- **plant-detail.js 拆分**：1170行→317行，提取 3 个 behavior（task-manager / plant-editor / record-manager）
-- **WXSS 去重**：55 个重复样式块提取到 app.wxss，7 个页面瘦身
-- **删除死代码**：theme.js、network.js、placement.js（零引用，-200行）
+- plant-detail.js 1170→317行（拆3个behavior） · WXSS 55个重复块提取 · 7页面 setTimeout 全清理
+- storage.js 数据迁移机制 · 天气缓存全局+持久化 · 死代码删除
 
-### 修复
-- import-screenshot.js 废弃 API chooseImage → chooseMedia
-- 6 处 Promise.then() 缺少 catch 补齐
-- profile.js 竞态防护（_loadId 版本号机制）
-- storage.js 新增数据迁移机制（v0→1→2）
-- 天气缓存持久化到 Storage（冷启动秒显示）
-
-### 优化
-- 图片 lazy-load（identify/plant-journal/import-screenshot）
-- console.log → console.debug
-- 删除 app.js 旧接口残留
+### 部署
+- 云函数全量重新部署（新增 diagnosePlant/importScreenshot）
+- 订阅模板 ID 仍需替换
 
 ---
 
