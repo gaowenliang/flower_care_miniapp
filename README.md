@@ -44,18 +44,31 @@ flower-care-miniapp/
 ├── TEAM.md                # 团队分工
 ├── docs/
 │   ├── design.md          # UI 设计规范
-│   └── family-ui.png      # 家庭共享 UI 预览
+│   ├── KEY-NOTES.md       # 关键注意事项（35+ 条，按 P0/P1/P2 分级）
+│   ├── reviews/           # 代码审查报告
+│   ├── release/           # 版本发布记录 & CHANGELOG
+│   └── *.html             # UI 预览
 ├── miniprogram/
 │   ├── pages/
 │   │   ├── index/         # 首页：花园（家庭/个人自适应）
 │   │   ├── add-plant/     # 添加植物
 │   │   ├── plant-detail/  # 植物详情（养护/记录/贴士/健康评分）
+│   │   │   ├── plant-detail.js          # 主页面（数据加载/生命周期）
+│   │   │   ├── classify-behavior.js     # 分类行为
+│   │   │   ├── task-manager-behavior.js # 任务管理（完成/添加/调整）
+│   │   │   ├── plant-editor-behavior.js # 编辑操作（昵称/价格/位置等）
+│   │   │   └── record-manager-behavior.js # 记录管理（拍照/备注/补卡）
 │   │   ├── plant-journal/ # 成长日记
 │   │   ├── calendar/      # 养护日历
 │   │   ├── identify/      # AI 识花
 │   │   ├── diagnose/      # 病害诊断
 │   │   ├── profile/       # 我的（统计/成就/设置）
-│   │   └── family/        # 家庭管理（动态/排行/报表/心愿单/里程碑）
+│   │   ├── family/        # 家庭管理（动态/排行/报表/心愿单/里程碑）
+│   │   ├── plant-journal/ # 成长日记
+│   │   ├── identify/      # AI 识花
+│   │   ├── diagnose/      # 病害诊断
+│   │   ├── room-manage/   # 房间管理
+│   │   └── import-screenshot/ # 导入截图
 │   ├── utils/
 │   │   ├── storage.js     # 本地存储管理（个人模式数据源）
 │   │   ├── family.js      # 家庭模式工具 v3（乐观写 + 写队列）
@@ -69,6 +82,7 @@ flower-care-miniapp/
 │   │   ├── export.js      # 报告导出（自适应家庭/个人）
 │   │   ├── subscribe.js   # 订阅消息（自适应家庭/个人）
 │   │   ├── validator.js   # 输入校验
+│   │   ├── exif-date.js   # EXIF 日期解析
 │   │   └── util.js        # 通用工具
 │   ├── data/
 │   │   └── plants.js      # 57 种植物数据库
@@ -185,9 +199,7 @@ flower-care-miniapp/
 
 ## 开发说明
 
-- 小程序不支持 `div`，只能用 `view`
-- 图片使用 `image` 组件
-- 群内不使用翻白眼表情
+- 详细开发注意事项见 [`docs/KEY-NOTES.md`](docs/KEY-NOTES.md)（35+ 条，按 P0/P1/P2 分级）
 - 家庭模式下数据全在云端，通过 family.js 缓存层访问
 - 个人模式下数据全在本地 storage
 - 所有模块通过 `family.isInFamily()` 自动切换数据源
