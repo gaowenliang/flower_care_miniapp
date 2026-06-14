@@ -1,7 +1,7 @@
 // pages/room-manage/room-manage.js
 const family = require('../../utils/family')
 
-const PRESET_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+const { PRESET_ROOMS } = require('../../utils/rooms')
 
 // 工具函数：安全读写 customRooms
 function getCustomRooms() {

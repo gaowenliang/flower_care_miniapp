@@ -4,6 +4,7 @@ const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
 const validator = require('../../utils/validator')
 const family = require('../../utils/family')
+const { PRESET_ROOMS } = require('../../utils/rooms')
 
 function _timer(page, fn, delay) {
   const id = setTimeout(fn, delay)
@@ -28,7 +29,7 @@ Page({
     purchaseDate: '',
     purchaseSource: '',
     sourceOptions: ['花店', '网购', '花市', '亲友赠', '其他'],
-    allRooms: ['阳台', '客厅', '卧室', '书房', '窗台', '花园'],
+    allRooms: PRESET_ROOMS,
     // 养护周期
     waterDays: 7,
     fertilizeDays: 30,
@@ -83,7 +84,7 @@ Page({
 
     let customRooms = []
     try { customRooms = wx.getStorageSync('customRooms') || [] } catch (e) {}
-    const presetRooms = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+    const presetRooms = PRESET_ROOMS
     this.setData({ allRooms: [...presetRooms, ...customRooms.filter(r => !presetRooms.includes(r))] })
   },
 

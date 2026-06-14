@@ -10,7 +10,7 @@ function _timer(page, fn, delay) {
 }
 
 // 预设房间
-const DEFAULT_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
+const { PRESET_ROOMS: DEFAULT_ROOMS } = require('../../utils/rooms')
 
 // 工具函数：安全读取 customRooms
 function getCustomRooms() {
