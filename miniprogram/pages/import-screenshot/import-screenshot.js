@@ -4,6 +4,13 @@ const storage = require('../../utils/storage')
 const plantsData = require('../../data/plants')
 
 // actionType 映射
+
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
 const ACTION_TYPE_MAP = {
   'water': '浇水',
   'fertilize': '施肥',
@@ -18,6 +25,7 @@ const ACTION_TYPE_MAP = {
 
 Page({
   data: {
+    _timers: [],
     selectedImages: [],
     parsedRecords: [],
     selectedCount: 0,
@@ -271,5 +279,10 @@ Page({
     }
   },
 
-  preventBubble() {}
+  preventBubble() {},
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
+  }
 })

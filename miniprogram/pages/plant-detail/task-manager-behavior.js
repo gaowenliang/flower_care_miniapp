@@ -59,10 +59,11 @@ module.exports = Behavior({
       storage.completeTask(taskId)
       // 追加带肥料类型的记录
       if (note) {
-        const records = storage.getRecords()
-        if (records.length > 0 && records[0].userPlantId === this.data.userPlant.id) {
-          records[0].note = note
-          try { wx.setStorageSync('careRecords', records) } catch (e) {}
+        const allRecords = storage.getRecords()
+        const plantRecords = allRecords.filter(r => r.userPlantId === this.data.userPlant.id)
+        if (plantRecords.length > 0) {
+          plantRecords[0].note = note
+          try { wx.setStorageSync('careRecords', allRecords) } catch (e) {}
         }
       }
       this.loadTasks()

@@ -5,8 +5,16 @@ const plantsData = require('../../data/plants')
 const validator = require('../../utils/validator')
 const family = require('../../utils/family')
 
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
+
 Page({
   data: {
+    _timers: [],
     keyword: '',
     categories: [],
     activeCategory: 'all',
