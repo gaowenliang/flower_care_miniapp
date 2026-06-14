@@ -7,6 +7,8 @@ const cloudSync = require('./cloud-sync')
  * StorageManager - 管理所有本地存储操作
  * 统一数据操作入口，保证数据一致性
  */
+const DB_VERSION = 2
+
 const StorageManager = {
   KEYS: {
     GARDEN: 'myGarden',
@@ -335,6 +337,38 @@ const StorageManager = {
   getRetroRemaining() {
     const used = this.getRetroCardsThisMonth().length
     return Math.max(0, 3 - used)
+  },
+
+  /**
+   * 数据迁移 — 版本升级时自动执行
+   * 新增迁移步骤时在此追加
+   */
+  migrate() {
+    let v = 0
+    try { v = wx.getStorageSync('_db_version') || 0 } catch (e) {}
+    if (v >= DB_VERSION) return
+
+    // v0→1: 确保所有植物有 addedAt
+    if (v < 1) {
+      try {
+        const garden = wx.getStorageSync(this.KEYS.GARDEN) || []
+        garden.forEach(p => { if (!p.addedAt) p.addedAt = p.createdAt || Date.now() })
+        wx.setStorageSync(this.KEYS.GARDEN, garden)
+      } catch (e) {}
+    }
+
+    // v1→2: 确保 tasks 有 enabled 字段
+    if (v < 2) {
+      try {
+        const tasks = wx.getStorageSync(this.KEYS.TASKS) || []
+        tasks.forEach(t => { if (t.enabled === undefined) t.enabled = true })
+        wx.setStorageSync(this.KEYS.TASKS, tasks)
+      } catch (e) {}
+    }
+
+    // 未来迁移: v2→3, v3→4, ...
+
+    try { wx.setStorageSync('_db_version', DB_VERSION) } catch (e) {}
   }
 }
 

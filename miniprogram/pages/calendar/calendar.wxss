@@ -40,8 +40,6 @@
 .day-cell.selected .dot { background: rgba(255,255,255,0.8); }
 
 /* 日期任务 */
-.section-title { font-size: 30rpx; font-weight: 600; color: #2D3436; padding: 20rpx 8rpx 14rpx; }
-
 .day-task-item {
   display: flex; align-items: center;
   padding: 14rpx 0; border-bottom: 1rpx solid #F0F2F0;
@@ -85,8 +83,6 @@
 .sk-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8rpx; margin-bottom: 16rpx; }
 .sk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6rpx; }
 .sk-cell { height: 76rpx; border-radius: 16rpx; background: linear-gradient(90deg, #F0F2F0 25%, #E8EAE8 50%, #F0F2F0 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
 /* 导入按钮 */
 
 /* 导入弹窗 */
@@ -94,10 +90,7 @@
 
 /* 导入弹窗按钮 */
 .modal-btns { display: flex; gap: 24rpx; margin-top: 28rpx; padding-top: 20rpx; border-top: 1rpx solid #eee; }
-.modal-btn { flex: 1; text-align: center; padding: 20rpx; border-radius: 14rpx; font-size: 28rpx; font-weight: 500; }
-.modal-btn.cancel { background: #f5f5f5; color: #666; }
-.modal-btn.confirm { background: #4CAF50; color: #fff; }
-.modal-btn.confirm:active { background: #388E3C; }
+.modal-btn { flex: 1; text-align: center; padding: 20rpx; border-radius: 14rpx; font-size: 28rpx; font-weight: 500; }.modal-btn.confirm:active { background: #388E3C; }
 .import-hint { font-size: 24rpx; color: #757575; display: block; margin-bottom: 16rpx; }
 .import-list { max-height: 55vh; overflow-y: auto; }
 .import-item { display: flex; align-items: center; gap: 16rpx; padding: 16rpx 12rpx; border-bottom: 1rpx solid #f0f0f0; }

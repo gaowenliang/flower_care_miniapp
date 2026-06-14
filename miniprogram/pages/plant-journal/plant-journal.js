@@ -1,11 +1,19 @@
 // pages/plant-journal/plant-journal.js - 植物成长日记（支持家庭模式）
-const util = require('../../utils/util')
-const storage = require('../../utils/storage')
-const imageUtil = require('../../utils/image')
-const family = require('../../utils/family')
+const util = require("../../utils/util")
+const storage = require("../../utils/storage")
+const imageUtil = require("../../utils/image")
+const family = require("../../utils/family")
+
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
 
 Page({
   data: {
+    _timers: [],
     userPlant: null,
     journal: [],       // 成长日记列表
     previewImage: '',   // 预览大图
@@ -22,7 +30,7 @@ Page({
       const userPlant = family.getPlantById(id)
       if (!userPlant) {
         wx.showToast({ title: '植物不存在', icon: 'none' })
-        setTimeout(() => wx.navigateBack(), 1000)
+        _timer(this, () => wx.navigateBack(), 1000)
         return
       }
       userPlant.id = userPlant._id || id
@@ -31,7 +39,7 @@ Page({
       const userPlant = storage.getPlantById(id)
       if (!userPlant) {
         wx.showToast({ title: '植物不存在', icon: 'none' })
-        setTimeout(() => wx.navigateBack(), 1000)
+        _timer(this, () => wx.navigateBack(), 1000)
         return
       }
       this.setData({ userPlant })
@@ -209,6 +217,9 @@ Page({
             storage.updatePlant(this.data.userPlant.id, { addedAt: earliestPhotoDate })
           }
           wx.showToast({ title: `已记录${files.length}张 📷`, icon: 'none' })
+        }).catch(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '上传失败', icon: 'none' })
         })
       }
     })
@@ -287,5 +298,10 @@ Page({
       title: `${this.data.userPlant.nickname}的成长日记`,
       path: '/pages/index/index'
     }
+  },
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
   }
 })

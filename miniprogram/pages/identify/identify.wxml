@@ -16,7 +16,7 @@
     <view class="result-list">
       <view class="result-row {{item.matched ? 'matched' : ''}}" wx:for="{{plants}}" wx:key="name" bindtap="selectPlant" data-index="{{index}}">
         <!-- 左：缩略图 -->
-        <image class="result-thumb" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+        <image class="result-thumb" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" lazy-load />
         <view class="result-thumb result-thumb-placeholder" wx:else>🌿</view>
         <!-- 中：名字+科属+描述 -->
         <view class="result-info">

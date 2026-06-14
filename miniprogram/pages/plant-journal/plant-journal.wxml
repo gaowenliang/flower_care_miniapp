@@ -21,7 +21,7 @@
     <view class="compare-title">🔄 成长对比</view>
     <view class="compare-grid">
       <view class="compare-item" wx:for="{{comparePhotos}}" wx:key="label">
-        <image class="compare-img" src="{{item.photo}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.photo}}" />
+        <image class="compare-img" src="{{item.photo}}" mode="aspectFill" lazy-load bindtap="previewImage" data-url="{{item.photo}}" />
         <text class="compare-label">{{item.label}}</text>
         <text class="compare-date">{{item.date}}</text>
       </view>

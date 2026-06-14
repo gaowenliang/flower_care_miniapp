@@ -317,7 +317,7 @@ Page({
       if (result.success) {
         this.setData({ showCustomModal: false })
         wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+        _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 800)
       } else {
         wx.showToast({ title: result.error || '添加失败', icon: 'none' })
       }
@@ -370,7 +370,7 @@ Page({
     const achievement = require('../../utils/achievement')
     achievement.checkAchievements()
 
-    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+    _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 800)
   },
 
   closeCustomModal() {
@@ -458,7 +458,7 @@ Page({
       if (result.success) {
         this.setData({ showModal: false })
         wx.showToast({ title: '添加成功! 🎉', icon: 'none' })
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+        _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 800)
       } else {
         wx.showToast({ title: result.error || '添加失败', icon: 'none' })
       }
@@ -510,17 +510,22 @@ Page({
     const achievement = require('../../utils/achievement')
     const newBadges = achievement.checkAchievements()
     if (newBadges.length > 0) {
-      setTimeout(() => {
+      _timer(this, () => {
         wx.showToast({ title: `🏆 解锁：${newBadges[0].name}`, icon: 'none', duration: 3000 })
       }, 1500)
     }
 
-    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 800)
+    _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 800)
   },
 
   closeModal() {
     this.setData({ showModal: false })
   },
 
-  preventBubble() {}
+  preventBubble() {},
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
+  }
 })

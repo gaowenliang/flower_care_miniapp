@@ -20,19 +20,22 @@ Page({
     familyName: '',
     statsLoading: false,
     userAvatar: '',
-    expandedFamily: ''
+    expandedFamily: '',
+    _loadId: 0
   },
 
   async onShow() {
+    const loadId = ++this.data._loadId
     this.setData({ statsLoading: true })
     // 读取用户头像
     try { this.setData({ userAvatar: wx.getStorageSync('_user_avatar') || '' }) } catch (e) {}
     await this.loadFamilyStatus()
+    if (loadId !== this.data._loadId) return  // 被新的 onShow 覆盖
     this.loadStats()
     this.loadAchievements()
     this.loadMonthlyStats()
     this.loadCostStats()
-    this.setData({ statsLoading: false })
+    if (loadId === this.data._loadId) this.setData({ statsLoading: false })
   },
 
   async loadStats() {

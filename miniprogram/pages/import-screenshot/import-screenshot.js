@@ -52,12 +52,13 @@ Page({
       return
     }
 
-    wx.chooseImage({
+    wx.chooseMedia({
       count: maxCount,
+      mediaType: ['image'],
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        const tempFiles = res.tempFilePaths
+        const tempFiles = res.tempFiles.map(f => f.tempFilePath)
         this.setData({
           selectedImages: [...this.data.selectedImages, ...tempFiles]
         })
@@ -101,7 +102,7 @@ Page({
       }
 
       // 处理解析结果
-      console.log('[importScreenshot] 云函数返回:', JSON.stringify(result).slice(0, 2000))
+      console.debug('[importScreenshot] 云函数返回:', JSON.stringify(result).slice(0, 2000))
       const records = result.records.map(r => {
         // 尝试匹配植物
         const plantMatch = this.matchPlant(r.plantName)
@@ -121,12 +122,12 @@ Page({
       // 调试信息弹窗
       const ver = result._version || '旧版本(未更新)'
       const ocrPreview = (result.debug_ocr_text || '').slice(0, 300).replace(/\n/g, ' | ')
-      console.log('[importScreenshot] 版本:', ver)
-      console.log('[importScreenshot] OCR原文:', result.debug_ocr_text)
-      console.log('[importScreenshot] records数量:', records.length)
+      console.debug('[importScreenshot] 版本:', ver)
+      console.debug('[importScreenshot] OCR原文:', result.debug_ocr_text)
+      console.debug('[importScreenshot] records数量:', records.length)
       if (records.length > 0) {
-        console.log('[importScreenshot] 第一条:', JSON.stringify(records[0]))
-        console.log('[importScreenshot] 最后一条:', JSON.stringify(records[records.length - 1]))
+        console.debug('[importScreenshot] 第一条:', JSON.stringify(records[0]))
+        console.debug('[importScreenshot] 最后一条:', JSON.stringify(records[records.length - 1]))
       }
       wx.showModal({
         title: '解析完成',
@@ -253,7 +254,7 @@ Page({
       wx.showToast({ title: msg, icon: 'success', duration: 2000 })
 
       // 延迟返回
-      setTimeout(() => {
+      _timer(this, () => {
         wx.navigateBack()
       }, 1500)
 

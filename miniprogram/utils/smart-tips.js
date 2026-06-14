@@ -1,6 +1,15 @@
 // utils/smart-tips.js — 智能贴士：结合天气、季节、位置生成养护建议
 
-const storage = require('./storage')
+// 全局天气缓存：按日期缓存天气数据，同一用户同一天只请求一次云函数
+// 启动时从 Storage 恢复，冷启动也能秒显示
+let _weatherCache = (() => {
+  try {
+    const stored = wx.getStorageSync('_weather_cache_daily')
+    if (stored && stored.date) return stored
+  } catch (e) {}
+  return { date: null, weather: null }
+})()
+const _weatherCachePending = {}  // 防并发重复请求
 
 // 季节判定
 function getSeason(month) {
@@ -80,7 +89,16 @@ const LOCATION_TIPS = {
  * 优先走云函数代理（Key不暴露），降级直接请求（开发阶段）
  */
 function fetchWeather(city) {
-  return new Promise((resolve) => {
+  const today = getDateStr()
+  // 当天已有缓存
+  if (_weatherCache.date === today && _weatherCache.weather) {
+    return Promise.resolve(_weatherCache.weather)
+  }
+  // 已有同天的并发请求，复用
+  if (_weatherCachePending[today]) {
+    return _weatherCachePending[today]
+  }
+  const p = new Promise((resolve) => {
     // 优先云函数
     if (wx.cloud) {
       wx.cloud.callFunction({
@@ -103,11 +121,26 @@ function fetchWeather(city) {
       fetchWeatherDirect(city).then(resolve)
     }
   })
+  _weatherCachePending[today] = p
+  p.then(w => {
+    _weatherCache = { date: today, weather: w }
+    try { wx.setStorageSync('_weather_cache_daily', _weatherCache) } catch (e) {}
+    delete _weatherCachePending[today]
+    return w
+  }).catch(() => {
+    delete _weatherCachePending[today]
+  })
+  return p
 }
 
 function fetchWeatherDirect(city) {
   // 云函数未部署时返回空，不暴露 API Key
   return Promise.resolve(null)
+}
+
+function getDateStr() {
+  const now = new Date()
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
 }
 
 /**

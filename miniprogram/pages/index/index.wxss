@@ -26,25 +26,13 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-/* 内容淡入 */
-.content-fade { animation: fadeIn 0.3s ease-out; }
-.content-fade.hidden { display: none; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(16rpx)} to{opacity:1;transform:translateY(0)} }
-
+/* 内容淡入 */.content-fade.hidden { display: none; }
 /* 完成任务动画 */
 .task-item.completing {
   animation: slideOut 0.3s ease-out forwards;
 }
 @keyframes slideOut { to{opacity:0;transform:translateX(60rpx);height:0;padding:0;overflow:hidden} }
-.section { margin-bottom: 24rpx; }
-
-.section-title {
-  display: flex; align-items: center;
-  padding: 16rpx 8rpx; font-size: 32rpx; font-weight: 600; color: #2D3436;
-}
-.section-icon { margin-right: 8rpx; font-size: 34rpx; }
+.section { margin-bottom: 24rpx; }.section-icon { margin-right: 8rpx; font-size: 34rpx; }
 
 .badge {
   margin-left: 12rpx; background: #2E7D32; color: #fff;
@@ -89,9 +77,7 @@
   border-radius: 44rpx; padding: 14rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(76,175,80,0.05);
 }
-.search-icon { font-size: 28rpx; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #2D3436; height: 56rpx; line-height: 56rpx; }
-.search-clear { font-size: 28rpx; color: #90A4AE; padding: 4rpx 12rpx; }
+.search-icon { font-size: 28rpx; margin-right: 12rpx; }.search-clear { font-size: 28rpx; color: #90A4AE; padding: 4rpx 12rpx; }
 
 /* 房间标签栏 */
 .room-scroll {
@@ -195,20 +181,7 @@
 .modal-content {
   width: 80%; background: #FFFFFF; border-radius: 28rpx;
   overflow: hidden;
-}
-.modal-header { padding: 36rpx 30rpx 12rpx; text-align: center; }
-.modal-title { font-size: 32rpx; font-weight: 600; color: #2D3436; }
-.modal-body { padding: 16rpx 40rpx 28rpx; }
-.form-input {
-  border: 2rpx solid #E8F5E9; border-radius: 20rpx;
-  padding: 20rpx; font-size: 28rpx; background: #F7F9F7; color: #2D3436;
-  height: 88rpx; box-sizing: border-box;
-}
-.modal-footer { display: flex; border-top: 1rpx solid #F0F2F0; }
-.modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
-.btn-cancel { color: #90A4AE; }
-
-/* 家庭模式头部 */
+}.modal-body { padding: 16rpx 40rpx 28rpx; }/* 家庭模式头部 */
 .family-header-bar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20rpx 16rpx 12rpx;
@@ -237,18 +210,11 @@
 .onboarding-steps {
   display: flex; align-items: center; justify-content: center;
   margin: 20rpx 0 32rpx; gap: 0;
-}
-.step { display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
-.step-num {
+}.step-num {
   width: 52rpx; height: 52rpx; border-radius: 50%;
   background: #F0F2F0; color: #B0BEC5; font-size: 24rpx; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-}
-.step.active .step-num { background: #4CAF50; color: #fff; }
-.step.done .step-num { background: #E8F5E9; color: #4CAF50; }
-.step-label { font-size: 22rpx; color: #B0BEC5; }
-.step.active .step-label { color: #4CAF50; font-weight: 600; }
-.step.done .step-label { color: #4CAF50; }
+}.step.done .step-num { background: #E8F5E9; color: #4CAF50; }.step.done .step-label { color: #4CAF50; }
 .step-line { width: 50rpx; height: 4rpx; background: #E8E8E8; margin: 0 6rpx; margin-bottom: 28rpx; }
 .step-line.done { background: #C8E6C9; }
 .guide-btns { display: flex; gap: 16rpx; margin-top: 16rpx; }

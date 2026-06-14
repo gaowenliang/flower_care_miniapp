@@ -3,6 +3,12 @@ const util = require('../../utils/util')
 const storage = require('../../utils/storage')
 const family = require('../../utils/family')
 
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
 Page({
   data: {
     year: 2026,
@@ -17,6 +23,7 @@ Page({
     selectedRecords: [],
     photoTimeline: [],
     loading: true,
+    _timers: [],
     // 导入相关
     showImportModal: false,
     importing: false,
@@ -44,7 +51,7 @@ Page({
       this.buildCalendar()
       this.loadPhotoTimeline()
     }
-    setTimeout(() => this.setData({ loading: false }), 300)
+    _timer(this, () => this.setData({ loading: false }), 300)
   },
 
   getDueDatesInMonth(task, year, month) {
@@ -322,5 +329,10 @@ Page({
         else this.prevMonth()
       }
     }
+  },
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
   }
 })

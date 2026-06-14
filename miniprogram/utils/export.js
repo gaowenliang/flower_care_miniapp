@@ -38,7 +38,9 @@ function generateReport(plantId) {
   if (records.length > 0) {
     lines.push('最近养护：')
     records.slice(0, 5).forEach(r => {
+      if (!r.date) return
       const d = new Date(r.date)
+      if (isNaN(d.getTime())) return
       const dateStr = `${d.getMonth() + 1}/${d.getDate()}`
       lines.push(`  ${dateStr} ${r.typeName}${r.note ? ' — ' + r.note : ''}`)
     })

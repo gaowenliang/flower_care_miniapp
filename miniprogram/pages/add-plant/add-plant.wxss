@@ -5,9 +5,7 @@
   background: #FFFFFF; border-radius: 44rpx; padding: 16rpx 28rpx;
   box-shadow: 0 2rpx 16rpx rgba(76,175,80,0.06);
 }
-.search-icon { margin-right: 12rpx; font-size: 28rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #2D3436; height: 56rpx; line-height: 56rpx; }
-.search-input::placeholder { color: #90A4AE; }
+.search-icon { margin-right: 12rpx; font-size: 28rpx; }.search-input::placeholder { color: #90A4AE; }
 .search-clear { color: #90A4AE; font-size: 28rpx; padding: 4rpx 12rpx; }
 
 .camera-btn {
@@ -65,31 +63,13 @@
   align-items: flex-end; justify-content: center; z-index: 999;
   animation: fadeIn 0.2s ease;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 .modal-content {
   width: 100%; max-height: 85vh; background: #FFFFFF; border-radius: 28rpx 28rpx 0 0;
   overflow: hidden; animation: slideUp 0.3s ease-out;
   display: flex; flex-direction: column;
 }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-.modal-header { padding: 40rpx 30rpx 16rpx; text-align: center; }
-.modal-emoji { font-size: 80rpx; display: block; margin-bottom: 12rpx; }
-.modal-title { font-size: 32rpx; font-weight: 600; color: #2D3436; }
-
-.modal-body { padding: 16rpx 24rpx 28rpx; overflow-y: auto; flex: 1; }
-.form-item { margin-bottom: 28rpx; }
-.form-label { font-size: 26rpx; color: #90A4AE; margin-bottom: 12rpx; display: block; }
-.form-input {
-  border: 2rpx solid #E8F5E9; border-radius: 20rpx;
-  padding: 20rpx 24rpx; font-size: 28rpx; color: #2D3436;
-  background: #F7F9F7; line-height: 1.4;
-  width: 100%; height: 88rpx;
-  box-sizing: border-box;
-}
-
-.location-options { display: flex; flex-wrap: wrap; gap: 12rpx; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }.modal-emoji { font-size: 80rpx; display: block; margin-bottom: 12rpx; }
+.modal-body { padding: 16rpx 24rpx 28rpx; overflow-y: auto; flex: 1; }.location-options { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .loc-opt {
   padding: 16rpx 28rpx; border-radius: 44rpx;
   background: #F7F9F7; font-size: 26rpx; color: #90A4AE;
@@ -112,12 +92,7 @@
   border: 2rpx solid #E8F5E9; border-radius: 16rpx; padding: 8rpx; height: 72rpx;
 }
 .interval-unit { font-size: 28rpx; color: #90A4AE; }
-.form-hint { font-size: 22rpx; color: #B0BEC5; margin-top: 8rpx; display: block; }
-
-.modal-footer { display: flex; border-top: 1rpx solid #F0F2F0; }
-.modal-footer view { flex: 1; text-align: center; padding: 30rpx; font-size: 30rpx; }
-.btn-cancel { color: #90A4AE; }
-.btn-primary { color: #4CAF50; font-weight: 600; }
+.form-hint { font-size: 22rpx; color: #B0BEC5; margin-top: 8rpx; display: block; }.btn-primary { color: #4CAF50; font-weight: 600; }
 
 /* 自定义添加入口 */
 .custom-add-bar {

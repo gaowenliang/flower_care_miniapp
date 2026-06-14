@@ -1,8 +1,15 @@
 // pages/family/family.js — 家庭管理页面 v4
 const family = require('../../utils/family')
 
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
 Page({
   data: {
+    _timers: [],
     loading: true, loadError: false, inFamily: false,
     familyInfo: null, myRole: '', members: [],
     leaderboard: [], myPoints: 0,
@@ -28,7 +35,7 @@ Page({
   async onLoad(options) {
     if (options && options.inviteCode) this.setData({ inviteCode: options.inviteCode, showJoin: true })
     await this.loadFamilyInfo()
-    setTimeout(() => this.setData({ loading: false }), 200)
+    _timer(this, () => this.setData({ loading: false }), 200)
   },
 
   async onShow() {
@@ -60,7 +67,7 @@ Page({
   async retryLoad() {
     this.setData({ loadError: false, loading: true })
     await this.loadFamilyInfo()
-    setTimeout(() => this.setData({ loading: false }), 200)
+    _timer(this, () => this.setData({ loading: false }), 200)
   },
 
   // ========== Tab ==========
@@ -297,7 +304,7 @@ Page({
     wx.showLoading({ title: '创建中...' })
     const result = await family.manage('create', { name })
     wx.hideLoading()
-    if (result.success) { wx.showToast({ title: '创建成功! 🏠', icon: 'none' }); this.setData({ showCreate: false }); await this.loadFamilyInfo(); setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1000) }
+    if (result.success) { wx.showToast({ title: '创建成功! 🏠', icon: 'none' }); this.setData({ showCreate: false }); await this.loadFamilyInfo(); _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 1000) }
     else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
 
@@ -310,7 +317,7 @@ Page({
     wx.showLoading({ title: '加入中...' })
     const result = await family.manage('join', { inviteCode: code })
     wx.hideLoading()
-    if (result.success) { wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' }); this.setData({ showJoin: false }); await this.loadFamilyInfo(); setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1000) }
+    if (result.success) { wx.showToast({ title: `已加入 ${result.name}! 🎉`, icon: 'none' }); this.setData({ showJoin: false }); await this.loadFamilyInfo(); _timer(this, () => wx.switchTab({ url: '/pages/index/index' }), 1000) }
     else wx.showToast({ title: result.error, icon: 'none', duration: 2500 })
   },
 
@@ -319,5 +326,10 @@ Page({
     return { title: `邀请你加入「${info.name}」家庭花园`, path: `/pages/family/family?inviteCode=${info.inviteCode}` }
   },
 
-  preventBubble() {}
+  preventBubble() {},
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
+  }
 })

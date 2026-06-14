@@ -3,6 +3,12 @@ const util = require('../../utils/util')
 const subscribe = require('../../utils/subscribe')
 const family = require('../../utils/family')
 
+function _timer(page, fn, delay) {
+  const id = setTimeout(fn, delay)
+  page.data._timers.push(id)
+  return id
+}
+
 // 预设房间
 const DEFAULT_ROOMS = ['阳台', '客厅', '卧室', '书房', '窗台', '花园']
 
@@ -39,7 +45,9 @@ Page({
     // 天气
     weather: null,
     weatherLoading: false,
-    weatherError: ''
+    weatherError: '',
+    // timer清理
+    _timers: []
   },
 
   onShow() {
@@ -59,7 +67,7 @@ Page({
           if (info.success && !info.inFamily) {
             wx.redirectTo({ url: '/pages/family/family' })
           }
-        })
+        }).catch(() => {})
         this.loadFamilyData()
       } else {
         this.loadFamilyDataFromCache()
@@ -68,7 +76,7 @@ Page({
       this.setData({ loading: true, _lastCloudRefresh: Date.now() })
       const info = await family.refreshFamilyInfo()
       if (info.success && info.inFamily) {
-        this.loadFamilyData()
+        this.loadFamilyDataFromCache()  // 先走缓存立即渲染，后台再静默刷新
       } else {
         wx.redirectTo({ url: '/pages/family/family' })
         return
@@ -76,7 +84,7 @@ Page({
     }
     this.loadWeather()
     subscribe.checkAndNotify()
-    setTimeout(() => this.setData({ loading: false }), 300)
+    _timer(this, () => this.setData({ loading: false }), 300)
   },
 
   // ========== 家庭模式数据加载 ==========
@@ -397,7 +405,7 @@ Page({
           wx.hideLoading()
           if (result.success) {
             this.setData({ showTip: true, tipText: `${plant.nickname} ${typeName}完成！` })
-            setTimeout(() => this.setData({ showTip: false }), 2000)
+            _timer(this, () => this.setData({ showTip: false }), 2000)
             await this.loadFamilyData()
           } else {
             wx.showToast({ title: result.error || '操作失败', icon: 'none' })
@@ -417,12 +425,12 @@ Page({
     const tasks = this.data.todayTasks.map(t => t.id === taskId ? { ...t, completing: true } : t)
     this.setData({ todayTasks: tasks })
 
-    setTimeout(async () => {
+    _timer(this, async () => {
       try {
         const result = await family.completeTask(taskId)
         if (result.success) {
           this.setData({ showTip: true, tipText: '完成啦~' })
-          setTimeout(() => this.setData({ showTip: false }), 2000)
+          _timer(this, () => this.setData({ showTip: false }), 2000)
           await this.loadFamilyData()
         } else {
           wx.showToast({ title: result.error || '操作失败', icon: 'none' })
@@ -487,7 +495,7 @@ Page({
           }
           await this.loadFamilyData()
           this.setData({ showTip: true, tipText: `${tasks.length}项全部完成！` })
-          setTimeout(() => this.setData({ showTip: false }), 2000)
+          _timer(this, () => this.setData({ showTip: false }), 2000)
         }
       }
     })
@@ -518,13 +526,13 @@ Page({
         await this.loadFamilyData()
         wx.hideLoading()
         this.setData({ showTip: true, tipText: `💧 ${done}棵植物已浇水！` })
-        setTimeout(() => this.setData({ showTip: false }), 2000)
+        _timer(this, () => this.setData({ showTip: false }), 2000)
       }
     })
   },
 
   onPullDownRefresh() {
-    this.loadFamilyData().then(() => wx.stopPullDownRefresh())
+    this.loadFamilyData().then(() => wx.stopPullDownRefresh()).catch(() => wx.stopPullDownRefresh())
   },
 
   onShareAppMessage() {
@@ -541,5 +549,10 @@ Page({
     const count = this.data.garden.length
     const alive = this.data.garden.filter(p => !p.dead).length
     return { title: count === 0 ? '养花助手 - 开始你的花园' : `我在养${alive}棵植物，快来一起养花~`, query: '' }
+  },
+
+  onUnload() {
+    this.data._timers.forEach(id => clearTimeout(id))
+    this.data._timers = []
   }
 })

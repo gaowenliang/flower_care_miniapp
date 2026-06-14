@@ -16,13 +16,6 @@
   align-items: center;
   margin-bottom: 16rpx;
 }
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
 .section-hint {
   font-size: 24rpx;
   color: #999;
@@ -299,22 +292,7 @@
   padding: 24rpx;
   max-height: 85vh;
   overflow-y: auto;
-}
-
-.modal-header {
-  text-align: center;
-  padding-bottom: 24rpx;
-  border-bottom: 1rpx solid #F0F0F0;
-  margin-bottom: 24rpx;
-}
-
-.modal-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.plant-list {
+}.plant-list {
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -377,11 +355,6 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 .loading-text {
   font-size: 28rpx;
   color: #FFF;

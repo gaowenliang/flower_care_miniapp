@@ -13,7 +13,7 @@
     <!-- 已选图片缩略图 -->
     <view class="thumbnail-grid" wx:if="{{selectedImages.length > 0}}">
       <view class="thumbnail-item" wx:for="{{selectedImages}}" wx:key="*this">
-        <image class="thumbnail-img" src="{{item}}" mode="aspectFill" />
+        <image class="thumbnail-img" src="{{item}}" mode="aspectFill" lazy-load />
         <view class="thumbnail-delete" bindtap="removeImage" data-idx="{{index}}">×</view>
       </view>
     </view>

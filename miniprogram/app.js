@@ -19,6 +19,7 @@ App({
 
     this.globalData = {}
     this.initPlantData()
+    storage.migrate()
   },
 
   // ========== 全局错误监控 ==========
@@ -73,12 +74,6 @@ App({
       console.error('初始化植物数据失败:', e)
     }
   },
-
-  // 保留旧接口兼容
-  getMyGarden() { return storage.getGarden() },
-  saveMyGarden(garden) { storage.saveGarden(garden) },
-  getCareTasks() { return storage.getTasks() },
-  saveCareTasks(tasks) { storage.saveTasks(tasks) },
 
   globalData: {
     userInfo: null
