@@ -127,21 +127,8 @@ Page({
         selectedCount: records.length
       })
 
-      // 调试信息弹窗
-      const ver = result._version || '旧版本(未更新)'
-      const ocrPreview = (result.debug_ocr_text || '').slice(0, 300).replace(/\n/g, ' | ')
-      console.debug('[importScreenshot] 版本:', ver)
-      console.debug('[importScreenshot] OCR原文:', result.debug_ocr_text)
+      // 调试日志（生产环境不弹窗）
       console.debug('[importScreenshot] records数量:', records.length)
-      if (records.length > 0) {
-        console.debug('[importScreenshot] 第一条:', JSON.stringify(records[0]))
-        console.debug('[importScreenshot] 最后一条:', JSON.stringify(records[records.length - 1]))
-      }
-      wx.showModal({
-        title: '解析完成',
-        content: `版本: ${ver}\n记录数: ${records.length}\n\nOCR前300字:\n${ocrPreview}`,
-        confirmText: '确定'
-      })
 
       // 删除云存储文件（清理临时文件）
       for (const fileID of fileIDs) {
