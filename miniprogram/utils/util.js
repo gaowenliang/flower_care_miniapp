@@ -95,18 +95,21 @@ function buildRecordTimeline(records, typeEmojis, typeColors) {
   const defaultEmojis = {
     water: '💧', fertilize: '🧪', prune: '✂️', repot: '🏺', spray: '💉',
     photo: '📷', note: '📝', retro: '🔖', custom: '🌿',
-    pest: '🐛', loosen: '🌱', cutting: '✂️', sow: '🌱', postpone: '⏩'
+    pest: '🐛', loosen: '🪴', cutting: '🔪', sow: '🌱', postpone: '⏩'
   }
   const defaultColors = {
     water:    { bg: '#E3F2FD', border: '#BBDEFB', text: '#1565C0' },
     fertilize:{ bg: '#FFF3E0', border: '#FFE0B2', text: '#E65100' },
     prune:    { bg: '#FCE4EC', border: '#F8BBD0', text: '#AD1457' },
+    cutting:  { bg: '#F3E5F5', border: '#E1BEE7', text: '#6A1B9A' },
     repot:    { bg: '#EFEBE9', border: '#D7CCC8', text: '#4E342E' },
     spray:    { bg: '#E8EAF6', border: '#C5CAE9', text: '#283593' },
     photo:    { bg: '#F3E5F5', border: '#E1BEE7', text: '#6A1B9A' },
     note:     { bg: '#FFF8E1', border: '#FFECB3', text: '#F57F17' },
     pest:     { bg: '#FFEBEE', border: '#FFCDD2', text: '#B71C1C' },
     retro:    { bg: '#FBE9E7', border: '#FFCCBC', text: '#BF360C' },
+    loosen:   { bg: '#F1F8E9', border: '#DCEDC8', text: '#33691E' },
+    sow:      { bg: '#FFF8E1', border: '#FFE082', text: '#FF6F00' },
     custom:   { bg: '#E0F2F1', border: '#B2DFDB', text: '#00695C' },
     postpone: { bg: '#ECEFF1', border: '#CFD8DC', text: '#546E7A' }
   }

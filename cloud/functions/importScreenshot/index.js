@@ -393,7 +393,7 @@ exports.main = async (event) => {
     success: true,
     total: unique.length,
     records: unique,
-    debug_ocr_text: fullText,
+    debug_ocr_text: fullText ? fullText.slice(0, 200) : '',  // 只返回前200字防隐私泄露
     _version: '2026-05-29-v3'  // 版本标记，确认是最新代码
   }
 }

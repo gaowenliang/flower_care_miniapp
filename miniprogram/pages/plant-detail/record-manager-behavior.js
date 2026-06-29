@@ -23,11 +23,11 @@ module.exports = Behavior({
             const photoUrl = await imageUtil.uploadImage(tempFile.tempFilePath)
             if (!photoUrl) continue
 
-            let photoDate = Date.now() + i
+            let photoDate = Date.now() + i * 1000
             const isCamera = tempFile.sourceType === 'camera' || (res.sourceType && res.sourceType === 'camera')
             if (!isCamera) {
               const exifTs = await exifDate.getExifDate(tempFile.tempFilePath)
-              if (exifTs && exifTs > 0) photoDate = exifTs + i
+              if (exifTs && exifTs > 0) photoDate = exifTs + i * 1000
             }
             if (photoDate < earliestPhotoDate) earliestPhotoDate = photoDate
 
@@ -350,19 +350,18 @@ module.exports = Behavior({
     // ========== 删除记录 ==========
 
     toggleRecordMenu(e) {
-      const idx = e.currentTarget.dataset.idx
+      const recordId = e.currentTarget.dataset.id
       const records = this.data.records
-      records.forEach((r, i) => { r.showMenu = (i === idx) ? !r.showMenu : false })
+      records.forEach(r => { r.showMenu = ((r._id || r.id) === recordId) ? !r.showMenu : false })
       this.setData({ records })
     },
 
     async deleteRecord(e) {
-      const { id, idx } = e.currentTarget.dataset
-      const record = this.data.records[idx]
-      if (!record) return
-
-      // 兼容家庭模式(_id)和个人模式(id)
-      const recordId = id || record._id || record.id
+      const recordId = e.currentTarget.dataset.id
+      const records = this.data.records
+      const idx = records.findIndex(r => (r._id || r.id) === recordId)
+      if (idx === -1) return
+      const record = records[idx]
 
       wx.showModal({
         title: '删除记录',
@@ -379,9 +378,8 @@ module.exports = Behavior({
           } else {
             storage.deleteRecord(recordId)
           }
-          const records = this.data.records.filter((_, i) => i !== idx)
-          this.setData({ records })
-          this.buildCalendar()
+          const newRecords = this.data.records.filter(r => (r._id || r.id) !== recordId)
+          this.setData({ records: newRecords }, () => { this.buildCalendar() })
           wx.showToast({ title: '已删除', icon: 'none' })
         }
       })

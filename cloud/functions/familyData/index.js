@@ -403,9 +403,9 @@ async function getRecords(event, familyId) {
   // 按日期倒序
   allRecords.sort((a, b) => (b.date || 0) - (a.date || 0))
 
-  // 如果传了 limit 就截取
+  // 如果传了 limit 就截取，兜底上限 500 防滥用
   const l = limit || 500
-  const records = l > 0 ? allRecords.slice(0, l) : allRecords
+  const records = allRecords.slice(0, Math.min(l, 500))
 
   // 获取成员信息映射
   const openids = new Set(records.map(r => r.createdBy).filter(Boolean))

@@ -11,17 +11,25 @@ function setCustomRooms(rooms) {
   try { wx.setStorageSync('customRooms', rooms) } catch (e) {}
 }
 
-// 获取可用的默认迁移目标房间（优先阳台，如果阳台被改名则取第一个预设）
+// 获取可用的默认迁移目标房间
+// 优先改名后的阳台→原名阳台→第一个没改名的预设→第一个改名后的名字→第一个自定义
 function getDefaultMigrationTarget() {
   const renamedPresets = (() => { try { return wx.getStorageSync('renamedPresets') || {} } catch (e) { return {} } })()
-  // 如果阳台没有被改名，就用阳台
+  const customRooms = getCustomRooms()
+  // 如果阳台被改名了，用改名后的名字
+  if (renamedPresets['阳台']) return renamedPresets['阳台']
+  // 阳台没改名就用阳台
   if (!renamedPresets['阳台']) return '阳台'
-  // 阳台被改名了，找第一个没被改名的预设房间
+  // 所有预设都被改名了，找第一个没被改名的预设
   for (const room of PRESET_ROOMS) {
     if (!renamedPresets[room]) return room
   }
   // 所有预设都被改名了，用第一个改名后的名字
-  return Object.values(renamedPresets)[0] || '阳台'
+  const vals = Object.values(renamedPresets)
+  if (vals.length > 0) return vals[0]
+  // 最后兜底：第一个自定义房间
+  if (customRooms.length > 0) return customRooms[0]
+  return '阳台'
 }
 
 Page({
@@ -105,9 +113,14 @@ Page({
       try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
     }
 
-    // 更新该房间下的植物 — 串行写入避免并发冲突
+    // 先乐观更新本地缓存
     const plants = family.getCachedPlants()
     const plantsToMove = plants.filter(p => p.location === oldName)
+    for (const p of plantsToMove) {
+      family.updatePlant(p._id, { location: newName, _prevLocation: oldName })
+    }
+
+    // 云端迁移 — 串行写入避免并发冲突
     if (plantsToMove.length > 0) {
       wx.showLoading({ title: '迁移中...' })
       let changed = 0
@@ -171,13 +184,11 @@ Page({
         delete roomEnvs[name]
         try { wx.setStorageSync('roomEnvs', roomEnvs) } catch (e) {}
 
-        // 该房间的植物移到迁移目标（串行写入）
+        // 该房间的植物移到迁移目标（乐观更新+云端串行）
         const plants = family.getCachedPlants()
         const plantsToMove = plants.filter(p => p.location === name)
-        if (plantsToMove.length > 0) {
-          for (const p of plantsToMove) {
-            try { await family.updatePlant(p._id, { location: migrationTarget }) } catch (e) {}
-          }
+        for (const p of plantsToMove) {
+          family.updatePlant(p._id, { location: migrationTarget, _prevLocation: name })
         }
 
         this.loadRooms()

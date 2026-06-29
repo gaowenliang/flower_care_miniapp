@@ -88,9 +88,9 @@ async function checkAndNotify(force) {
   if (isFamilyMode) {
     garden = family.getCachedPlants().map(p => ({ ...p, id: p._id }))
     const tasks = family.getCachedTasks('')
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    const todayTs = today.getTime()
-    dueTasks = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000)
+    const eod = new Date(); eod.setHours(23, 59, 59, 999)
+    const eodTs = eod.getTime()
+    dueTasks = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= eodTs)
   } else {
     garden = storage.getGarden()
     dueTasks = storage.getDueTasks()

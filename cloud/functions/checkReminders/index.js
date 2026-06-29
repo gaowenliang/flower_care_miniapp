@@ -1,5 +1,6 @@
 // cloud/functions/checkReminders/index.js
-// 云函数：定时检查养护提醒
+// 云函数：定时检查养护提醒（家庭模式）
+// 触发器：每天早上 09:00 执行
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -25,39 +26,69 @@ exports.main = async (event) => {
     return { success: false, error: 'TEMPLATE_ID 环境变量未配置，请在云开发控制台设置' }
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayTime = today.getTime()
-  const tomorrowTime = todayTime + 86400000
+  // 以今天结束（23:59:59）为界
+  const eod = new Date()
+  eod.setHours(23, 59, 59, 999)
+  const eodTs = eod.getTime()
 
   try {
-    // 分页查询所有到期任务（不再 limit 100 丢弃）
-    const tasks = await fetchAll('care_tasks', {
+    // 查询家庭模式中今天到期的任务（family_tasks 集合）
+    const tasks = await fetchAll('family_tasks', {
       enabled: true,
-      nextDate: _.lte(tomorrowTime)
+      nextDate: _.lte(eodTs)
     })
 
     const results = []
 
     for (const task of tasks) {
-      const { data: plant } = await db.collection('user_plants')
-        .where({ _id: task.userPlantId })
-        .get()
-
-      if (!plant || plant.length === 0) continue
+      // 查关联植物
+      let plantName = '植物'
+      try {
+        const plantRes = await db.collection('family_plants').doc(task.plantId || task.userPlantId).get()
+        if (plantRes.data) {
+          plantName = plantRes.data.nickname || plantRes.data.name || '植物'
+          // 跳过已死亡的植物
+          if (plantRes.data.dead) {
+            results.push({ taskId: task._id, skipped: 'plant_dead' })
+            continue
+          }
+        }
+      } catch (e) {
+        // 植物不存在，跳过
+        results.push({ taskId: task._id, skipped: 'plant_not_found' })
+        continue
+      }
 
       try {
-        await cloud.openapi.subscribeMessage.send({
-          touser: plant[0]._openid,
-          templateId,
-          page: `pages/plant-detail/plant-detail?id=${task.userPlantId}`,
-          data: {
-            thing1: { value: plant[0].nickname },
-            date2: { value: today.toISOString().split('T')[0] },
-            thing3: { value: `${task.typeName}时间到了！` }
+        // 查植物添加者的 openid 作为通知对象（也可改为认养者）
+        const plantRes = await db.collection('family_plants').doc(task.plantId || task.userPlantId).get()
+        const notifyOpenids = new Set()
+        if (plantRes.data) {
+          if (plantRes.data.addedBy) notifyOpenids.add(plantRes.data.addedBy)
+          // 也通知认养者
+          ;(plantRes.data.adopters || []).forEach(oid => notifyOpenids.add(oid))
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0]
+        let sent = false
+        for (const openid of notifyOpenids) {
+          try {
+            await cloud.openapi.subscribeMessage.send({
+              touser: openid,
+              templateId,
+              page: `pages/plant-detail/plant-detail?id=${task.plantId || task.userPlantId}`,
+              data: {
+                thing1: { value: plantName },
+                date2: { value: todayStr },
+                thing3: { value: `${task.typeName}时间到了！` }
+              }
+            })
+            sent = true
+          } catch (err) {
+            // 用户未授权订阅或额度用完，静默跳过
           }
-        })
-        results.push({ taskId: task._id, sent: true })
+        }
+        results.push({ taskId: task._id, sent })
       } catch (err) {
         results.push({ taskId: task._id, sent: false, error: err.message })
       }

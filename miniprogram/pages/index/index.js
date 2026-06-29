@@ -113,10 +113,13 @@ Page({
   },
 
   _buildFamilyUI(plants, allTasks, allRecords) {
+    // 以今天结束（23:59:59.999）为界，避免明天上午的任务提前显示为今天
+    const _eod = new Date(); _eod.setHours(23, 59, 59, 999)
+    const _eodTs = _eod.getTime()
     const garden = (plants || []).map(plant => {
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
         const dueCount = plantTasks.filter(t => {
-          return t.nextDate && t.nextDate <= (Date.now() + 86400000)
+          return t.nextDate && t.nextDate <= _eodTs
         }).length
         return {
           ...plant,
@@ -140,7 +143,7 @@ Page({
       garden.forEach(plant => {
         const plantTasks = (allTasks || []).filter(t => t.plantId === plant._id && t.enabled)
         plantTasks.forEach(task => {
-          if (task.nextDate && task.nextDate <= (Date.now() + 86400000)) {
+          if (task.nextDate && task.nextDate <= _eodTs) {
             const overdueDays = task.nextDate <= Date.now() ? Math.floor((Date.now() - task.nextDate) / 86400000) : 0
             todayTasks.push({
               ...task,
@@ -448,12 +451,13 @@ Page({
     const task = this.data.todayTasks[idx]
     if (!task) return
 
-    // 乐观更新：先立即隐藏
+    // 推迟到明天零点（而非此刻+24h），确保明天会出现在待办列表
     const newTasks = [...this.data.todayTasks]
     newTasks.splice(idx, 1)
     this.setData({ todayTasks: newTasks })
 
-    const newNextDate = Date.now() + 86400000
+    const _tomorrow = new Date(); _tomorrow.setDate(_tomorrow.getDate() + 1); _tomorrow.setHours(0, 0, 0, 0)
+    const newNextDate = _tomorrow.getTime()
     const result = await family.updateTask(taskId, { nextDate: newNextDate })
     if (result.success) {
       try {
