@@ -57,9 +57,9 @@ Page({
         tasks = t || []
         records = r || []
       }
-      const today = new Date(); today.setHours(0, 0, 0, 0)
-      const todayTs = today.getTime()
-      const dueToday = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= todayTs + 86400000).length
+      const _eod = new Date(); _eod.setHours(23, 59, 59, 999)
+      const _eodTs = _eod.getTime()
+      const dueToday = tasks.filter(t => t.enabled && t.nextDate && t.nextDate <= _eodTs).length
       const stats = {
         totalPlants: plants.length,
         totalTasks: tasks.length,

@@ -504,10 +504,10 @@ async function getDashboard(familyId) {
   plants.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
   const tasks = await fetchAll('family_tasks', { familyId, enabled: true })
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayTs = today.getTime()
-  const dueTasks = tasks.filter(t => t.nextDate <= todayTs + 86400000)
+  const eod = new Date()
+  eod.setHours(23, 59, 59, 999)
+  const eodTs = eod.getTime()
+  const dueTasks = tasks.filter(t => t.nextDate <= eodTs)
 
   return {
     success: true,

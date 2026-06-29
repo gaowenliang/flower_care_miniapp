@@ -329,10 +329,10 @@ function getExtendedStats() {
   // 今日全部完成
   if (isFamilyMode) {
     const tasks = family.getCachedTasks('')
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    const todayTs = today.getTime()
+    const _eod = new Date(); _eod.setHours(23, 59, 59, 999)
+    const _eodTs = _eod.getTime()
     const activeTasks = tasks.filter(t => t.enabled)
-    const dueTasks = activeTasks.filter(t => t.nextDate && t.nextDate <= todayTs + 86400000)
+    const dueTasks = activeTasks.filter(t => t.nextDate && t.nextDate <= _eodTs)
     stats.allDoneToday = dueTasks.length === 0 && activeTasks.length > 0
   } else {
     const dueTasks = storage.getDueTasks()
